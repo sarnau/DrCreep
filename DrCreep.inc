@@ -1110,6 +1110,7 @@ _unused_field_61 .byte
 	doorsPtr       .addr   ; Position of the doors in the room
 	objectPtr      .addr   ; Objects within the room
 .endstruct
+.assert .sizeof(CreepRoom)=8,error
 
 ; ===========================================================================
 ; === Objects in the castle file
@@ -1322,3 +1323,45 @@ time           .byte
 	color          .byte  ; enum C64_COLORS
 	rasterLine     .byte
 .endstruct
+
+; ################################################################################
+; ### Zero-page variables
+; ################################################################################
+
+	.zeropage
+	.org $10
+; VIC mirrow registers to be set during the IRQ
+IRQ_VIC_MnX:       .byte 0,0,0,0,0,0,0,0 ; X Coordinate Sprite 0
+IRQ_VIC_MnY:       .byte 0,0,0,0,0,0,0,0 ; Y Coordinate Sprite 0
+IRQ_VIC_MSIGX:     .byte 0 ; MSBs of X coordinates
+IRQ_VIC_ME:        .byte 0 ; Sprite enabled
+IRQ_VIC_VM_CB:     .byte 0 ; Memory pointers
+IRQ_VIC_EC_BORDER: .byte 0 ; Border color
+                   .byte 0 ; uninited & unexplored
+IRQ_VIC_CR2:       .byte 0 ; Control register 2
+IRQ_VIC_SPRITE_ADR:.byte 0,0,0,0,0,0,0,0
+                   .byte 0,0 ; (uninited)
+.assert * = $30, error, "VIC mirror registers are not 32 bytes long"
+
+; zero-page pointers to various data
+PP_A:			.addr $0000
+PP_B:			.addr $0000
+screenDraw_BitmapLineAdr: .addr $0000
+_screenDraw_Current_BitmapAdr: .addr $0000
+screenDraw_PTR:  .addr $0000
+                .addr $0000 ; unused
+ScreenDirectionAddr: .addr $0000
+object_Ptr:      .addr $0000
+mVObjectPtr:     .addr $0000
+mRoomPtr:        .addr $0000
+
+SND_PTR:         .addr $0000
+SND_VoiceBaseRegAddr: .addr $0000
+SND_VoiceBaseRegMirrorAddr: .addr $0000
+
+.assert * = $4A, error, "VIC mirror registers are not 13 addresses long"
+
+	.org $FB
+PROTECTION_INDEX: .byte 0 ; copy protection
+
+; ################################################################################
