@@ -101,68 +101,68 @@
 .endenum
 
 .scope SID
-	FRELO1 := $D400
-	FREHI1 := $D401
-	PWLO1  := $D402
-	PWHI1  := $D403
-	VCREG1 := $D404
-	ATDCY1 := $D405
-	SUREL1 := $D406
-	FRELO2 := $D407
-	FREHI2 := $D408
-	PWLO2  := $D409
-	PWHI2  := $D40A
-	VCREG2 := $D40B
-	ATDCY2 := $D40C
-	SUREL2 := $D40D
-	FRELO3 := $D40E
-	FREHI3 := $D40F
-	PWLO3  := $D410
-	PWHI3  := $D411
-	VCREG3 := $D412
-	ATDCY3 := $D413
-	SUREL3 := $D414
-	SIGVOL := $D418
+	FRELO1 	:= $D400
+	FREHI1 	:= $D401
+	PWLO1  	:= $D402
+	PWHI1  	:= $D403
+	VCREG1 	:= $D404
+	ATDCY1 	:= $D405
+	SUREL1 	:= $D406
+	FRELO2 	:= $D407
+	FREHI2 	:= $D408
+	PWLO2  	:= $D409
+	PWHI2  	:= $D40A
+	VCREG2 	:= $D40B
+	ATDCY2 	:= $D40C
+	SUREL2 	:= $D40D
+	FRELO3 	:= $D40E
+	FREHI3 	:= $D40F
+	PWLO3  	:= $D410
+	PWHI3  	:= $D411
+	VCREG3 	:= $D412
+	ATDCY3 	:= $D413
+	SUREL3 	:= $D414
+	SIGVOL 	:= $D418
 .endscope
 
 COLORRAM := $D800
 
 .scope CIA1
-	PRA  := $DC00
-	COLM	:= PRA		; keyboard matrix
-	PRB  := $DC01
-	ROWS	:= PRB		; keyboard matrix
-	DDRA := $DC02
-	DDRB := $DC03
-	T1L  := $DC04
-	T1H  := $DC05
-	T2L  := $DC06
-	T2H  := $DC07
-	TOD1 := $DC08
-	TODS := $DC09
-	TODM := $DC0A
-	TODH := $DC0B
-	SDR  := $DC0C
-	ICR  := $DC0D
-	CRA  := $DC0E
-	CRB  := $DC0F
+	PRA  	:= $DC00
+	COLM 	:= PRA		; keyboard matrix
+	PRB  	:= $DC01
+	ROWS 	:= PRB		; keyboard matrix
+	DDRA 	:= $DC02
+	DDRB 	:= $DC03
+	T1L  	:= $DC04
+	T1H  	:= $DC05
+	T2L  	:= $DC06
+	T2H  	:= $DC07
+	TOD1 	:= $DC08
+	TODS 	:= $DC09
+	TODM 	:= $DC0A
+	TODH 	:= $DC0B
+	SDR  	:= $DC0C
+	ICR  	:= $DC0D
+	CRA  	:= $DC0E
+	CRB  	:= $DC0F
 .endscope
 
 .scope CIA2
-	PRA	:= $DD00
-	PRB	:= $DD01
+	PRA 	:= $DD00
+	PRB		:= $DD01
 	DDRA	:= $DD02
 	DDRB	:= $DD03
-	T1L	:= $DD04
-	T1H	:= $DD05
-	T2L	:= $DD06
-	T2H	:= $DD07
+	T1L		:= $DD04
+	T1H		:= $DD05
+	T2L		:= $DD06
+	T2H		:= $DD07
 	TOD1	:= $DD08
 	TODS	:= $DD09
 	TODM	:= $DD0A
 	TODH	:= $DD0B
-	SDR	:= $DD0C
-	ICR	:= $DD0D
-	CRA	:= $DD0E
-	CRB	:= $DD0F
+	SDR		:= $DD0C
+	ICR		:= $DD0D
+	CRA		:= $DD0E
+	CRB		:= $DD0F
 .endscope
