@@ -79,6 +79,27 @@
 	FAST   := $D030 ; - - - - - - TEST 2MHz (Only available on C128)
 .endscope
 
+.enum VIC_CR1_FLAGS
+	YSCROLL_1 = 1
+	YSCROLL_2 = 2
+	YSCROLL_3 = 3
+	YSCROLL_4 = 4
+	YSCROLL_5 = 5
+	YSCROLL_6 = 6
+	YSCROLL_7 = 7
+	RSEL = $08
+	DEN = $10
+	BMM = $20
+	ECM = $40
+	RST8 = $80
+.endenum
+
+.enum VIC_CR2_FLAGS
+	CSEL = 8
+	MCM = $10
+	RES = $20
+.endenum
+
 .scope SID
 	FRELO1 := $D400
 	FREHI1 := $D401
