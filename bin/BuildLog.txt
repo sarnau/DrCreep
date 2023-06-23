@@ -1,0 +1,21 @@
+Output dir: /Users/sarnau/Desktop/DrCreep
+parsing
+flex pass 1
+flex pass 2
+Output pass
+Writing prg file: bin/castle.prg
+Writing prg file: bin/creepload.prg
+Writing d64 file: bin/The Castles of Dr. Creep.d64
+
+Memory Map
+----------
+CASTLE-segment:
+  $0801-$083b Basic Program
+  $083c-$083b Basic Program End
+
+CREEPLOADER-segment:
+  *$0014-$0017 Zero Page
+  $c000-$c22e Unnamed
+
+Writing Vice symbol file: /Users/sarnau/Desktop/DrCreep/bin/DrCreep.vs
+Writing Symbol file: /Users/sarnau/Desktop/DrCreep/bin/DrCreep.sym
