@@ -1,6 +1,22 @@
 .include "C64_IO_REGS.inc"
 .include "C64_KERNAL.inc"
 
+; activate standard ASCII encoding
+.MACPACK cbm
+	scrcode
+
+; set a pointer to an address
+.macro SetPtr ptr,addr
+	lda     #<(addr)
+	sta     ptr
+	lda     #>(addr)
+	sta     ptr+1
+.endmacro
+
+; ################################################################################
+; ### Global addresses
+; ################################################################################
+
 SCREENRAM           := $0400 ; original video base address for the text screen
 START               := $0800 ; base for the application
 CREEPLOAD_START     := $C000 ; code to load the title screen
@@ -22,6 +38,9 @@ TOP_SPRITEBASE_2	:= $CA00 ; Sprite base 2 (for double buffering)
 TOP_SCREENRAM       := $CC00 ; video memory, in highres multicolor mode the additional colors
 TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 
+; ################################################################################
+; ### Enums
+; ################################################################################
 
 ; All different sound effects used by Dr Creep
 .enum SOUND_EFFECT
@@ -510,16 +529,796 @@ TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 	B7
 .endenum
 
+; ################################################################################
+; ### Structs
+; ################################################################################
+
+; ===========================================================================
+; === 32 bytes for the up to 8 sprites
+; ===========================================================================
+
+.struct CreepSprite
+	spriteType     .byte   ; enum SPRITE_TYPE
+	XPos           .byte   ; 
+	YPos           .byte   ; 
+	gfxID          .byte   ; enum GfxID
+	state          .byte   ; enum SPRITE_STATE
+	phase_counter  .byte   ; Only execute background collision and execute function at phase 0
+	anim_phases    .byte   ; Number of phases for the animation
+                    .byte  ; empty space
+	flickerCounter .byte   ; 
+	spriteFlagsColor.byte  ; 
+	widthInPixels  .byte   ; 
+	heightInPixels .byte   ; 
+	xOffset        .byte   ; X-Offset for collision testing
+	yOffset        .byte   ; Y-Offset to define the baseline of the sprite
+				   .byte
+				   .byte
+				   .byte
+				   .byte
+				   .byte   ; empty space
+				   .byte
+				   .byte
+				   .byte
+				   .byte
+				   .byte
+	.union
+		player 		.struct CreepSprite_Player
+						dirAllow       		 .byte
+						trapdoorCurrentState .byte
+						trapdoorNextState    .byte
+						exitEntryAnimState   .byte
+						playerNumber   	     .byte
+						joystickButton       .byte
+						joystickDirections   .byte ; enum JOYSTICK_DIRECTION
+						selectedDir          .byte
+					.endstruct
+		frankenstein   .struct CreepSprite_Frankenstein
+						field_0              .byte
+						field_1              .byte
+						trapdoorCurrentState .byte
+						trapdoorNextState    .byte
+						dirAllow             .byte ; enum DIR_ALLOW
+						direction            .byte ; enum JOYSTICK_DIRECTION
+						flags                .byte
+						id                   .byte
+					.endstruct
+
+		mummy          .struct CreepSprite_Mummy
+							field_0                .byte
+							field_1                .byte
+							field_2                .byte
+							trapdoorCurrentState   .byte
+							trapdoorNextState      .byte
+							id                     .byte
+							flag                   .byte
+							slideOutAnimationIndex .byte ; Animation phase of Mummy sliding out of the tomb
+						.endstruct
+
+		raygun         .struct CreepSprite_RayGun
+							field_0        .byte
+							field_1        .byte
+							field_2        .byte
+							field_3        .byte
+							field_4        .byte
+							field_5        .byte
+							shotRayGunId   .byte
+							shotXSpeed     .byte
+						.endstruct
+
+		forcefield     .struct CreepSprite_Forcefield
+							field_0        .byte
+							field_1        .byte
+							field_2        .byte
+							field_3        .byte
+							field_4        .byte
+							field_5        .byte
+							flag           .byte
+							id             .byte
+						.endstruct
+
+		lightning      .struct CreepSprite_Lightning
+						field_0        .byte
+						field_1        .byte
+						field_2        .byte
+						field_3        .byte
+						field_4        .byte
+						field_5        .byte
+						field_6        .byte
+						id             .byte
+					.endstruct
+	.endunion
+.endstruct
+.assert .sizeof(CreepSprite)=32,error
+
+; ===========================================================================
+; === 8 bytes per object for the up to 32 objects in a room
+; ===========================================================================
+
+.struct CreepObject
+	objectType     .byte   ; enum OBJECT_TYPE
+	XPos           .byte
+	YPos           .byte
+	gfxID          .byte   ; enum GfxID
+	flags          .byte
+	width          .byte
+	height         .byte
+	_unused_7_     .byte
+.endstruct
+.assert .sizeof(CreepObject)=8,error
+
+; ===========================================================================
+; === 8 bytes of additional variables for the up to 32 objects in a room
+; ===========================================================================
+
+.union CreepObjectVars
+mattertransmitter .struct CreepObjectVars_MatterTransmitter
+					objectPtr      .addr
+					color          .byte ; enum C64_COLORS
+					flickerCount   .byte
+					XPos           .byte
+					YPos           .byte
+					unused_6       .byte
+					unused_7       .byte
+				  .endstruct
+
+door           .struct CreepObjectVars_Door
+					id             .byte
+					doorIsOpen     .byte
+					openingCount   .byte
+					color          .byte ; enum C64_COLORS
+					field_4        .byte
+					field_5        .byte
+					field_6        .byte
+					field_7        .byte
+				.endstruct
+
+lightningmachine .struct CreepObjectVars_LightningMachine
+					id             .byte
+					lightningIsActive .byte ; Lightning flash sprite is on
+					phase          .byte ; Phase 0-2 if lightning machine is active
+					length         .byte ; Length of the pole of the lightning machine
+					field_4        .byte
+					field_5        .byte
+					field_6        .byte
+					field_7        .byte
+				.endstruct
+
+forcefield_button .struct CreepObjectVars_Forcefield_Button
+					id             .byte
+					timerTicks     .byte
+					remainingTime  .byte
+					field_3        .byte
+					field_4        .byte
+					field_5        .byte
+					field_6        .byte
+					field_7        .byte
+				.endstruct
+
+ankh            .struct CreepObjectVars_Ankh
+					id               .byte
+					awakeningCounter .byte
+					ankh_color       .byte
+					field_3        .byte
+					field_4        .byte
+					field_5        .byte
+					field_6        .byte
+					field_7        .byte
+				.endstruct
+
+trapdoor_switch .struct CreepObjectVars_TrapDoor_Switch
+					id             .byte
+					doorIsOpen     .byte
+					gfxID          .byte
+					field_3        .byte
+					field_4        .byte
+					field_5        .byte
+					field_6        .byte
+					field_7        .byte
+				.endstruct
+
+movingsidewalk_button .struct CreepObjectVars_MovingSidewalk_Button
+							id             .byte
+							field_1        .byte
+							field_2        .byte
+							field_3        .byte
+							field_4        .byte
+							field_5        .byte
+							field_6        .byte
+							field_7        .byte
+						.endstruct
+
+raygun          .struct CreepObjectVars_RayGun
+					id             .byte
+					YPos           .byte
+					field_2        .byte
+					field_3        .byte
+					field_4        .byte
+					field_5        .byte
+					field_6        .byte
+					field_7        .byte
+				.endstruct
+
+key            .struct CreepObjectVars_Key
+					id             .byte
+					field_1        .byte
+					field_2        .byte
+					field_3        .byte
+					field_4        .byte
+					field_5        .byte
+					field_6        .byte
+					field_7        .byte
+				.endstruct
+
+key_lock       .struct CreepObjectVars_Key_Lock
+					keyId          .byte
+					doorId         .byte
+					field_2        .byte
+					field_3        .byte
+					field_4        .byte
+					field_5        .byte
+					field_6        .byte
+					field_7        .byte
+				.endstruct
+
+doorbell       .struct CreepObjectVars_Doorbell
+					keyId          .byte
+					doorId         .byte
+					field_2        .byte
+					field_3        .byte
+					field_4        .byte
+					field_5        .byte
+					field_6        .byte
+					field_7        .byte
+				.endstruct
+
+raygun_controller .struct CreepObjectVars_RayGun_Controller
+						id             .byte
+						field_1        .byte
+						field_2        .byte
+						field_3        .byte
+						field_4        .byte
+						field_5        .byte
+						field_6        .byte
+						field_7        .byte
+					.endstruct
+
+trapdoor       .struct CreepObjectVars_TrapDoor
+					id             .byte
+					field_1        .byte
+					field_2        .byte
+					field_3        .byte
+					field_4        .byte
+					field_5        .byte
+					field_6        .byte
+					field_7        .byte
+				.endstruct
+
+lightningmachine_switch .struct CreepObjectVars_LightningMachine_Switch
+							field_0        .byte
+							field_1        .byte
+							field_2        .byte
+							field_3        .byte
+							field_4        .byte
+							field_5        .byte
+							field_6        .byte
+							field_7        .byte
+						.endstruct
+
+movingsidewalk  .struct CreepObjectVars_MovingSidewalk
+					id             .byte
+					field_1        .byte
+					field_2        .byte
+					field_3        .byte
+					field_4        .byte
+					field_5        .byte
+					field_6        .byte
+					field_7        .byte
+				.endstruct
+
+frankenstein   .struct CreepObjectVars_Frankenstein
+					field_0        .byte
+					field_1        .byte
+					field_2        .byte
+					field_3        .byte
+					field_4        .byte
+					field_5        .byte
+					field_6        .byte
+					field_7        .byte
+				.endstruct
+.endunion
+.assert .sizeof(CreepObjectVars)=8,error
 
 
-; standard ASCII encoding
-.MACPACK cbm
-	scrcode
+; ===========================================================================
+; === 256 Byte header for the castle file
+; ===========================================================================
 
-; set a pointer to an address
-.macro SetPtr ptr,addr
-	lda     #<(addr)
-	sta     ptr
-	lda     #>(addr)
-	sta     ptr+1
-.endmacro
+.struct CreepPlayerData
+	player_1       .byte
+	player_2       .byte
+.endstruct
+
+.struct CreepPlayerTime
+	player_1       .byte
+				   .byte
+				   .byte
+				   .byte
+	player_2       .byte
+				   .byte
+				   .byte
+				   .byte
+.endstruct
+.assert .sizeof(CreepPlayerTime)=8,error
+
+.struct CreepPlayerKeys
+	player_1   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+	player_2   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+			   .byte
+.endstruct
+.assert .sizeof(CreepPlayerKeys)=64,error
+
+.struct CreepCastle
+size                 .word ; size of the castle structure in bytes
+flags                .byte
+playerStartRoom      .tag CreepPlayerData
+playerStartDoor      .tag CreepPlayerData
+playerRemainingLives .tag CreepPlayerData
+playerCurrentRoom    .tag CreepPlayerData
+playerCurrentDoor    .tag CreepPlayerData
+playerState          .tag CreepPlayerData
+playerIsAlive        .tag CreepPlayerData
+firstPlayerIndexInRoom .byte
+playerCount          .byte
+playerKeyCount       .tag CreepPlayerData
+playerKeys           .tag CreepPlayerKeys
+playerTimer          .tag CreepPlayerTime
+playerHasEscaped     .tag CreepPlayerData
+escapeCastleOutsidePtr .addr
+_unused_field_61 .byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+		.byte
+.endstruct
+.assert .sizeof(CreepCastle)=256,error
+
+; ===========================================================================
+; === Description of a single room in a castle
+; ===========================================================================
+
+.struct CreepRoom
+	flagsColor     .byte   ; Bit 0-3: color, Bit 6: end of room list, Bit 7: room visible
+	XPos           .byte   ; X position of the room on the map
+	YPos           .byte   ; Y position of the room on the map
+	widthHeight    .byte   ; Bit 0-2: height, Bit 3-5: width on the map
+	doorsPtr       .addr   ; Position of the doors in the room
+	objectPtr      .addr   ; Objects within the room
+.endstruct
+
+; ===========================================================================
+; === Objects in the castle file
+; ===========================================================================
+
+.struct CreepObj_Door
+	XPos           .byte
+	YPos           .byte
+	Flags          .byte
+	DestinationRoom .byte
+	DestinationDoor .byte
+	mapDoorXOffset .byte
+	mapDoorYOffset .byte
+	Typ            .byte
+.endstruct
+
+.struct CreepObj_Walkway
+	Length         .byte
+	XPos           .byte
+	YPos           .byte
+.endstruct
+
+.struct CreepObj_SlidingPole
+	Length         .byte
+	XPos           .byte
+	YPos           .byte
+.endstruct
+
+.struct CreepObj_Ladder
+	Length         .byte
+	XPos           .byte
+	YPos           .byte
+.endstruct
+
+.struct CreepObj_DoorBell
+	XPos           .byte
+	YPos           .byte
+	doorNumber     .byte
+.endstruct
+
+.struct CreepObj_Lightning
+	Flags          .byte
+	XPos           .byte
+	YPos           .byte
+	Length         .byte
+	switchedIds    .byte
+				   .byte
+				   .byte
+				   .byte
+.endstruct
+
+.struct CreepObj_Forcefield
+	XPos           .byte
+	YPos           .byte
+	XPosController .byte
+	YPosController .byte
+.endstruct
+
+.struct CreepObj_Mummy
+	Type           .byte
+	XPos           .byte
+	YPos           .byte
+	mummyXPos      .byte
+	mummyYPos      .byte
+	savedXPos      .byte
+	savedYPos      .byte
+.endstruct
+
+.struct CreepObj_Key
+	id             .byte
+	GfxID          .byte ; Graphics for the key, 0 = key was picked up
+	XPos           .byte
+	YPos           .byte
+.endstruct
+
+.struct CreepObj_DoorLock
+	keyId          .byte
+	field_1        .byte
+	doorId         .byte
+	XPos           .byte
+	YPos           .byte
+.endstruct
+
+.struct CreepObj_MultiDraw
+	Repeat         .byte
+	gfxID          .byte
+	XPos           .byte
+	YPos           .byte
+	xOffset        .byte
+	yOffset        .byte
+.endstruct
+
+.struct CreepObj_Raygun
+	Flags          .byte
+	XPos           .byte
+	YPos           .byte
+	Length         .byte
+	gunYPos        .byte
+	XPosController .byte
+	YPosController .byte
+.endstruct
+
+.struct CreepObj_MatterTransmitter_Destinations
+	XPos           .byte
+	YPos           .byte
+.endstruct
+
+.struct CreepObj_MatterTransmitter
+	XPos           .byte
+	YPos           .byte
+	Color          .byte                 ; enum C64_COLORS
+	destinations   .tag CreepObj_MatterTransmitter_Destinations
+				   .tag CreepObj_MatterTransmitter_Destinations
+.endstruct
+
+.struct CreepObj_Trapdoor
+	Flags          .byte
+	XPos           .byte
+	YPos           .byte
+	XPosController .byte
+	YPosController .byte
+.endstruct
+
+.struct CreepObj_MovingSidewalk
+	Flags          .byte
+	XPos           .byte
+	YPos           .byte
+	XPosController .byte
+	YPosController .byte
+.endstruct
+
+.struct CreepObj_Frankenstein
+	Flags          .byte
+	XPos           .byte
+	YPos           .byte
+	frankensteinXPos .byte
+	frankensteinYPos .byte
+	frankensteinGfxID .byte               ; enum GfxID
+	frankensteinDirection .byte           ; enum JOYSTICK_DIRECTION
+.endstruct
+
+.struct CreepObj_Text
+	XPos           .byte
+	YPos           .byte
+	Color          .byte                 ; enum C64_COLORS
+	Font           .byte                 ; enum TEXTFONT
+.endstruct
+
+.struct CreepObj_Image
+	Width          .byte
+	Height         .byte
+	field_2        .byte
+.endstruct
+
+; ===========================================================================
+
+.struct CreepScreenState
+	dirFlags       .byte ; enum DIR_ALLOW
+	field_1        .byte
+.endstruct
+
+.struct CreepState
+	xOffset        .byte
+	yOffset        .byte
+	gfxID          .byte   ; enum GfxID
+	nextState      .byte   ; enum PLAYER_STATE
+.endstruct
+
+.struct CreepEscapeState
+	XPos           .byte
+	nextState      .byte ; enum ESCAPE_CASTLE_STATES
+.endstruct
+
+.struct CreepIMG_Header
+	widthInBytes   .byte
+	heightInPixels .byte
+	spriteFlagsColor .byte ; enum IMG_FLAGS
+.endstruct
+
+.struct CreepOptionsMenu
+	XPos           .byte
+	YPos           .byte
+	action         .byte ; enum OPTION_ACTION
+.endstruct
+
+.struct CreepHighscoreEntry
+name           .byte
+			   .byte
+			   .byte
+time           .byte
+			   .byte
+			   .byte
+.endstruct
+
+.struct CreepFrankensteinPlayerDelta
+	negativeY      .byte
+	positiveX      .byte
+	postiveY       .byte
+	negativeX      .byte
+.endstruct
+
+.struct SID_ADSR
+	pulseWidth     .word
+	cr             .byte
+	attackDecay    .byte
+	sustainRelease .byte
+.endstruct
+
+.struct RASTER_LINE_INFO
+	color          .byte  ; enum C64_COLORS
+	rasterLine     .byte
+.endstruct
