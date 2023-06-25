@@ -15,23 +15,8 @@
 ; need to be corrected. AFAIK the KickAssembler can do this: compile code for a different
 ; address than where it ends up. CA65 doesn't seem to have an easy way to do this.
 ; And because I want to move on and probably patching the sound effects is rare, I
-; just created this table of pointers.
-
-; For now that also means: the length of the application can NOT change!
-
-; Code entriess for the sound effects, which is an overlay
-; SNDEFFECT_DOOR_OPEN_NOTE := $75B7
-; SNDEFFECT_FORCEFIELD_TIMER_NOTE := $75AB
-; SNDEFFECT_LASER_FIRED_NOTE := $7593
-; SNDEFFECT_LIGHTNING_SWITCHED_NOTE := $75E7
-; SNDEFFECT_MOVINGSIDEWALK_SWITCH_NOTE := $7624
-; SNDEFFECT_MUMMY_RELEASE_NOTE := $7630
-; SNDEFFECT_SPRITE_FLASH_NOTE := $760C
-; SNDEFFECT_TABLE := $7572
-; SNDEFFECT_TELEPORT_CHANGE_NOTE := $75DB
-; SNDEFFECT_TELEPORT_NOTE := $75CF
-; SNDEFFECT_TRAPDOOR_SWITCHED_NOTE := $759F
-
+; just created this table of pointers. This table can be relocated, so as long as this
+; file is not modified, it will work.
 
 				.CODE
 				.ORG OPTION_MENU_START
@@ -181,3 +166,7 @@ SNDEFFECT_KEY_PICKUP:.BYTE SOUND_CMDS::SET_ADSR_etc
 
 				.BYTE $6D
 SNDEFFECT_TABLE_INIT:
+
+; If you want to change the size of individual sound effects, you NEED to modify
+; the offsets of the SNDEFFECT_... symbols in object.s before adjusting this assert.
+.assert SNDEFFECT_TABLE_INIT-SNDEFFECT_TABLE=$D0,error

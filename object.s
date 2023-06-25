@@ -2,7 +2,12 @@
 
 .include "DrCreep.inc"
 
-DISABLE_PROTECTION := 1
+; Remove comment to just patch out the protection, but leave everything else in place.
+; This just patches 5 bytes (avoiding the 1541 read erro check, modify decrypt values)
+JUST_PATCH_PROTECTION = 1
+
+; Remove comment to complete remove the protection, which changes the program size
+;REMOVE_PROTECTION = 1
 
 ; set a pointer to an address
 .macro IRQ_DELAY delayValue
@@ -13,36 +18,50 @@ DISABLE_PROTECTION := 1
 .endmacro
 
 ; Code entriess for the sound effects, which is an overlay
-SNDEFFECT_DOOR_OPEN_NOTE := $75B7
-SNDEFFECT_FORCEFIELD_TIMER_NOTE := $75AB
-SNDEFFECT_LASER_FIRED_NOTE := $7593
-SNDEFFECT_LIGHTNING_SWITCHED_NOTE := $75E7
-SNDEFFECT_MOVINGSIDEWALK_SWITCH_NOTE := $7624
-SNDEFFECT_MUMMY_RELEASE_NOTE := $7630
-SNDEFFECT_SPRITE_FLASH_NOTE := $760C
-SNDEFFECT_TABLE := $7572
-SNDEFFECT_TELEPORT_CHANGE_NOTE := $75DB
-SNDEFFECT_TELEPORT_NOTE := $75CF
-SNDEFFECT_TRAPDOOR_SWITCHED_NOTE := $759F
+SNDEFFECT_ORIGINAL_BASE := $7572 ; this is the original base address, before relocation
+
+; These are the original note patches plus relocation code
+SNDEFFECT_DOOR_OPEN_NOTE := $75B7-SNDEFFECT_ORIGINAL_BASE+OPTION_MENU_START
+SNDEFFECT_FORCEFIELD_TIMER_NOTE := $75AB-SNDEFFECT_ORIGINAL_BASE+OPTION_MENU_START
+SNDEFFECT_LASER_FIRED_NOTE := $7593-SNDEFFECT_ORIGINAL_BASE+OPTION_MENU_START
+SNDEFFECT_LIGHTNING_SWITCHED_NOTE := $75E7-SNDEFFECT_ORIGINAL_BASE+OPTION_MENU_START
+SNDEFFECT_MOVINGSIDEWALK_SWITCH_NOTE := $7624-SNDEFFECT_ORIGINAL_BASE+OPTION_MENU_START
+SNDEFFECT_MUMMY_RELEASE_NOTE := $7630-SNDEFFECT_ORIGINAL_BASE+OPTION_MENU_START
+SNDEFFECT_SPRITE_FLASH_NOTE := $760C-SNDEFFECT_ORIGINAL_BASE+OPTION_MENU_START
+SNDEFFECT_TELEPORT_CHANGE_NOTE := $75DB-SNDEFFECT_ORIGINAL_BASE+OPTION_MENU_START
+SNDEFFECT_TELEPORT_NOTE := $75CF-SNDEFFECT_ORIGINAL_BASE+OPTION_MENU_START
+SNDEFFECT_TRAPDOOR_SWITCHED_NOTE := $759F-SNDEFFECT_ORIGINAL_BASE+OPTION_MENU_START
 
 		.code
 		.org START
 CODE_ENTRY:
 		JMP     GAME_start
 _ObjectDoor:
-;		JMP     obj_Door_Object_Setup
+.ifdef REMOVE_PROTECTION
+		JMP     obj_Door_Object_Setup
+.else
 		.byte $4C,.LOBYTE(obj_Door_Object_Setup),.HIBYTE(obj_Door_Object_Setup) ^ $32
+.endif
 _ObjectWalkway:
-;		JMP     obj_Walkway_Object_Setup
+.ifdef REMOVE_PROTECTION
+		JMP     obj_Walkway_Object_Setup
+.else
 		.byte $4C,.LOBYTE(obj_Walkway_Object_Setup),.HIBYTE(obj_Walkway_Object_Setup) ^ $32
+.endif
 _ObjectSlidingPole:
-;		JMP     obj_SlidingPole_Object_Setup
+.ifdef REMOVE_PROTECTION
+		JMP     obj_SlidingPole_Object_Setup
+.else
 		.byte $4C,.LOBYTE(obj_SlidingPole_Object_Setup),.HIBYTE(obj_SlidingPole_Object_Setup) ^ $37
+.endif
 _ObjectLadder:
 		JMP     obj_Ladder_Object_Setup
 _ObjectDoorBell:
-;		JMP     obj_DoorBell_Object_Setup
+.ifdef REMOVE_PROTECTION
+		JMP     obj_DoorBell_Object_Setup
+.else
 		.byte $4C,.LOBYTE(obj_DoorBell_Object_Setup),.HIBYTE(obj_DoorBell_Object_Setup) ^ $37
+.endif
 _ObjectLightning:
 		JMP     obj_Lightning_Object_Setup
 _ObjectForcefield:
@@ -205,8 +224,11 @@ MAP_ROOM_STOP_DRAW:.BYTE ROOM_FLAGS::STOP_DRAW
                 CPX     #32
                 BCC     @loop2
 
+.ifdef REMOVE_PROTECTION
+				JSR     DRAW_DisableSpritesAndStopSound
+.else
                 JSR     PROTECTION_CHECK
-
+.endif
                 JSR     GAME_optionsMenuPrepare
 
                 LDA     SND_DisableSoundEffects ; Always 0, maybe 1 in the tape version?
@@ -1317,16 +1339,18 @@ loc_115A:
                 TXA
                 JSR     KEY_GetJoystick ; Check joystick for port #A and the RUN/STOP key
 
+.ifdef REMOVE_PROTECTION
+.else
                 LDA     PROT_5F6A_ALWAYS_0
                 CMP     #1
-                BNE     loc_1170
+                BNE     :+
                 LDA     #1
                 STA     PROT_2E02_UNUSED
                 JSR     PROT_UNKNOWN_FUNC
                 JMP     mapDisplay_loop
-; ---------------------------------------------------------------------------
+:
+.endif
 
-loc_1170:
                 LDA     KEY_GetJoystick_RunStopPressed
                 CMP     #1              ; RUN/STOP pressed?
                 BNE     loc_117D        ; => no
@@ -1844,6 +1868,8 @@ _mapDrawRooms_roomHeight:.BYTE $A0
 
 @loop:		    JSR     GAME_ExecuteEvents ; Handle 1/30 of all game processing
 
+.ifdef REMOVE_PROTECTION
+.else
                 LDA     PROT_5F6A_ALWAYS_0
                 CMP     #1
                 BNE     :+
@@ -1851,6 +1877,7 @@ _mapDrawRooms_roomHeight:.BYTE $A0
                 STA     PROT_2E02_UNUSED
                 JSR     PROT_UNKNOWN_FUNC
 :
+.endif
 
                 LDA     KEY_GetJoystick_RunStopPressed
                 CMP     #1              ; RUN/STOP pressed?
@@ -5091,14 +5118,16 @@ _DRAW_String_BitConverterTable:.BYTE %00000000         ; 0
                 .BYTE %01010100         ; 14
                 .BYTE %01010101         ; 15
 
+.ifdef REMOVE_PROTECTION
+.else
 PROT_UNKNOWN_FUNC:.BYTE   0,  0,  0,  0,  0,  0,  0,  0
 
 ; =============== S U B R O U T I N E =======================================
 
 PROTECTION_CHECK:
-.if DISABLE_PROTECTION
+.ifdef JUST_PATCH_PROTECTION
 				JMP     PROTECTION_DECRYPT_JUMPS
-				BRK
+				.BYTE $35 ; from LDY
 .else
                 LDX     #'3'
                 LDY     #'5'
@@ -5115,7 +5144,7 @@ PROTECTION_CHECK:
 :               JMP     PROTECTION_DECRYPT_JUMPS
 
 ; ---------------------------------------------------------------------------
-.if DISABLE_PROTECTION
+.ifdef JUST_PATCH_PROTECTION
 PROTECTION_ERROR_CODE_1st_DIGIT:.BYTE   '2',  0,  0,  0
 PROTECTION_ERROR_CODE_2nd_DIGIT:.BYTE   '7',' ','2','7'
 .else
@@ -5183,7 +5212,6 @@ PROTECTION_READ_SECTOR_CMD: scrcode "U1: 5 0 01 9"
 
 ; =============== S U B R O U T I N E =======================================
 
-
 PROTECTION_DECRYPT_JUMPS:
                 LDA     PROTECTION_ERROR_CODE_1st_DIGIT ; Has to be '2'
                 EOR     _ObjectDoor+2
@@ -5207,6 +5235,7 @@ PROTECTION_DECRYPT_JUMPS:
                 .BYTE $68,$4C,$9A,$2D,$68,$60,  0,  5,  3, $F,  0, $F,  3,  1,$28,$43,$29,$20,$31,$39,$38,$34,$20,$42,$52,$30,$44,$45,$52,$42,$55,$4E,$44,$20,$53,$4F,$46,$54,$57,$41,$52,$C5
 PROT_2E02_UNUSED:.BYTE $B0
                 .BYTE $D2,$AC,$A0,$F0, $F,$C4,$A0,$B0,$82,$A0,$82,$AA,$85,$C5,$A0,$A0,$A0,$92,$B8,$A0,$C6,$A0,$CC,$A0,$86
+.endif
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -12658,8 +12687,11 @@ _GetRandom_SEED:.BYTE $A0,$C6,$57
 @RUNSTOP_YES:   LDA     #1
 @RUNSTOP_NO:    STA     KEY_GetJoystick_RunStopPressed
 
+.ifdef REMOVE_PROTECTION
+.else
                 LDA     #0
                 STA     PROT_5F6A_ALWAYS_0
+.endif
 
                 LDA     _KEY_GetJoystick_inputPort
                 EOR     #1
@@ -12695,7 +12727,10 @@ KEY_GetJoystick_Table:
                 .BYTE JOYSTICK_DIRECTION::NOTHING, JOYSTICK_DIRECTION::DOWN_LEFT, JOYSTICK_DIRECTION::UP_LEFT, JOYSTICK_DIRECTION::LEFT
                 .BYTE JOYSTICK_DIRECTION::NOTHING, JOYSTICK_DIRECTION::DOWN, JOYSTICK_DIRECTION::UP, JOYSTICK_DIRECTION::NOTHING
 KEY_GetJoystick_RunStopPressed:.BYTE 0
+.ifdef REMOVE_PROTECTION
+.else
 PROT_5F6A_ALWAYS_0:.BYTE 0
+.endif
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -12851,9 +12886,8 @@ CalcScreenDirectionAddrForSprite_Bottom_subpixel:.BYTE $A0
 selectedDoor_Count:.BYTE $A1
 
 				.include "object_images.s"
-.assert * = SNDEFFECT_TABLE, error, "SNDEFFECT_TABLE is at the wrong address"
 				.export SNDEFFECT_TABLE
+SNDEFFECT_TABLE:
 				.include "object_optionMenu.s"
 SNDEFFECT_TABLE_INIT:
-				.export SNDEFFECT_TABLE_INIT
                 .END

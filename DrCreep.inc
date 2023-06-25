@@ -19,7 +19,7 @@
 
 SCREENRAM           := $0400 ; original video base address for the text screen
 START               := $0800 ; base for the application
-OPTION_MENU_START   := $7572 ; at launch this is where the option menu is located, it is overwritten by the sound effects
+.include "SET_OPTION_MENU_START.asm" ; at launch this is where the option menu is located, it is overwritten by the sound effects
 CREEPLOAD_START     := $C000 ; code to load the title screen
 
 CASTLE              := $7800 ; Castle structure as CreepCastle
