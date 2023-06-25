@@ -122,6 +122,9 @@
 	VCREG3 	:= $D412
 	ATDCY3 	:= $D413
 	SUREL3 	:= $D414
+	FCLO    := $D415
+	FCHI    := $D416
+	Res_Filt:= $D417
 	SIGVOL 	:= $D418
 .endscope
 

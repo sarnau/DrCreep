@@ -25,6 +25,11 @@ CASTLE              := $7800 ; Castle structure
 ROOM_BASE           := $7900 ; Array of all rooms in the castle
 SAVE_GAME_MEMORY    := $9800 ; Backup of the castle
 HIGHSCORES          := $B800 ; Highscores
+HIGHSCORES_1_PLAYER := $B802 ; 10 entries
+HIGHSCORES_2_PLAYER := $B83E ; 10 entries
+_gameHighScores_OutputBuf := $B87A
+_gameHighScores_LineCounter := $B889
+
 GAME_MENU           := $BA00 ; Game menu with all available castles
 BITMAP_ADR_TABLE_MSB := $BB00 ; MSB of the bitmap multiplication table
 BITMAP_ADR_TABLE_LSB := $BC00 ; LSB of the bitmap multiplication table
@@ -32,8 +37,8 @@ mSprites            := $BD00 ; 8 structures for the sprites
 mObjectsVars        := $BE00 ; 32 structures for the additional objects variables
 mObjects            := $BF00 ; 32 structures for the objects
 SCR_DIR_2K_BUF      := $C000 ; 40*25*2 (2000 bytes) buffer for the screen containing info about the blocks on the screen
-TOP_SPRITEBASE_1	:= $C800 ; Sprite base 1
-TOP_SPRITEBASE_2	:= $CA00 ; Sprite base 2 (for double buffering)
+SPRITE_BASE_A		:= $C800 ; Sprite base 1
+SPRITE_BASE_B		:= $CA00 ; Sprite base 2 (for double buffering)
 ; the VIC is mapped to the upper 16kb
 TOP_SCREENRAM       := $CC00 ; video memory, in highres multicolor mode the additional colors
 TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
@@ -88,9 +93,9 @@ TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 .endenum
 
 .enum SCREEN_DRAW_MODE
-	SCREEN_DRAW_MODE_Foreground
-	SCREEN_DRAW_MODE_Mask
-	SCREEN_DRAW_MODE_ForegroundAndMask
+	Foreground
+	Mask
+	ForegroundAndMask
 .endenum
 
 .enum GfxID
@@ -425,7 +430,7 @@ TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 .endenum
 
 .enum DOOR_FLAGS
-	POSITION_RIGHT
+	POSITION_RIGHT = 1
 	POSITION_BOTTOM
 	POSITION_LEFT
 	ISOPEN = $80
@@ -537,6 +542,78 @@ TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 ; === 32 bytes for the up to 8 sprites
 ; ===========================================================================
 
+.struct CreepSprite_Player
+	dirAllow       		 .byte
+	trapdoorCurrentState .byte
+	trapdoorNextState    .byte
+	exitEntryAnimState   .byte
+	playerNumber   	     .byte
+	joystickButton       .byte
+	joystickDirections   .byte ; enum JOYSTICK_DIRECTION
+	selectedDir          .byte
+.endstruct
+.assert .sizeof(CreepSprite_Player)=8,error
+
+.struct CreepSprite_Frankenstein
+	field_0              .byte
+	field_1              .byte
+	trapdoorCurrentState .byte
+	trapdoorNextState    .byte
+	dirAllow             .byte ; enum DIR_ALLOW
+	direction            .byte ; enum JOYSTICK_DIRECTION
+	flags                .byte
+	id                   .byte
+.endstruct
+.assert .sizeof(CreepSprite_Frankenstein)=8,error
+
+.struct CreepSprite_Mummy
+	field_0                .byte
+	field_1                .byte
+	field_2                .byte
+	trapdoorCurrentState   .byte
+	trapdoorNextState      .byte
+	id                     .byte
+	flag                   .byte
+	slideOutAnimationIndex .byte ; Animation phase of Mummy sliding out of the tomb
+.endstruct
+.assert .sizeof(CreepSprite_Mummy)=8,error
+
+.struct CreepSprite_RayGun
+	field_0        .byte
+	field_1        .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	shotRayGunId   .byte
+	shotXSpeed     .byte
+.endstruct
+.assert .sizeof(CreepSprite_RayGun)=8,error
+
+.struct CreepSprite_Forcefield
+	field_0        .byte
+	field_1        .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	flag           .byte
+	id             .byte
+.endstruct
+.assert .sizeof(CreepSprite_Forcefield)=8,error
+
+.struct CreepSprite_Lightning
+	field_0        .byte
+	field_1        .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	id             .byte
+.endstruct
+.assert .sizeof(CreepSprite_Lightning)=8,error
+
 .struct CreepSprite
 	spriteType     .byte   ; enum SPRITE_TYPE
 	XPos           .byte   ; 
@@ -545,89 +622,15 @@ TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 	state          .byte   ; enum SPRITE_STATE
 	phase_counter  .byte   ; Only execute background collision and execute function at phase 0
 	anim_phases    .byte   ; Number of phases for the animation
-                    .byte  ; empty space
+                   .res 1  ; empty space
 	flickerCounter .byte   ; 
 	spriteFlagsColor.byte  ; 
 	widthInPixels  .byte   ; 
 	heightInPixels .byte   ; 
 	xOffset        .byte   ; X-Offset for collision testing
 	yOffset        .byte   ; Y-Offset to define the baseline of the sprite
-				   .byte
-				   .byte
-				   .byte
-				   .byte
-				   .byte   ; empty space
-				   .byte
-				   .byte
-				   .byte
-				   .byte
-				   .byte
-	.union
-		player 		.struct CreepSprite_Player
-						dirAllow       		 .byte
-						trapdoorCurrentState .byte
-						trapdoorNextState    .byte
-						exitEntryAnimState   .byte
-						playerNumber   	     .byte
-						joystickButton       .byte
-						joystickDirections   .byte ; enum JOYSTICK_DIRECTION
-						selectedDir          .byte
-					.endstruct
-		frankenstein   .struct CreepSprite_Frankenstein
-						field_0              .byte
-						field_1              .byte
-						trapdoorCurrentState .byte
-						trapdoorNextState    .byte
-						dirAllow             .byte ; enum DIR_ALLOW
-						direction            .byte ; enum JOYSTICK_DIRECTION
-						flags                .byte
-						id                   .byte
-					.endstruct
-
-		mummy          .struct CreepSprite_Mummy
-							field_0                .byte
-							field_1                .byte
-							field_2                .byte
-							trapdoorCurrentState   .byte
-							trapdoorNextState      .byte
-							id                     .byte
-							flag                   .byte
-							slideOutAnimationIndex .byte ; Animation phase of Mummy sliding out of the tomb
-						.endstruct
-
-		raygun         .struct CreepSprite_RayGun
-							field_0        .byte
-							field_1        .byte
-							field_2        .byte
-							field_3        .byte
-							field_4        .byte
-							field_5        .byte
-							shotRayGunId   .byte
-							shotXSpeed     .byte
-						.endstruct
-
-		forcefield     .struct CreepSprite_Forcefield
-							field_0        .byte
-							field_1        .byte
-							field_2        .byte
-							field_3        .byte
-							field_4        .byte
-							field_5        .byte
-							flag           .byte
-							id             .byte
-						.endstruct
-
-		lightning      .struct CreepSprite_Lightning
-						field_0        .byte
-						field_1        .byte
-						field_2        .byte
-						field_3        .byte
-						field_4        .byte
-						field_5        .byte
-						field_6        .byte
-						id             .byte
-					.endstruct
-	.endunion
+				   .res 10 ; empty space
+	data           .res .sizeof(CreepSprite_Player)
 .endstruct
 .assert .sizeof(CreepSprite)=32,error
 
@@ -651,183 +654,196 @@ TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 ; === 8 bytes of additional variables for the up to 32 objects in a room
 ; ===========================================================================
 
-.union CreepObjectVars
-mattertransmitter .struct CreepObjectVars_MatterTransmitter
-					objectPtr      .addr
-					color          .byte ; enum C64_COLORS
-					flickerCount   .byte
-					XPos           .byte
-					YPos           .byte
-					unused_6       .byte
-					unused_7       .byte
-				  .endstruct
+.struct CreepObjectVars_MatterTransmitter
+	objectPtr      .addr
+	color          .byte ; enum C64_COLORS
+	flickerCount   .byte
+	XPos           .byte
+	YPos           .byte
+	unused_6       .byte
+	unused_7       .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_MatterTransmitter)=8,error
 
-door           .struct CreepObjectVars_Door
-					id             .byte
-					doorIsOpen     .byte
-					openingCount   .byte
-					color          .byte ; enum C64_COLORS
-					field_4        .byte
-					field_5        .byte
-					field_6        .byte
-					field_7        .byte
-				.endstruct
+.struct CreepObjectVars_Door
+	id             .byte
+	doorIsOpen     .byte
+	openingCount   .byte
+	color          .byte ; enum C64_COLORS
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_Door)=8,error
 
-lightningmachine .struct CreepObjectVars_LightningMachine
-					id             .byte
-					lightningIsActive .byte ; Lightning flash sprite is on
-					phase          .byte ; Phase 0-2 if lightning machine is active
-					length         .byte ; Length of the pole of the lightning machine
-					field_4        .byte
-					field_5        .byte
-					field_6        .byte
-					field_7        .byte
-				.endstruct
+.struct CreepObjectVars_LightningMachine
+	id             .byte
+	lightningIsActive .byte ; Lightning flash sprite is on
+	phase          .byte ; Phase 0-2 if lightning machine is active
+	length         .byte ; Length of the pole of the lightning machine
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_LightningMachine)=8,error
 
-forcefield_button .struct CreepObjectVars_Forcefield_Button
-					id             .byte
-					timerTicks     .byte
-					remainingTime  .byte
-					field_3        .byte
-					field_4        .byte
-					field_5        .byte
-					field_6        .byte
-					field_7        .byte
-				.endstruct
+.struct CreepObjectVars_Forcefield_Button
+	id             .byte
+	timerTicks     .byte
+	remainingTime  .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_Forcefield_Button)=8,error
 
-ankh            .struct CreepObjectVars_Ankh
-					id               .byte
-					awakeningCounter .byte
-					ankh_color       .byte
-					field_3        .byte
-					field_4        .byte
-					field_5        .byte
-					field_6        .byte
-					field_7        .byte
-				.endstruct
+.struct CreepObjectVars_Ankh
+	id               .byte
+	awakeningCounter .byte
+	ankh_color       .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_Ankh)=8,error
 
-trapdoor_switch .struct CreepObjectVars_TrapDoor_Switch
-					id             .byte
-					doorIsOpen     .byte
-					gfxID          .byte
-					field_3        .byte
-					field_4        .byte
-					field_5        .byte
-					field_6        .byte
-					field_7        .byte
-				.endstruct
+.struct CreepObjectVars_TrapDoor_Switch
+	id             .byte
+	doorIsOpen     .byte
+	gfxID          .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_TrapDoor_Switch)=8,error
 
-movingsidewalk_button .struct CreepObjectVars_MovingSidewalk_Button
-							id             .byte
-							field_1        .byte
-							field_2        .byte
-							field_3        .byte
-							field_4        .byte
-							field_5        .byte
-							field_6        .byte
-							field_7        .byte
-						.endstruct
+.struct CreepObjectVars_MovingSidewalk_Button
+	id             .byte
+	field_1        .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_MovingSidewalk_Button)=8,error
 
-raygun          .struct CreepObjectVars_RayGun
-					id             .byte
-					YPos           .byte
-					field_2        .byte
-					field_3        .byte
-					field_4        .byte
-					field_5        .byte
-					field_6        .byte
-					field_7        .byte
-				.endstruct
+.struct CreepObjectVars_RayGun
+	id             .byte
+	YPos           .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_RayGun)=8,error
 
-key            .struct CreepObjectVars_Key
-					id             .byte
-					field_1        .byte
-					field_2        .byte
-					field_3        .byte
-					field_4        .byte
-					field_5        .byte
-					field_6        .byte
-					field_7        .byte
-				.endstruct
+.struct CreepObjectVars_Key
+	id             .byte
+	field_1        .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_Key)=8,error
 
-key_lock       .struct CreepObjectVars_Key_Lock
-					keyId          .byte
-					doorId         .byte
-					field_2        .byte
-					field_3        .byte
-					field_4        .byte
-					field_5        .byte
-					field_6        .byte
-					field_7        .byte
-				.endstruct
+.struct CreepObjectVars_Key_Lock
+	keyId          .byte
+	doorId         .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_Key_Lock)=8,error
 
-doorbell       .struct CreepObjectVars_Doorbell
-					keyId          .byte
-					doorId         .byte
-					field_2        .byte
-					field_3        .byte
-					field_4        .byte
-					field_5        .byte
-					field_6        .byte
-					field_7        .byte
-				.endstruct
+.struct CreepObjectVars_Doorbell
+	keyId          .byte
+	doorId         .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_Doorbell)=8,error
 
-raygun_controller .struct CreepObjectVars_RayGun_Controller
-						id             .byte
-						field_1        .byte
-						field_2        .byte
-						field_3        .byte
-						field_4        .byte
-						field_5        .byte
-						field_6        .byte
-						field_7        .byte
-					.endstruct
+.struct CreepObjectVars_RayGun_Controller
+	id             .byte
+	field_1        .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_RayGun_Controller)=8,error
 
-trapdoor       .struct CreepObjectVars_TrapDoor
-					id             .byte
-					field_1        .byte
-					field_2        .byte
-					field_3        .byte
-					field_4        .byte
-					field_5        .byte
-					field_6        .byte
-					field_7        .byte
-				.endstruct
+.struct CreepObjectVars_TrapDoor
+	id             .byte
+	field_1        .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_TrapDoor)=8,error
 
-lightningmachine_switch .struct CreepObjectVars_LightningMachine_Switch
-							field_0        .byte
-							field_1        .byte
-							field_2        .byte
-							field_3        .byte
-							field_4        .byte
-							field_5        .byte
-							field_6        .byte
-							field_7        .byte
-						.endstruct
+.struct CreepObjectVars_LightningMachine_Switch
+	field_0        .byte
+	field_1        .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_LightningMachine_Switch)=8,error
 
-movingsidewalk  .struct CreepObjectVars_MovingSidewalk
-					id             .byte
-					field_1        .byte
-					field_2        .byte
-					field_3        .byte
-					field_4        .byte
-					field_5        .byte
-					field_6        .byte
-					field_7        .byte
-				.endstruct
+.struct CreepObjectVars_MovingSidewalk
+	id             .byte
+	field_1        .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_MovingSidewalk)=8,error
 
-frankenstein   .struct CreepObjectVars_Frankenstein
-					field_0        .byte
-					field_1        .byte
-					field_2        .byte
-					field_3        .byte
-					field_4        .byte
-					field_5        .byte
-					field_6        .byte
-					field_7        .byte
-				.endstruct
-.endunion
-.assert .sizeof(CreepObjectVars)=8,error
+.struct CreepObjectVars_Frankenstein
+	field_0        .byte
+	field_1        .byte
+	field_2        .byte
+	field_3        .byte
+	field_4        .byte
+	field_5        .byte
+	field_6        .byte
+	field_7        .byte
+.endstruct
+.assert .sizeof(CreepObjectVars_Frankenstein)=8,error
 
 
 ; ===========================================================================
@@ -838,84 +854,22 @@ frankenstein   .struct CreepObjectVars_Frankenstein
 	player_1       .byte
 	player_2       .byte
 .endstruct
+.macro _CreepPlayerData ply1,ply2
+	.byte ply1,ply2
+.endmacro
 
 .struct CreepPlayerTime
-	player_1       .byte
-				   .byte
-				   .byte
-				   .byte
-	player_2       .byte
-				   .byte
-				   .byte
-				   .byte
+	player_1       .res 4
+	player_2       .res 4
 .endstruct
+.macro _CreepPlayerTime p1a,p1b,p1c,p1d,p2a,p2b,p2c,p2d
+	.byte p1a,p1b,p1c,p1d,p2a,p2b,p2c,p2d
+.endmacro
 .assert .sizeof(CreepPlayerTime)=8,error
 
 .struct CreepPlayerKeys
-	player_1   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-	player_2   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
-			   .byte
+	player_1   .res 32
+	player_2   .res 32
 .endstruct
 .assert .sizeof(CreepPlayerKeys)=64,error
 
@@ -936,165 +890,7 @@ playerKeys           .tag CreepPlayerKeys
 playerTimer          .tag CreepPlayerTime
 playerHasEscaped     .tag CreepPlayerData
 escapeCastleOutsidePtr .addr
-_unused_field_61 .byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
-		.byte
+                     .res 159
 .endstruct
 .assert .sizeof(CreepCastle)=256,error
 
@@ -1202,6 +998,9 @@ _unused_field_61 .byte
 	xOffset        .byte
 	yOffset        .byte
 .endstruct
+.macro _CreepObj_MultiDraw repeat,gfxID,xPos,yPos,xOffset,yOffset
+	.byte repeat,gfxID,xPos,yPos,xOffset,yOffset
+.endmacro
 
 .struct CreepObj_Raygun
 	Flags          .byte
@@ -1258,6 +1057,9 @@ _unused_field_61 .byte
 	Color          .byte                 ; enum C64_COLORS
 	Font           .byte                 ; enum TEXTFONT
 .endstruct
+.macro _CreepObj_Text xPos,yPos,color,font
+	.byte xPos,yPos,color,font
+.endmacro
 
 .struct CreepObj_Image
 	Width          .byte
@@ -1278,23 +1080,35 @@ _unused_field_61 .byte
 	gfxID          .byte   ; enum GfxID
 	nextState      .byte   ; enum PLAYER_STATE
 .endstruct
+.macro _CreepState xOffset,yOffset,gfxID,nextState
+	.byte xOffset,yOffset,gfxID,nextState
+.endmacro
 
 .struct CreepEscapeState
 	XPos           .byte
 	nextState      .byte ; enum ESCAPE_CASTLE_STATES
 .endstruct
+.macro _CreepEscapeState xPos,nextState
+	.byte xPos,nextState
+.endmacro
 
 .struct CreepIMG_Header
 	widthInBytes   .byte
 	heightInPixels .byte
 	spriteFlagsColor .byte ; enum IMG_FLAGS
 .endstruct
+.macro _CreepIMG_Header widthInBytes,heightInPixels,spriteFlagsColor
+	.byte widthInBytes,heightInPixels,spriteFlagsColor
+.endmacro
 
 .struct CreepOptionsMenu
 	XPos           .byte
 	YPos           .byte
 	action         .byte ; enum OPTION_ACTION
 .endstruct
+.macro _CreepOptionsMenu XPos,YPos,action
+	.byte XPos,YPos,action
+.endmacro
 
 .struct CreepHighscoreEntry
 name           .byte
@@ -1311,6 +1125,9 @@ time           .byte
 	postiveY       .byte
 	negativeX      .byte
 .endstruct
+.macro _CreepFrankensteinPlayerDelta v1,v2,v3,v4
+	.byte v1,v2,v3,v4
+.endmacro
 
 .struct SID_ADSR
 	pulseWidth     .word
@@ -1318,6 +1135,10 @@ time           .byte
 	attackDecay    .byte
 	sustainRelease .byte
 .endstruct
+.macro _SID_ADSR pulseWidth,cr,attackDecay,sustainRelease
+	.word pulseWidth
+	.byte cr,attackDecay,sustainRelease
+.endmacro
 
 .struct RASTER_LINE_INFO
 	color          .byte  ; enum C64_COLORS
@@ -1331,37 +1152,37 @@ time           .byte
 	.zeropage
 	.org $10
 ; VIC mirrow registers to be set during the IRQ
-IRQ_VIC_MnX:       .byte 0,0,0,0,0,0,0,0 ; X Coordinate Sprite 0
-IRQ_VIC_MnY:       .byte 0,0,0,0,0,0,0,0 ; Y Coordinate Sprite 0
-IRQ_VIC_MSIGX:     .byte 0 ; MSBs of X coordinates
-IRQ_VIC_ME:        .byte 0 ; Sprite enabled
-IRQ_VIC_VM_CB:     .byte 0 ; Memory pointers
-IRQ_VIC_EC_BORDER: .byte 0 ; Border color
-                   .byte 0 ; uninited & unexplored
-IRQ_VIC_CR2:       .byte 0 ; Control register 2
-IRQ_VIC_SPRITE_ADR:.byte 0,0,0,0,0,0,0,0
-                   .byte 0,0 ; (uninited)
+IRQ_VIC_MnX:       .res 8 ; X Coordinate Sprite 0
+IRQ_VIC_MnY:       .res 8 ; Y Coordinate Sprite 0
+IRQ_VIC_MSIGX:     .res 1 ; MSBs of X coordinates
+IRQ_VIC_ME:        .res 1 ; Sprite enabled
+IRQ_VIC_VM_CB:     .res 1 ; Memory pointers
+IRQ_VIC_EC_BORDER: .res 1 ; Border color
+                   .res 1 ; uninited & unexplored
+IRQ_VIC_CR2:       .res 1 ; Control register 2
+IRQ_VIC_SPRITE_ADR:.res 8
+                   .res 2 ; (uninited)
 .assert * = $30, error, "VIC mirror registers are not 32 bytes long"
 
 ; zero-page pointers to various data
-PP_A:			.addr $0000
-PP_B:			.addr $0000
-screenDraw_BitmapLineAdr: .addr $0000
-_screenDraw_Current_BitmapAdr: .addr $0000
-screenDraw_PTR:  .addr $0000
-                .addr $0000 ; unused
-ScreenDirectionAddr: .addr $0000
-object_Ptr:      .addr $0000
-mVObjectPtr:     .addr $0000
-mRoomPtr:        .addr $0000
+PP_A:			.res 2
+PP_B:			.res 2
+screenDraw_BitmapLineAdr: .res 2
+_screenDraw_Current_BitmapAdr: .res 2
+screenDraw_PTR:  .res 2
+                .res 2 ; unused
+ScreenDirectionAddr: .res 2
+object_Ptr:      .res 2
+mVObjectPtr:     .res 2
+mRoomPtr:        .res 2
 
-SND_PTR:         .addr $0000
-SND_VoiceBaseRegAddr: .addr $0000
-SND_VoiceBaseRegMirrorAddr: .addr $0000
+SND_PTR:         .res 2
+SND_VoiceBaseRegAddr: .res 2
+SND_VoiceBaseRegMirrorAddr: .res 2
 
 .assert * = $4A, error, "VIC mirror registers are not 13 addresses long"
 
 	.org $FB
-PROTECTION_INDEX: .byte 0 ; copy protection
+PROTECTION_INDEX: .res 1 ; copy protection
 
 ; ################################################################################
