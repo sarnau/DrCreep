@@ -24,11 +24,7 @@ CREEPLOAD_START     := $C000 ; code to load the title screen
 CASTLE              := $7800 ; Castle structure
 ROOM_BASE           := $7900 ; Array of all rooms in the castle
 SAVE_GAME_MEMORY    := $9800 ; Backup of the castle
-HIGHSCORES          := $B800 ; Highscores
-HIGHSCORES_1_PLAYER := $B802 ; 10 entries
-HIGHSCORES_2_PLAYER := $B83E ; 10 entries
-_gameHighScores_OutputBuf := $B87A
-_gameHighScores_LineCounter := $B889
+HIGHSCORES          := $B800 ; Highscores as CreepHighscoreTable
 
 GAME_MENU           := $BA00 ; Game menu with all available castles
 BITMAP_ADR_TABLE_MSB := $BB00 ; MSB of the bitmap multiplication table
@@ -1121,12 +1117,16 @@ escapeCastleOutsidePtr .addr
 .endmacro
 
 .struct CreepHighscoreEntry
-name           .byte
-			   .byte
-			   .byte
-time           .byte
-			   .byte
-			   .byte
+name           .res 3
+time           .res 3
+.endstruct
+
+.struct CreepHighscoreTable
+size           .word
+player_1       .res .SIZEOF(CreepHighscoreEntry)*10
+player_2       .res .SIZEOF(CreepHighscoreEntry)*10
+buffer         .res 15
+count          .byte
 .endstruct
 
 .struct CreepFrankensteinPlayerDelta
