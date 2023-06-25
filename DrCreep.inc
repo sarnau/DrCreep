@@ -21,8 +21,8 @@ SCREENRAM           := $0400 ; original video base address for the text screen
 START               := $0800 ; base for the application
 CREEPLOAD_START     := $C000 ; code to load the title screen
 
-CASTLE              := $7800 ; Castle structure
-ROOM_BASE           := $7900 ; Array of all rooms in the castle
+CASTLE              := $7800 ; Castle structure as CreepCastle
+ROOM_BASE           := $7900 ; Array of all rooms in the castle as CreepRoom
 SAVE_GAME_MEMORY    := $9800 ; Backup of the castle
 HIGHSCORES          := $B800 ; Highscores as CreepHighscoreTable
 
@@ -32,10 +32,11 @@ BITMAP_ADR_TABLE_LSB := $BC00 ; LSB of the bitmap multiplication table
 mSprites            := $BD00 ; 8 structures for the sprites
 mObjectsVars        := $BE00 ; 32 structures for the additional objects variables
 mObjects            := $BF00 ; 32 structures for the objects
+
+; the VIC is mapped to the upper 16kb at $C000
 SCR_DIR_2K_BUF      := $C000 ; 40*25*2 (2000 bytes) buffer for the screen containing info about the blocks on the screen
 SPRITE_BASE_A		:= $C800 ; Sprite base 1
 SPRITE_BASE_B		:= $CA00 ; Sprite base 2 (for double buffering)
-; the VIC is mapped to the upper 16kb
 TOP_SCREENRAM       := $CC00 ; video memory, in highres multicolor mode the additional colors
 TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 
