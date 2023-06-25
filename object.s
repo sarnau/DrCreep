@@ -4791,11 +4791,9 @@ _DISK_DELAY_AFTER_IO_DELAY_COUNTER:.BYTE $F0,$A0,$B7
                 TAY
                 PLA
                 RTS
-.endproc
 
-; =============== S U B R O U T I N E =======================================
-
-.proc ConvertTimerToTime_convertBCDToImage
+; Render a two digit BCD into the game time image
+ConvertTimerToTime_convertBCDToImage:
                 PHA
                 STA     _convertTimeToNumber_Value
                 TYA
@@ -4809,14 +4807,14 @@ _DISK_DELAY_AFTER_IO_DELAY_COUNTER:.BYTE $F0,$A0,$B7
                 LSR     A
                 LSR     A
                 LSR     A
-loc_29E4:       ASL     A
+@digitsLoop:    ASL     A
                 ASL     A
                 ASL     A
                 TAX
-loc_29E8:       TXA
+@lineLoop:      TXA
                 AND     #%111
                 CMP     #7
-                BEQ     loc_29FE
+                BEQ     @nextDigit
                 LDA     _convertTimeToNumber_FONT_8x8_CHARS_0_9,X
                 STA     OBJECT_time_separators_IMAGE,Y
                 CLC
@@ -4824,23 +4822,21 @@ loc_29E8:       TXA
                 ADC     #8
                 TAY
                 INX
-                JMP     loc_29E8
-; ---------------------------------------------------------------------------
+                JMP     @lineLoop
 
-loc_29FE:       INC     _convertTimeToNumber_Index
+@nextDigit:     INC     _convertTimeToNumber_Index
                 LDA     _convertTimeToNumber_Index
                 CMP     #2
-                BEQ     loc_2A15
+                BEQ     @return
                 TYA
                 SEC
                 SBC     #55
                 TAY
                 LDA     _convertTimeToNumber_Value
                 AND     #%1111
-                JMP     loc_29E4
-; ---------------------------------------------------------------------------
+                JMP     @digitsLoop
 
-loc_2A15:       PLA
+@return:        PLA
                 TAX
                 PLA
                 TAY
@@ -4848,7 +4844,8 @@ loc_2A15:       PLA
                 RTS
 
 ; ---------------------------------------------------------------------------
-_convertTimeToNumber_FONT_8x8_CHARS_0_9:.BYTE %11111100
+_convertTimeToNumber_FONT_8x8_CHARS_0_9:
+                .BYTE %11111100
                 .BYTE %11001100
                 .BYTE %11001100
                 .BYTE %11001100
@@ -4856,6 +4853,7 @@ _convertTimeToNumber_FONT_8x8_CHARS_0_9:.BYTE %11111100
                 .BYTE %11001100
                 .BYTE %11111100
                 .BYTE %00000000
+
                 .BYTE %00110000
                 .BYTE %00110000
                 .BYTE %00110000
@@ -4864,6 +4862,7 @@ _convertTimeToNumber_FONT_8x8_CHARS_0_9:.BYTE %11111100
                 .BYTE %00110000
                 .BYTE %00110000
                 .BYTE %00000000
+
                 .BYTE %11111100
                 .BYTE %00001100
                 .BYTE %00001100
@@ -4872,6 +4871,7 @@ _convertTimeToNumber_FONT_8x8_CHARS_0_9:.BYTE %11111100
                 .BYTE %11000000
                 .BYTE %11111100
                 .BYTE %00000000
+
                 .BYTE %11111100
                 .BYTE %00001100
                 .BYTE %00001100
@@ -4880,6 +4880,7 @@ _convertTimeToNumber_FONT_8x8_CHARS_0_9:.BYTE %11111100
                 .BYTE %00001100
                 .BYTE %11111100
                 .BYTE %00000000
+
                 .BYTE %11001100
                 .BYTE %11001100
                 .BYTE %11001100
@@ -4888,6 +4889,7 @@ _convertTimeToNumber_FONT_8x8_CHARS_0_9:.BYTE %11111100
                 .BYTE %00001100
                 .BYTE %00001100
                 .BYTE %00000000
+
                 .BYTE %11111100
                 .BYTE %11000000
                 .BYTE %11000000
@@ -4896,6 +4898,7 @@ _convertTimeToNumber_FONT_8x8_CHARS_0_9:.BYTE %11111100
                 .BYTE %00001100
                 .BYTE %11111100
                 .BYTE %00000000
+
                 .BYTE %11000000
                 .BYTE %11000000
                 .BYTE %11000000
@@ -4904,6 +4907,7 @@ _convertTimeToNumber_FONT_8x8_CHARS_0_9:.BYTE %11111100
                 .BYTE %11001100
                 .BYTE %11111100
                 .BYTE %00000000
+
                 .BYTE %11111100
                 .BYTE %00001100
                 .BYTE %00001100
@@ -4912,6 +4916,7 @@ _convertTimeToNumber_FONT_8x8_CHARS_0_9:.BYTE %11111100
                 .BYTE %00001100
                 .BYTE %00001100
                 .BYTE %00000000
+
                 .BYTE %11111100
                 .BYTE %11001100
                 .BYTE %11001100
@@ -4920,6 +4925,7 @@ _convertTimeToNumber_FONT_8x8_CHARS_0_9:.BYTE %11111100
                 .BYTE %11001100
                 .BYTE %11111100
                 .BYTE %00000000
+
                 .BYTE %11111100
                 .BYTE %11001100
                 .BYTE %11001100
@@ -4928,6 +4934,7 @@ _convertTimeToNumber_FONT_8x8_CHARS_0_9:.BYTE %11111100
                 .BYTE %00001100
                 .BYTE %00001100
                 .BYTE %00000000
+
 _convertTimeToNumber_Value:.BYTE $85
 _convertTimeToNumber_Index:.BYTE $A0
 .endproc
@@ -4939,10 +4946,9 @@ _convertTimeToNumber_Index:.BYTE $A0
                 TYA
                 PHA
 
-obj_Text_Prepare_loop:
-                LDY     #CreepObj_Text::XPos
+@loop:          LDY     #CreepObj_Text::XPos
                 LDA     (object_Ptr),Y
-                BEQ     obj_Text_Prepare_next
+                BEQ     @next
                 STA     DRAW_String_TextXPos
                 LDY     #CreepObj_Text::YPos
                 LDA     (object_Ptr),Y
@@ -4957,20 +4963,15 @@ obj_Text_Prepare_loop:
                 LDA     object_Ptr
                 ADC     #.SIZEOF(CreepObj_Text)
                 STA     object_Ptr
-                BCC     loc_2A99
+                BCC     :+
                 INC     object_Ptr+1
+:               JSR     DRAW_String
+                JMP     @loop
 
-loc_2A99:       JSR     DRAW_String
-                JMP     obj_Text_Prepare_loop
-; ---------------------------------------------------------------------------
-
-obj_Text_Prepare_next:
-                INC     object_Ptr
-                BNE     obj_Text_Prepare_return
+@next:          INC     object_Ptr
+                BNE     @return
                 INC     object_Ptr+1
-
-obj_Text_Prepare_return:
-                PLA
+@return:        PLA
                 TAY
                 PLA
                 RTS
@@ -4999,10 +5000,9 @@ obj_Text_Prepare_return:
                 STA     DRAW_Image_Mode
                 LDA     DRAW_String_TextFont
                 AND     #3
-                BNE     loc_2AD8
+                BNE     :+
                 LDA     #TEXTFONT::s8x8
-
-loc_2AD8:       STA     _DRAW_String_TextFontSize
+:               STA     _DRAW_String_TextFontSize
                 ASL     A
                 ASL     A
                 ASL     A
@@ -5021,13 +5021,11 @@ loc_2AD8:       STA     _DRAW_String_TextFontSize
                 ASL     A
                 ASL     A
                 ASL     A
-
-loc_2AF9:       STA     (PP_A),Y
+:               STA     (PP_A),Y
                 DEY
-                BPL     loc_2AF9
+                BPL     :-
 
-StringPrint_nextCharacter:
-                LDY     #0
+@nextCharacter: LDY     #0
                 LDA     DRAW_String_TextFont
                 AND     #TEXTFONT::ILLEGAL|TEXTFONT::UPPERCASE_INVERTED
                 LSR     A
@@ -5058,12 +5056,10 @@ StringPrint_nextCharacter:
                 STA     C6510::D6510    ; Processor port data direction register (0 = Bit #x in processor port can only be read; 1 = Bit #x in processor port can be read and written.)
                 LDA     #1              ; Character ROM, no other ROMs
                 STA     C6510::R6510    ; Processor port
-
-loc_2B39:
-                LDA     (PP_A),Y        ; Copy 8 Bytes for a Character from the ROM
+: 			    LDA     (PP_A),Y        ; Copy 8 Bytes for a Character from the ROM
                 STA     _DRAW_String_ROMFontCopyCharacter,Y
                 DEY
-                BPL     loc_2B39        ; Copy 8 Bytes for a Character from the ROM
+                BPL     :-              ; Copy 8 Bytes for a Character from the ROM
                 LDA     #%101           ; IO mapped, no ROM
                 STA     C6510::R6510    ; Processor port
                 CLI
@@ -5073,8 +5069,7 @@ loc_2B39:
                 LDA     #>OBJECT_StringPrint_CharacterImage_IMAGE
                 STA     PP_A+1
 
-StringPrint_nextCharLine:
-                LDA     _DRAW_String_ROMFontCopyCharacter,X
+@nextCharLine:  LDA     _DRAW_String_ROMFontCopyCharacter,X
                 LSR     A
                 LSR     A
                 LSR     A
@@ -5093,13 +5088,12 @@ StringPrint_nextCharLine:
 
                 LDA     _DRAW_String_TextFontSize
                 CMP     #TEXTFONT::s8x16
-                BCS     StringPrint_16x16_or_24x24
+                BCS     @StringPrint_16x16_or_24x24
                 LDA     #2
-                JMP     loc_2BAB
-; ---------------------------------------------------------------------------
+                JMP     @copy
 
-StringPrint_16x16_or_24x24:
-                BNE     StringPrint_24x24
+@StringPrint_16x16_or_24x24:
+                BNE     @StringPrint_24x24
                 LDY     #0
                 LDA     (PP_A),Y
                 LDY     #2
@@ -5109,10 +5103,9 @@ StringPrint_16x16_or_24x24:
                 LDY     #3
                 STA     (PP_A),Y
                 LDA     #4
-                JMP     loc_2BAB
-; ---------------------------------------------------------------------------
+                JMP     @copy
 
-StringPrint_24x24:
+@StringPrint_24x24:
                 LDY     #0
                 LDA     (PP_A),Y
                 LDY     #2
@@ -5127,42 +5120,33 @@ StringPrint_24x24:
                 STA     (PP_A),Y
                 LDA     #6
 
-loc_2BAB:
-                CLC
+@copy:          CLC
                 ADC     PP_A
                 STA     PP_A
-                BCC     loc_2BB4
+                BCC     :+
                 INC     PP_A+1
-
-loc_2BB4:
-                INX
+:               INX
                 CPX     #8
-                BCC     StringPrint_nextCharLine
+                BCC     @nextCharLine
                 JSR     DRAW_Image
 
                 LDY     #0
                 LDA     (object_Ptr),Y
-                BMI     loc_2BD7
+                BMI     @return
                 INC     object_Ptr
-                BNE     loc_2BC8
+                BNE     :+
                 INC     object_Ptr+1
-
-loc_2BC8:
-                CLC
+:               CLC
                 LDA     DRAW_Image_Foreground_Left
                 ADC     #8
                 STA     DRAW_Image_Foreground_Left
                 STA     DRAW_Image_Mask_Left
-                JMP     StringPrint_nextCharacter
-; ---------------------------------------------------------------------------
+                JMP     @nextCharacter
 
-loc_2BD7:
-                INC     object_Ptr
-                BNE     loc_2BDD
+@return:        INC     object_Ptr
+                BNE     :+
                 INC     object_Ptr+1
-
-loc_2BDD:
-                PLA
+:		        PLA
                 TAX
                 PLA
                 TAY
@@ -5314,8 +5298,8 @@ PROT_2E02_UNUSED:.BYTE $B0
 
 .proc GAME_ExecuteEvents
                 PHA
-_loop:          LDA     IRQ_DELAY_COUNTER ; Throttle engine to 30Hz
-                BNE     _loop           ; Throttle engine to 30Hz
+:               LDA     IRQ_DELAY_COUNTER ; Throttle engine to 30Hz
+                BNE     :-           ; Throttle engine to 30Hz
                 LDA     #2
                 STA     IRQ_DELAY_COUNTER
 
@@ -5345,38 +5329,32 @@ events_Execute_EngineTicks:.BYTE $A0
                 STA     _Sprite_Collision_Set_VIC_MD
                 LDX     #0
 
-_Sprite_Collision_Set_spriteCollisionLoop:
+@spriteCollisionLoop:
                 LDA     mSprites + CreepSprite::state,X
                 BIT     SPRITE_FLAGS_UNUSED ; 1, if the sprite slot is unused
-                BEQ     loc_2E59
+                BEQ     :+
                 LSR     _Sprite_Collision_Set_VIC_MM
                 LSR     _Sprite_Collision_Set_VIC_MD
-                JMP     _Sprite_Collision_Set_nextSprite
-; ---------------------------------------------------------------------------
-
-loc_2E59:       AND     #(~(SPRITE_STATE::VIC_COLLIDE_SPRITE|SPRITE_STATE::VIC_COLLIDE_BACKGROUND) & $FF) ; VIC detected a collision with another sprite
+                JMP     @nextSprite
+:		        AND     #(~(SPRITE_STATE::VIC_COLLIDE_SPRITE|SPRITE_STATE::VIC_COLLIDE_BACKGROUND) & $FF) ; VIC detected a collision with another sprite
                 LSR     _Sprite_Collision_Set_VIC_MM
-                BCC     loc_2E62
+                BCC     :+
                 ORA     #SPRITE_STATE::VIC_COLLIDE_SPRITE ; VIC detected a collision with another sprite
-
-loc_2E62:       LSR     _Sprite_Collision_Set_VIC_MD
-                BCC     loc_2E69
+:		        LSR     _Sprite_Collision_Set_VIC_MD
+                BCC     :+
                 ORA     #SPRITE_STATE::VIC_COLLIDE_BACKGROUND ; VIC detected a collision with the background layer
+:		        STA     mSprites + CreepSprite::state,X
 
-loc_2E69:       STA     mSprites + CreepSprite::state,X
-
-_Sprite_Collision_Set_nextSprite:
-                CLC
+@nextSprite:    CLC
                 TXA
                 ADC     #.SIZEOF(CreepSprite)
                 TAX
-                BNE     _Sprite_Collision_Set_spriteCollisionLoop
+                BNE     @spriteCollisionLoop
                 PLA
                 TAX
                 PLA
                 RTS
 
-; ---------------------------------------------------------------------------
 _Sprite_Collision_Set_VIC_MM:.BYTE $C5
 _Sprite_Collision_Set_VIC_MD:.BYTE $D0
 .endproc
@@ -5394,12 +5372,10 @@ Sprite_Execute:
 Sprite_Execute_loop:
                 LDA     mSprites + CreepSprite::state,X
                 BIT     SPRITE_FLAGS_UNUSED ; 1, if the sprite slot is unused
-                BEQ     loc_2E8B
+                BEQ     :+
                 JMP     Sprite_Execute_nextSprite
-; ---------------------------------------------------------------------------
 
-loc_2E8B:
-                BIT     SPRITE_FLAGS_DESTROY ; Sprite to be destroyed, will be freed in the next execute loop
+:               BIT     SPRITE_FLAGS_DESTROY ; Sprite to be destroyed, will be freed in the next execute loop
                 BNE     Sprite_Execute_exec
 
                 BIT     SPRITE_FLAGS_SHOULD_DIE ; Should the sprite die?
@@ -5408,15 +5384,14 @@ loc_2E8B:
                 BEQ     loc_2EAD
 
                 BIT     SPRITE_FLAGS_VIC_COLLIDE_SPRITE ; Check for Sprite <=> Sprite collision
-                BEQ     loc_2EAA
+                BEQ     :+
                 JSR     Sprite_Collision_Check ; Check sprite #X for sprite-sprite collisions
                 LDA     mSprites + CreepSprite::state,X
                 BIT     SPRITE_FLAGS_SHOULD_DIE ; Should the sprite die?
                 BNE     _Sprite_Execute_DieAnimation ; yes =>
 
-loc_2EAA:
-                JMP     Sprite_Execute_nextSprite
-; ---------------------------------------------------------------------------
+:               JMP     Sprite_Execute_nextSprite
+
 
 loc_2EAD:
                 BIT     SPRITE_FLAGS_DIEING ; Sprite is dieing (potentially flashing) and ignored for collisions – once flashing is done, it is destroyed
@@ -5448,7 +5423,6 @@ Sprite_Execute_exec:
                 STA     loc_2EE8+1
                 LDA     Sprite_Table+SPRITE_TABLE::execute+1,Y
                 STA     loc_2EE8+2
-
 loc_2EE8:       JMP     loc_2EE8+1
 ; ---------------------------------------------------------------------------
 
