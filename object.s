@@ -8091,8 +8091,8 @@ Object_Execute_return:
                 RTS
 
 ; ---------------------------------------------------------------------------
-_Object_Execute_ObjectSizeCounter:.BYTE 0
-_Object_Execute_Index:.BYTE 0
+_Object_Execute_ObjectSizeCounter:.BYTE $D8
+_Object_Execute_Index:.BYTE $84
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -8388,13 +8388,13 @@ _obj_Door_Object_Setup_return:
                 RTS
 
 ; ---------------------------------------------------------------------------
-_obj_Door_Object_Setup_DoorIndex:.BYTE 0
-_obj_Door_Object_Setup_DoorCount:.BYTE 0
+_obj_Door_Object_Setup_DoorIndex:.BYTE $A0
+_obj_Door_Object_Setup_DoorCount:.BYTE $A0
 _obj_Door_Object_Setup_DoorOrHouseTable:.BYTE GfxID::exit,GfxID::house
-_obj_Door_Object_Setup_RoomDoorPtr:.WORD 0
-_obj_Door_Object_ObjectCollision_Y:.BYTE 0
-_obj_Door_Object_ObjectCollision_playerRoom:.BYTE 0
-_obj_Door_Object_ObjectCollision_playerDoor:.BYTE 0
+_obj_Door_Object_Setup_RoomDoorPtr:.addr $B4AC
+_obj_Door_Object_ObjectCollision_Y:.BYTE $A0
+_obj_Door_Object_ObjectCollision_playerRoom:.BYTE $9E
+_obj_Door_Object_ObjectCollision_playerDoor:.BYTE $A0
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -8536,8 +8536,8 @@ obj_Door_Button_Prepare_return:
                 RTS
 
 ; ---------------------------------------------------------------------------
-_obj_DoorBell_Setup_ButtonCount:.BYTE 0
-_obj_DoorBell_Object_ObjectCollision_X:.BYTE 0
+_obj_DoorBell_Setup_ButtonCount:.BYTE $A0
+_obj_DoorBell_Object_ObjectCollision_X:.BYTE $FF
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -8716,8 +8716,8 @@ obj_Lightning_Pole_Execute_return:
                 JMP     Object_Execute_nextObject
 
 ; ---------------------------------------------------------------------------
-_obj_Lightning_Pole_Execute_Length:.BYTE 0
-_obj_Lightning_Pole_Execute_phase:.BYTE 0
+_obj_Lightning_Pole_Execute_Length:.BYTE $A5
+_obj_Lightning_Pole_Execute_phase:.BYTE $A0
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -8874,8 +8874,8 @@ obj_Lightning_Prepare_return:
                 RTS
 
 ; ---------------------------------------------------------------------------
-_obj_Lightning_Prepare_LightningCount:.BYTE 0
-_obj_Lightning_Prepare_Length:.BYTE 0
+_obj_Lightning_Prepare_LightningCount:.BYTE $95
+_obj_Lightning_Prepare_Length:.BYTE $80
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -9019,11 +9019,11 @@ obj_Lightning_Switch_InFront_return:
                 JMP     _Sprite_Object_Collision_Check_nextObject
 
 ; ---------------------------------------------------------------------------
-_obj_Lightning_Switch_InFront_index:.BYTE 0
-_obj_Lightning_Switch_InFront_byte_45D8:.BYTE 0
-_obj_Lightning_Switch_InFront_byte_45D9:.BYTE 0
-_obj_Lightning_Switch_InFront_id:.BYTE 0
-obj_Lightning_Ptr:.WORD 0
+_obj_Lightning_Switch_InFront_index:.BYTE $99
+_obj_Lightning_Switch_InFront_byte_45D8:.BYTE $80
+_obj_Lightning_Switch_InFront_byte_45D9:.BYTE $A0
+_obj_Lightning_Switch_InFront_id:.BYTE $C8
+obj_Lightning_Ptr:.addr $CEA0
 LIGHTNING_IS_SWITCH:.BYTE $80
 LIGHTNING_IS_ON:.BYTE $40
 LIGHTNING_END_MARKER:.BYTE $20
@@ -9238,8 +9238,8 @@ obj_Forcefield_Prepare_return:
                 RTS
 
 ; ---------------------------------------------------------------------------
-obj_Forcefield_Prepare_ForcefieldCount:.BYTE 0
-_obj_Forcefield_isActiveFlag:.BYTE   0,  0,  0,  0,  0,  0
+obj_Forcefield_Prepare_ForcefieldCount:.BYTE $BA
+_obj_Forcefield_isActiveFlag:.BYTE $A0,$A4,$B2,$FE,$A0,$A0
 _obj_Forcefield_Timer_Execute_soundFreq:.BYTE SID_NOTE::As4,SID_NOTE::A4,SID_NOTE::G4,SID_NOTE::F4,SID_NOTE::Ds4,SID_NOTE::D4,SID_NOTE::C4,SID_NOTE::As3
 
 ; =============== S U B R O U T I N E =======================================
@@ -9392,9 +9392,9 @@ _obj_Mummy_Infront_return:
                 JMP     _Sprite_Object_Collision_Check_nextObject
 
 ; ---------------------------------------------------------------------------
-_obj_Ankh_ObjectCollision_saveX:.BYTE 0
-_obj_Ankh_ObjectCollision_saveY:.BYTE 0
-_obj_Ankh_Object_ObjectCollision_counter:.BYTE 0
+_obj_Ankh_ObjectCollision_saveX:.BYTE $FF
+_obj_Ankh_ObjectCollision_saveY:.BYTE $A0
+_obj_Ankh_Object_ObjectCollision_counter:.BYTE $B5
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -9551,10 +9551,10 @@ obj_Mummy_Prepare_return:
                 RTS
 
 ; ---------------------------------------------------------------------------
-obj_Mummy_Ptr:  .WORD 0
-_obj_Mummy_Prepare_MummyObjectNumber:.BYTE 0
-_obj_Mummy_Prepare_VCount:.BYTE 0
-_obj_Mummy_Prepare_WCount:.BYTE 0
+obj_Mummy_Ptr:  .addr $CCA0
+_obj_Mummy_Prepare_MummyObjectNumber:.BYTE $A5
+_obj_Mummy_Prepare_VCount:.BYTE $90
+_obj_Mummy_Prepare_WCount:.BYTE $A0
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -9682,9 +9682,9 @@ obj_Key_Prepare_return:
                 RTS
 
 ; ---------------------------------------------------------------------------
-_obj_Key_InfrontPrepare_KeyID:.BYTE 0
-obj_Key_Ptr:    .WORD 0
-_obj_Key_Infront_pObjectNumber:.BYTE 0
+_obj_Key_InfrontPrepare_KeyID:.BYTE $A0
+obj_Key_Ptr:    .addr $A098
+_obj_Key_Infront_pObjectNumber:.BYTE $A0
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -9799,7 +9799,7 @@ loc_4B13:       PLA
                 RTS
 
 ; ---------------------------------------------------------------------------
-_obj_DoorLock_Object_ObjectCollision_saveX:.BYTE 0
+_obj_DoorLock_Object_ObjectCollision_saveX:.BYTE $C2
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -10145,10 +10145,10 @@ loc_4D55:       PLA
                 RTS
 
 ; ---------------------------------------------------------------------------
-obj_RayGun_Ptr: .WORD 0
-obj_RayGun_id:  .BYTE 0
-obj_RayGun_FacingDir:.BYTE 0
-_obj_RayGun_Execute_Player:.BYTE 0
+obj_RayGun_Ptr: .addr $B780
+obj_RayGun_id:  .BYTE $A0
+obj_RayGun_FacingDir:.BYTE $80
+_obj_RayGun_Execute_Player:.BYTE $C2
 
 RAYGUN_END_MARKER:.BYTE $80
 RAYGUN_SHOT_ACTIVE:.BYTE $40            ; The Raygun can only fire one shot at the time
@@ -10272,14 +10272,14 @@ obj_RayGun_Control_Update_Color:
                 RTS
 
 ; ---------------------------------------------------------------------------
-obj_RayGun_Control_InFront_pObjectNumber:.BYTE 0
-obj_RayGun_Control_Update_colorVal:.BYTE 0
+obj_RayGun_Control_InFront_pObjectNumber:.BYTE $9F
+obj_RayGun_Control_Update_colorVal:.BYTE $A7
 
 ; =============== S U B R O U T I N E =======================================
 
 
 obj_MatterTransmitter_Object_Execute:
-                ORA     events_Execute_EngineTicks
+                LDA     events_Execute_EngineTicks
                 AND     #1
                 BNE     obj_MatterTransmitter_Object_Execute_next
 
@@ -10642,10 +10642,10 @@ obj_MatterTransmitter_SetColor:
                 RTS
 
 ; ---------------------------------------------------------------------------
-_obj_MatterTransmitter_ObjectCollision_temp:.BYTE 0
-_obj_MatterTransmitter_Setup_pObjectNumber:.BYTE 0
-_obj_MatterTransmitter_Setup_selectedColor:.BYTE 0
-_obj_MatterTransmitter_SetColor_COLOR:.BYTE 0
+_obj_MatterTransmitter_ObjectCollision_temp:.BYTE $A0
+_obj_MatterTransmitter_Setup_pObjectNumber:.BYTE $FF
+_obj_MatterTransmitter_Setup_selectedColor:.BYTE $D5
+_obj_MatterTransmitter_SetColor_COLOR:.BYTE $C3
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -11043,14 +11043,14 @@ _obj_TrapDoor_Switch_Check_continue:
                 RTS
 
 ; ---------------------------------------------------------------------------
-obj_TrapDoor_Prepare_objNumber:.BYTE 0
-obj_TrapDoor_Switch_Check_trapDoorIndex:.BYTE 0
-_obj_TrapDoor_Switch_Check_SavedWord40:.WORD 0
-_obj_TrapDoor_Switch_Check_SavedWord3C:.WORD 0
+obj_TrapDoor_Prepare_objNumber:.BYTE $A5
+obj_TrapDoor_Switch_Check_trapDoorIndex:.BYTE $A0
+_obj_TrapDoor_Switch_Check_SavedWord40:.addr $A0A0
+_obj_TrapDoor_Switch_Check_SavedWord3C:.addr $80A0
 
-obj_TrapDoor_Ptr:.WORD 0
+obj_TrapDoor_Ptr:.addr $A0A5
 TRAPDOOR_END_MARKER:.BYTE $80
-TRAPDOOR_OPEN:  .BYTE 1
+TRAPDOOR_OPEN:  .BYTE $01
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -11452,10 +11452,10 @@ MOVINGSIDEWALK_SWITCHED_BY_PLY2:.BYTE 8  ; Player2 just flicked the switch
 MOVINGSIDEWALK_SWITCHED_BY_PLY1:.BYTE 4  ; Player1 just flicked the switch
 MOVINGSIDEWALK_MOVING_RIGHT:.BYTE 2      ; MovingSidewalk is moving to the right
 MOVINGSIDEWALK_TURNED_ON:.BYTE 1         ; MovingSidewalk is moving
-_obj_MovingSidewalk_setup_movingsidewalk_id:.BYTE 0
-_obj_MovingSidewalk_speed:.BYTE 0
-obj_MovingSidewalk_Ptr:.WORD 0
-_obj_MovingSidewalk_InFront_byte_564D:.BYTE 0
+_obj_MovingSidewalk_setup_movingsidewalk_id:.BYTE $A4
+_obj_MovingSidewalk_speed:.BYTE $B9
+obj_MovingSidewalk_Ptr:.addr $B6A0
+_obj_MovingSidewalk_InFront_byte_564D:.BYTE $A0
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -11615,13 +11615,13 @@ obj_Frankenstein_Prepare_return:
                 RTS
 
 ; ---------------------------------------------------------------------------
-obj_Frankenstein_Ptr:.WORD 0
-mFrankensteinObjectNumber:.BYTE 0
-_obj_Frankenstein_Setup_SCRBitsMask:.BYTE 0
+obj_Frankenstein_Ptr:.addr $A090
+mFrankensteinObjectNumber:.BYTE $C1
+_obj_Frankenstein_Setup_SCRBitsMask:.BYTE $A0
 FRANKENSTEIN_END_MARKER:.BYTE $80
-FRANKENSTEIN_IS_DEAD:.BYTE 4
-FRANKENSTEIN_AWAKE:.BYTE 2
-FRANKENSTEIN_FACEING_LEFT:.BYTE 1
+FRANKENSTEIN_IS_DEAD:.BYTE $04
+FRANKENSTEIN_AWAKE:.BYTE $02
+FRANKENSTEIN_FACEING_LEFT:.BYTE $01
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -11768,10 +11768,10 @@ _DRAW_Image_Mask:
                 ROL     screenDraw_PTR+1
                 CLC
                 LDA     screenDraw_PTR
-                ADC     #>IMAGE_DATA_TABLE
+                ADC     #<IMAGE_DATA_TABLE
                 STA     screenDraw_PTR
                 LDA     screenDraw_PTR+1
-                ADC     #<IMAGE_DATA_TABLE
+                ADC     #>IMAGE_DATA_TABLE
                 STA     screenDraw_PTR+1
 
                 LDY     #0
@@ -12450,40 +12450,40 @@ _DRAW_Image_return:
 .endproc
 
 ; ---------------------------------------------------------------------------
-_DRAW_Image_Current_Top:.BYTE 0
-_DRAW_Image_clippedTop:.BYTE 0
-_DRAW_Image_clippedBottom:.BYTE 0
-DRAW_Image_Mode:.BYTE 0
-_DRAW_Image_Current_BytePos:.BYTE 0
-DRAW_Image_Foreground_GfxID:.BYTE 0
-DRAW_Image_Foreground_Top:.BYTE 0
-DRAW_Image_Foreground_Left:.BYTE 0
-DRAW_Image_Foreground_Bottom:.BYTE 0
-DRAW_Image_Foreground_Width:.BYTE 0
-DRAW_Image_Foreground_Height:.BYTE 0
-_DRAW_Image_Foreground_Linecount:.BYTE 0
-_DRAW_Image_Foreground_XByteOffset:.WORD 0
-_DRAW_Image_Foreground_LeftBytePos:.BYTE 0
-_DRAW_Image_Foreground_RightBytePos:.BYTE 0
-_DRAW_Image_Foreground_FirstLineFlag:.BYTE 0
-DRAW_Image_Mask_GfxID:.BYTE 0
-DRAW_Image_Mask_Top:.BYTE 0
-DRAW_Image_Mask_Left:.BYTE 0
-_DRAW_Image_Mask_Bottom:.BYTE 0
-_DRAW_Image_Mask_Width:.BYTE 0
-_DRAW_Image_Mask_Height:.BYTE 0
-_DRAW_Image_Mask_Linecount:.BYTE 0
-_DRAW_Image_Mask_XByteOffset:.WORD 0
-_DRAW_Image_Mask_LeftBytePos:.BYTE 0
-_DRAW_Image_Mask_RightBytePos:.BYTE 0
-_DRAW_Image_Mask_FirstLineFlag:.BYTE 0
-_DRAW_Image_Foreground_TopBytePos:.BYTE 0
-_DRAW_Image_Foreground_BottomBytePos:.BYTE 0
-_DRAW_Image_Foreground_ColorTopLineOffset:.WORD 0
-_DRAW_Image_IsSubpixelLine:.BYTE 0
+_DRAW_Image_Current_Top:.BYTE $A0
+_DRAW_Image_clippedTop:.BYTE $94
+_DRAW_Image_clippedBottom:.BYTE $A9
+DRAW_Image_Mode:.BYTE $8A
+_DRAW_Image_Current_BytePos:.BYTE $CF
+DRAW_Image_Foreground_GfxID:.BYTE $9E
+DRAW_Image_Foreground_Top:.BYTE $A0
+DRAW_Image_Foreground_Left:.BYTE $C5
+DRAW_Image_Foreground_Bottom:.BYTE $FF
+DRAW_Image_Foreground_Width:.BYTE $C5
+DRAW_Image_Foreground_Height:.BYTE $E5
+_DRAW_Image_Foreground_Linecount:.BYTE $A0
+_DRAW_Image_Foreground_XByteOffset:.WORD $9EA0
+_DRAW_Image_Foreground_LeftBytePos:.BYTE $95
+_DRAW_Image_Foreground_RightBytePos:.BYTE $B9
+_DRAW_Image_Foreground_FirstLineFlag:.BYTE $90
+DRAW_Image_Mask_GfxID:.BYTE $80
+DRAW_Image_Mask_Top:.BYTE $B8
+DRAW_Image_Mask_Left:.BYTE $C5
+_DRAW_Image_Mask_Bottom:.BYTE $A0
+_DRAW_Image_Mask_Width:.BYTE $AF
+_DRAW_Image_Mask_Height:.BYTE $BA
+_DRAW_Image_Mask_Linecount:.BYTE $D5
+_DRAW_Image_Mask_XByteOffset:.WORD $A0A0
+_DRAW_Image_Mask_LeftBytePos:.BYTE $D0
+_DRAW_Image_Mask_RightBytePos:.BYTE $D9
+_DRAW_Image_Mask_FirstLineFlag:.BYTE $8A
+_DRAW_Image_Foreground_TopBytePos:.BYTE $E6
+_DRAW_Image_Foreground_BottomBytePos:.BYTE $B1
+_DRAW_Image_Foreground_ColorTopLineOffset:.WORD $FFA0
+_DRAW_Image_IsSubpixelLine:.BYTE $A0
 
-MULT_40_TABLE_LSB:.BYTE   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
-MULT_40_TABLE_MSB:.BYTE   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
+MULT_40_TABLE_LSB:.BYTE $A5,$A0,$F0,$A0,$A0,$A1,$A0,$A0,$A0,$80,$A0,$A0,$98,$A0,$CC,$B7,$A0,$A0,$B0,$85,$C4,$AD,$A0,$83,$A0,$E8,$A0,$A0,$C3,$D5,$FB,$D0
+MULT_40_TABLE_MSB:.BYTE $A0,$E0,$C4,$E9,$A0,$AF,$C3,$A0,$B5,$D3,$89,$C2,$94,$C4,$A0,$C3,$A0,$D6,$A0,$88,$A0,$A0,$C5,$A0,$86,$A0,$89,$A0,$F5,$B6,$C3,$97
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -12701,10 +12701,10 @@ loc_5E81:
 .endproc
 
 ; ---------------------------------------------------------------------------
-_Sprite_Update_SpriteIndex:.BYTE 0
+_Sprite_Update_SpriteIndex:.BYTE $8C
 _Sprite_Update_3ZeroBytes:.BYTE %00000000,%00000000,%00000000
-_Sprite_Update_H:.BYTE 0
-_Sprite_Update_WidthInBytes:.BYTE 0
+_Sprite_Update_H:.BYTE $A0
+_Sprite_Update_WidthInBytes:.BYTE $8A
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -12761,8 +12761,8 @@ obj_Key_NotFound_return:
 .endproc
 
 ; ---------------------------------------------------------------------------
-_obj_Key_NotFound_KeyCount:.BYTE 0
-_obj_Key_NotFound_pObjectNumber:.BYTE 0
+_obj_Key_NotFound_KeyCount:.BYTE $B5
+_obj_Key_NotFound_pObjectNumber:.BYTE $D4
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -12845,9 +12845,9 @@ _KEY_GetJoystick_JButton_YES:
 .endproc
 
 ; ---------------------------------------------------------------------------
-KEY_GetJoystick_Input:.BYTE 0
-KEY_GetJoystick_Button:.BYTE 0
-_KEY_GetJoystick_inputPort:.BYTE 0
+KEY_GetJoystick_Input:.BYTE $82
+KEY_GetJoystick_Button:.BYTE $A0
+_KEY_GetJoystick_inputPort:.BYTE $BF
 KEY_GetJoystick_Table:.BYTE JOYSTICK_DIRECTION::NOTHING,JOYSTICK_DIRECTION::NOTHING,JOYSTICK_DIRECTION::NOTHING,JOYSTICK_DIRECTION::NOTHING
                 .BYTE JOYSTICK_DIRECTION::NOTHING,JOYSTICK_DIRECTION::DOWN_RIGHT,JOYSTICK_DIRECTION::UP_RIGHT,JOYSTICK_DIRECTION::RIGHT
                 .BYTE JOYSTICK_DIRECTION::NOTHING,JOYSTICK_DIRECTION::DOWN_LEFT,JOYSTICK_DIRECTION::UP_LEFT,JOYSTICK_DIRECTION::LEFT
@@ -12929,10 +12929,10 @@ _CalcScreenDirectionAddr_return:
                 RTS
 
 ; ---------------------------------------------------------------------------
-CalcScreenDirectionAddr_XPos:.BYTE 0
-CalcScreenDirectionAddr_YPos:.BYTE 0
-CalcScreenDirectionAddrForSprite_Left_subpixel:.BYTE 0
-CalcScreenDirectionAddrForSprite_Bottom_subpixel:.BYTE 0
+CalcScreenDirectionAddr_XPos:.BYTE $AC
+CalcScreenDirectionAddr_YPos:.BYTE $85
+CalcScreenDirectionAddrForSprite_Left_subpixel:.BYTE $C8
+CalcScreenDirectionAddrForSprite_Bottom_subpixel:.BYTE $A0
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -12962,7 +12962,7 @@ CalcScreenDirectionAddrForSprite_Bottom_subpixel:.BYTE 0
                 BNE     _selectRoom_notInIntro
                 CLC
                 LDA     mRoomPtr+1
-                ADC     #>(SAVE_GAME_MEMORY - ROOM_BASE)
+                ADC     #>(SAVE_GAME_MEMORY - CASTLE)
                 STA     mRoomPtr+1
 
 _selectRoom_notInIntro:
@@ -13007,7 +13007,7 @@ _selectRoom_notInIntro:
                 PLA
                 RTS
 .endproc
-selectedDoor_Count:.BYTE 0
+selectedDoor_Count:.BYTE $A1
 
 
 
