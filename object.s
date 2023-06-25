@@ -2876,17 +2876,17 @@ _gameEscapeCastle_stateIndex:.BYTE $A0
                 LDA     CASTLE + CreepCastle::playerCount
                 CMP     #0
                 BEQ     loc_1BB6
-                LDA     #<(HIGHSCORES + CreepHighscoreTable::player_2 + CreepHighscoreEntry::time-1)
+                LDA     #<(HIGHSCORES + CreepHighscores::player_2 + CreepHighscoreEntry::time-1)
                 STA     PP_A
-                LDA     #>(HIGHSCORES + CreepHighscoreTable::player_2 + CreepHighscoreEntry::time-1)
+                LDA     #>(HIGHSCORES + CreepHighscores::player_2 + CreepHighscoreEntry::time-1)
                 STA     PP_A+1
                 JMP     loc_1BBE
 ; ---------------------------------------------------------------------------
 
 loc_1BB6:
-                LDA     #<(HIGHSCORES + CreepHighscoreTable::player_1 + CreepHighscoreEntry::time-1)
+                LDA     #<(HIGHSCORES + CreepHighscores::player_1 + CreepHighscoreEntry::time-1)
                 STA     PP_A
-                LDA     #>(HIGHSCORES + CreepHighscoreTable::player_1 + CreepHighscoreEntry::time-1)
+                LDA     #>(HIGHSCORES + CreepHighscores::player_1 + CreepHighscoreEntry::time-1)
                 STA     PP_A+1
 
 loc_1BBE:
@@ -2965,7 +2965,7 @@ loc_1C2A:
 
 loc_1C34:
                 LDA     HIGHSCORES,Y
-                STA     HIGHSCORES + CreepHighscoreTable::player_1 + CreepHighscoreEntry::time+1,Y
+                STA     HIGHSCORES + CreepHighscores::player_1 + CreepHighscoreEntry::time+1,Y
                 DEY
                 DEC     _gameHighScoresHandle_byte_1CFF
                 BNE     loc_1C34
@@ -3152,13 +3152,13 @@ gameHighScores_loop:
                 LDY     HIGHSCORES + CreepHighscoreTable::count
                 LDA     _gameHighScores_color_value_table,Y
                 STA     DRAW_String_TextColor
-                LDA     HIGHSCORES + CreepHighscoreTable::player_1 + CreepHighscoreEntry::name,X
+                LDA     HIGHSCORES + CreepHighscores::player_1 + CreepHighscoreEntry::name,X
                 CMP     #$FF
                 BEQ     loc_1DD6
                 STA     HIGHSCORES + CreepHighscoreTable::buffer
-                LDA     HIGHSCORES + CreepHighscoreTable::player_1 + CreepHighscoreEntry::name+1,X
+                LDA     HIGHSCORES + CreepHighscores::player_1 + CreepHighscoreEntry::name+1,X
                 STA     HIGHSCORES + CreepHighscoreTable::buffer+1
-                LDA     HIGHSCORES + CreepHighscoreTable::player_1 + CreepHighscoreEntry::name+2,X
+                LDA     HIGHSCORES + CreepHighscores::player_1 + CreepHighscoreEntry::name+2,X
                 JMP     loc_1DDE
 ; ---------------------------------------------------------------------------
 
@@ -3176,15 +3176,15 @@ loc_1DDE:
                 STA     object_Ptr+1
                 JSR     DRAW_String
 
-                LDA     HIGHSCORES + CreepHighscoreTable::player_1,X
+                LDA     HIGHSCORES + CreepHighscores::player_1,X
                 CMP     #$FF
                 BEQ     loc_1E20
 
                 CLC
                 TXA
-                ADC     #<(HIGHSCORES + CreepHighscoreTable::player_1 + CreepHighscoreEntry::time-1)
+                ADC     #<(HIGHSCORES + CreepHighscores::player_1 + CreepHighscoreEntry::time-1)
                 STA     object_Ptr
-                LDA     #>(HIGHSCORES + CreepHighscoreTable::player_1 + CreepHighscoreEntry::time-1)
+                LDA     #>(HIGHSCORES + CreepHighscores::player_1 + CreepHighscoreEntry::time-1)
                 ADC     #0
                 STA     object_Ptr+1
                 JSR     ConvertTimerToTime
@@ -3975,13 +3975,13 @@ loc_241D:
                 BEQ     loc_2445
 
 ; Erase all highscores
-                LDA     #122
-                STA     HIGHSCORES
-                LDA     #0
-                STA     HIGHSCORES+1
-                LDY     #120-1
+                LDA     #<.SIZEOF(CreepHighscores)
+                STA     HIGHSCORES+CreepHighscores::size
+                LDA     #>.SIZEOF(CreepHighscores)
+                STA     HIGHSCORES+CreepHighscores::size+1
+                LDY     #.SIZEOF(CreepHighscores)-2-1 ; 2 for the size word
                 LDA     #$FF
-loc_243F:       STA     HIGHSCORES + CreepHighscoreTable::player_1,Y
+loc_243F:       STA     HIGHSCORES + CreepHighscores::player_1,Y
                 DEY
                 BPL     loc_243F
 

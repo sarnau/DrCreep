@@ -1123,12 +1123,19 @@ name           .res 3
 time           .res 3
 .endstruct
 
-.struct CreepHighscoreTable
+; This is the saved structure on disk with the highscores.
+; The filename is the name of the castle with a 'Y' prefix
+.struct CreepHighscores
 size           .word
 player_1       .res .SIZEOF(CreepHighscoreEntry)*10
 player_2       .res .SIZEOF(CreepHighscoreEntry)*10
-buffer         .res 15
-count          .byte
+.endstruct
+
+; This is memory block at the HIGHSCORES address
+.struct CreepHighscoreTable
+	highscoretab .tag CreepHighscores
+	buffer       .res 15
+	count        .byte
 .endstruct
 
 .struct CreepFrankensteinPlayerDelta
