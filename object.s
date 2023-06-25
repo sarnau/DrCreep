@@ -5273,7 +5273,7 @@ Sprite_Execute_loop:
                 BIT     SPRITE_FLAGS_SHOULD_DIE ; Should the sprite die?
                 BNE     _Sprite_Execute_DieAnimation ; yes =>
                 DEC     mSprites + CreepSprite::phase_counter,X ; Only execute background collision and execute function at phase 0
-                BEQ     loc_2EAD
+                BEQ     @loc_2EAD
 
                 BIT     SPRITE_FLAGS_VIC_COLLIDE_SPRITE ; Check for Sprite <=> Sprite collision
                 BEQ     :+
@@ -5285,18 +5285,18 @@ Sprite_Execute_loop:
 :               JMP     Sprite_Execute_nextSprite
 
 
-loc_2EAD:
+@loc_2EAD:
                 BIT     SPRITE_FLAGS_DIEING ; Sprite is dieing (potentially flashing) and ignored for collisions – once flashing is done, it is destroyed
                 BNE     _Sprite_Execute_DieAnimation
 
                 BIT     SPRITE_FLAGS_VIC_COLLIDE_BACKGROUND ; Check for Sprite <=> Background collision
-                BEQ     loc_2EC2
+                BEQ     @background
                 JSR     Sprite_Object_Collision_Check ; Sprite #X collided with background
                 LDA     mSprites + CreepSprite::state,X
                 BIT     SPRITE_FLAGS_SHOULD_DIE ; Should the sprite die?
                 BNE     _Sprite_Execute_DieAnimation ; yes =>
 
-loc_2EC2:
+@background:
                 LDA     mSprites + CreepSprite::state,X ; Check for Sprite <=> Sprite collision
                 BIT     SPRITE_FLAGS_VIC_COLLIDE_SPRITE ; VIC detected a collision with another sprite
                 BEQ     Sprite_Execute_exec
@@ -5312,10 +5312,10 @@ Sprite_Execute_exec:
                 ASL     A
                 TAY
                 LDA     Sprite_Table+SPRITE_TABLE::execute,Y
-                STA     loc_2EE8+1
+                STA     @patchJump+1
                 LDA     Sprite_Table+SPRITE_TABLE::execute+1,Y
-                STA     loc_2EE8+2
-loc_2EE8:       JMP     loc_2EE8+1
+                STA     @patchJump+2
+@patchJump:     JMP     @patchJump+1
 ; ---------------------------------------------------------------------------
 
 Sprite_Execute_nextObj:
@@ -5340,14 +5340,11 @@ loc_2EF6:
                 TAY
                 LDA     mSprites + CreepSprite::state,X
                 BIT     SPRITE_FLAGS_FREE ; Free the sprite after the execute and mark UNUSED
-                BEQ     Sprite_Execute_set_X
+                BEQ     :+
                 LDA     SPRITE_FLAGS_UNUSED ; 1, if the sprite slot is unused
                 STA     mSprites + CreepSprite::state,X
-                JMP     Sprite_Execute_disable_sprite
-; ---------------------------------------------------------------------------
-
-Sprite_Execute_set_X:
-                LDA     mSprites + CreepSprite::XPos,X
+                JMP     @Sprite_Execute_disable_sprite
+:               LDA     mSprites + CreepSprite::XPos,X
                 STA     PP_A
                 LDA     #0
                 STA     PP_A+1
@@ -5361,35 +5358,30 @@ Sprite_Execute_set_X:
 
                 LDA     PP_A+1
                 SBC     #0              ; X < 0?
-                BCC     Sprite_Execute_disable_sprite
-                BEQ     loc_2F3C
+                BCC     @Sprite_Execute_disable_sprite
+                BEQ     :+
                 LDA     IRQ_VIC_MSIGX   ; MSBs of X coordinates
                 ORA     BITMASK_01__80,Y
-                JMP     loc_2F43
-; ---------------------------------------------------------------------------
-
-loc_2F3C:
-                LDA     BITMASK_01__80,Y
+                JMP     @loc_2F43
+:               LDA     BITMASK_01__80,Y
                 EOR     #%11111111
                 AND     IRQ_VIC_MSIGX   ; MSBs of X coordinates
-
-loc_2F43:
-                STA     IRQ_VIC_MSIGX   ; MSBs of X coordinates
+@loc_2F43:      STA     IRQ_VIC_MSIGX   ; MSBs of X coordinates
 
                 AND     BITMASK_01__80,Y
-                BEQ     Sprite_Execute_set_Y
+                BEQ     @Sprite_Execute_set_Y
                 LDA     IRQ_VIC_MnX,Y   ; X Coordinate Sprite 0
                 CMP     #88             ; X < 256+88 (344 = 320 + 24)
-                BCC     Sprite_Execute_set_Y ; sprite is at least partly visible =>
+                BCC     @Sprite_Execute_set_Y ; sprite is at least partly visible =>
 
-Sprite_Execute_disable_sprite:
+@Sprite_Execute_disable_sprite:
                 LDA     BITMASK_01__80,Y
                 EOR     #%11111111
                 AND     IRQ_VIC_ME      ; disable sprite
-                JMP     loc_2F69
+                JMP     @loc_2F69
 ; ---------------------------------------------------------------------------
 
-Sprite_Execute_set_Y:
+@Sprite_Execute_set_Y:
                 LDA     mSprites + CreepSprite::YPos,X
                 CLC                     ; Y = Sprite-Y + 50
                 ADC     #50
@@ -5398,7 +5390,7 @@ Sprite_Execute_set_Y:
                 LDA     IRQ_VIC_ME      ; Sprite enabled
                 ORA     BITMASK_01__80,Y ; enable sprite
 
-loc_2F69:
+@loc_2F69:
                 STA     IRQ_VIC_ME      ; Sprite enabled
                 CLI
                 LDA     mSprites + CreepSprite::anim_phases,X ; Number of phases for the animation
@@ -7563,30 +7555,24 @@ _obj_Frankenstein_Sprite_Execute_return:
                 SEC
                 SBC     mObjects + CreepObject::XPos,Y
                 CMP     #4
-                BCC     loc_3D85
-
-loc_3D7D:
-                LDA     #0
+                BCC     @check
+@done:          LDA     #0
                 STA     Sprite_Object_Collision_DieFlag ; 0 = Object survives collision, 1 = Object will die after collision
-                JMP     obj_Frankenstein_Collision__return
-; ---------------------------------------------------------------------------
+                JMP     @return
 
-loc_3D85:
-                LDA     mObjects + CreepObject::objectType,Y
+@check:         LDA     mObjects + CreepObject::objectType,Y
                 CMP     #OBJECT_TYPE::TRAPDOOR
-                BEQ     loc_3DA1
+                BEQ     @trapdoor
                 LDA     #0
                 STA     Sprite_Object_Collision_DieFlag ; 0 = Object survives collision, 1 = Object will die after collision
                 LDA     mObjects + CreepObject::objectType,Y
                 CMP     #OBJECT_TYPE::TRAPDOOR_SWITCH
-                BNE     obj_Frankenstein_Collision__return
+                BNE     @return
                 LDA     mObjectsVars + CreepObjectVars_TrapDoor_Switch::id,Y
                 STA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::trapdoorNextState,X ; Additional sprite depended data
-                JMP     obj_Frankenstein_Collision__return
-; ---------------------------------------------------------------------------
+                JMP     @return
 
-loc_3DA1:
-                CLC
+@trapdoor:      CLC
                 LDA     obj_TrapDoor_Ptr
                 ADC     mObjectsVars + CreepObjectVars_TrapDoor_Switch::id,Y
                 STA     mVObjectPtr
@@ -7597,7 +7583,7 @@ loc_3DA1:
                 LDY     #CreepObj_Trapdoor::Flags
                 LDA     (mVObjectPtr),Y
                 BIT     TRAPDOOR_OPEN
-                BEQ     loc_3D7D
+                BEQ     @done
 
                 CLC
                 LDA     obj_Frankenstein_Ptr
@@ -7615,8 +7601,7 @@ loc_3DA1:
                 STA     (mVObjectPtr),Y
                 STA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::flags,X ; Additional sprite depended data
 
-obj_Frankenstein_Collision__return:
-                JMP     Sprite_Object_Collision_Check_nextObj
+@return:        JMP     Sprite_Object_Collision_Check_nextObj
 .endproc
 
 
@@ -7626,15 +7611,15 @@ obj_Frankenstein_Collision__return:
 .proc obj_Frankenstein_Sprite_SpriteCollision
                 LDA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::flags,X ; Additional sprite depended data
                 BIT     FRANKENSTEIN_AWAKE
-                BEQ     _obj_Frankenstein_Sprite_Collision_noCollision
+                BEQ     @noCollision
                 LDA     mSprites + CreepSprite::spriteType,Y
-                BEQ     _obj_Frankenstein_Sprite_Collision_noCollision
+                BEQ     @noCollision
                 CMP     #SPRITE_TYPE::FORCEFIELD
-                BEQ     _obj_Frankenstein_Sprite_Collision_noCollision
+                BEQ     @noCollision
                 CMP     #SPRITE_TYPE::MUMMY
-                BEQ     _obj_Frankenstein_Sprite_Collision_noCollision
+                BEQ     @noCollision
                 CMP     #SPRITE_TYPE::FRANKENSTEIN
-                BEQ     loc_3E18
+                BEQ     @frankenstein
 
                 CLC
                 LDA     obj_Frankenstein_Ptr
@@ -7650,69 +7635,56 @@ obj_Frankenstein_Collision__return:
                 AND     (mVObjectPtr),Y
                 ORA     FRANKENSTEIN_IS_DEAD
                 STA     (mVObjectPtr),Y
-                JMP     obj_Frankenstein_Sprite_Collision_return
-; ---------------------------------------------------------------------------
+                JMP     @return
 
-loc_3E18:
-                LDA     mSprites + CreepSprite::gfxID,X
+@frankenstein:  LDA     mSprites + CreepSprite::gfxID,X
                 CMP     #GfxID::frankenstein_slide
-                BCC     loc_3E4E
+                BCC     @slide
                 CMP     #GfxID::frankenstein_sleep
-                BCS     loc_3E4E
+                BCS     @slide
                 LDA     mSprites + CreepSprite::gfxID,Y
                 CMP     #GfxID::frankenstein_slide
-                BCC     obj_Frankenstein_Sprite_Collision_noCollision
+                BCC     @noCollision2
                 CMP     #GfxID::frankenstein_sleep
-                BCS     obj_Frankenstein_Sprite_Collision_noCollision
+                BCS     @noCollision2
                 LDA     mSprites + CreepSprite::YPos,X
                 CMP     mSprites + CreepSprite::YPos,Y
-                BEQ     obj_Frankenstein_Sprite_Collision_noCollision
-                BCS     loc_3E43
+                BEQ     @noCollision2
+                BCS     :+
                 LDA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::dirAllow,X ; Additional sprite depended data
                 AND     #(~DIR_ALLOW::DOWN & $FF)
                 STA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::dirAllow,X ; Additional sprite depended data
-                JMP     obj_Frankenstein_Sprite_Collision_noCollision
-; ---------------------------------------------------------------------------
-
-loc_3E43:
-                LDA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::dirAllow,X ; Additional sprite depended data
+                JMP     @noCollision2
+:               LDA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::dirAllow,X ; Additional sprite depended data
                 AND     #(~DIR_ALLOW::UP & $FF)
                 STA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::dirAllow,X ; Additional sprite depended data
+@noCollision:   JMP     @noCollision2
 
-_obj_Frankenstein_Sprite_Collision_noCollision:
-                JMP     obj_Frankenstein_Sprite_Collision_noCollision
-; ---------------------------------------------------------------------------
-
-loc_3E4E:       LDA     mSprites + CreepSprite::gfxID,X
+@slide:         LDA     mSprites + CreepSprite::gfxID,X
                 CMP     #GfxID::frankenstein_right_1
-                BCC     obj_Frankenstein_Sprite_Collision_noCollision
+                BCC     @noCollision2
                 CMP     #GfxID::frankenstein_slide
-                BCS     obj_Frankenstein_Sprite_Collision_noCollision
+                BCS     @noCollision2
                 LDA     mSprites + CreepSprite::gfxID,Y
                 CMP     #GfxID::frankenstein_right_1
-                BCC     obj_Frankenstein_Sprite_Collision_noCollision
+                BCC     @noCollision2
                 CMP     #GfxID::frankenstein_slide
-                BCS     obj_Frankenstein_Sprite_Collision_noCollision
+                BCS     @noCollision2
                 LDA     mSprites + CreepSprite::XPos,X
                 CMP     mSprites + CreepSprite::XPos,Y
-                BCS     loc_3E77
+                BCS     :+
                 LDA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::dirAllow,X ; Additional sprite depended data
                 AND     #(~DIR_ALLOW::RIGHT & $FF)
                 STA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::dirAllow,X ; Additional sprite depended data
-                JMP     obj_Frankenstein_Sprite_Collision_noCollision
-; ---------------------------------------------------------------------------
-
-loc_3E77:
-                LDA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::dirAllow,X ; Additional sprite depended data
+                JMP     @noCollision2
+:               LDA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::dirAllow,X ; Additional sprite depended data
                 AND     #(~DIR_ALLOW::LEFT & $FF)
                 STA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::dirAllow,X ; Additional sprite depended data
 
-obj_Frankenstein_Sprite_Collision_noCollision:
-                LDA     #0
+@noCollision2:  LDA     #0
                 STA     Sprite_Collision_DieFlag ; 0 = Sprite survives collision, 1 = Sprite will die after collision
 
-obj_Frankenstein_Sprite_Collision_return:
-                JMP     Sprite_Collision_next
+@return:        JMP     Sprite_Collision_next
 .endproc
 
 
@@ -7809,28 +7781,23 @@ _obj_Frankenstein_Execute_dirAllow:.BYTE $85
                 TYA
                 PHA
                 LDX     #0
-Sprite_CreepGetFree_loop:
-                LDA     mSprites + CreepSprite::state,X
+:               LDA     mSprites + CreepSprite::state,X
                 BIT     SPRITE_FLAGS_UNUSED ; 1, if the sprite slot is unused
-                BNE     Sprite_CreepGetFree_foundSlot
+                BNE     @foundSlot
                 TXA
                 CLC
                 ADC     #.SIZEOF(CreepSprite)
                 TAX
-                BNE     Sprite_CreepGetFree_loop
+                BNE     :-
                 SEC
-                JMP     Sprite_CreepGetFree_return
-; ---------------------------------------------------------------------------
+                JMP     @return
 
-Sprite_CreepGetFree_foundSlot:
-                LDY     #.SIZEOF(CreepSprite)
+@foundSlot:     LDY     #.SIZEOF(CreepSprite)
                 LDA     #0
-
-Sprite_CreepGetFree_clrStruct:
-                STA     mSprites,X
+:               STA     mSprites,X
                 INX
                 DEY
-                BNE     Sprite_CreepGetFree_clrStruct
+                BNE     :-
                 TXA
                 SEC
                 SBC     #.SIZEOF(CreepSprite)
@@ -7842,8 +7809,7 @@ Sprite_CreepGetFree_clrStruct:
                 STA     mSprites + CreepSprite::anim_phases,X ; Number of phases for the animation
                 CLC
 
-Sprite_CreepGetFree_return:
-                PLA
+@return:        PLA
                 TAY
                 PLA
                 RTS
@@ -7865,12 +7831,9 @@ Object_Execute:
 Object_Execute_loop:
                 LDA     _Object_Execute_Index
                 CMP     OBJECT_COUNT
-                BCC     loc_3F64
+                BCC     :+
                 JMP     Object_Execute_return
-; ---------------------------------------------------------------------------
-
-loc_3F64:
-                ASL     A
+:               ASL     A
                 ASL     A
                 ASL     A
                 TAX
@@ -7914,24 +7877,21 @@ Object_Execute_dontExec:
                 ASL     A
                 ASL     A
                 ASL     A
-                STA     loc_3FAA+1
-
-loc_3FAA:
-                CPX     #0
+                STA     @valueAddr+1
+@valueAddr:     CPX     #0
                 BEQ     Object_Execute_return
                 TAY
                 LDA     #.SIZEOF(CreepObject)
                 STA     _Object_Execute_ObjectSizeCounter
 
-loc_3FB4:
-                LDA     mObjects,Y
+:               LDA     mObjects,Y
                 STA     mObjects,X
                 LDA     mObjectsVars,Y
                 STA     mObjectsVars,X
                 INX
                 INY
                 DEC     _Object_Execute_ObjectSizeCounter
-                BNE     loc_3FB4
+                BNE     :-
 
 Object_Execute_nextObj:
                 INC     _Object_Execute_Index
@@ -7955,7 +7915,7 @@ _Object_Execute_Index:.BYTE $84
 
 .proc obj_Door_Object_Execute
                 LDA     mObjectsVars + CreepObjectVars_Door::doorIsOpen,X
-                BNE     loc_4017
+                BNE     @isOpen
                 LDA     #1
                 STA     mObjectsVars + CreepObjectVars_Door::doorIsOpen,X
                 LDA     #14
@@ -7990,8 +7950,7 @@ _Object_Execute_Index:.BYTE $84
                 ORA     #DOOR_FLAGS::ISOPEN
                 STA     (mVObjectPtr),Y
 
-loc_4017:
-                SEC
+@isOpen:        SEC
                 LDA     #SID_NOTE::E1
                 SBC     mObjectsVars + CreepObjectVars_Door::openingCount,X
                 STA     SNDEFFECT_DOOR_OPEN_NOTE
@@ -7999,7 +7958,7 @@ loc_4017:
                 JSR     SND_PlayEffect
 
                 LDA     mObjectsVars + CreepObjectVars_Door::openingCount,X
-                BEQ     loc_404A
+                BEQ     @loc_404A
                 DEC     mObjectsVars + CreepObjectVars_Door::openingCount,X
 
                 CLC
@@ -8013,20 +7972,18 @@ loc_4017:
                 STA     DRAW_Image_Mode
                 JSR     DRAW_Image
 
-                JMP     obj_Door_Execute_return
+                JMP     @return
 ; ---------------------------------------------------------------------------
 
-loc_404A:
+@loc_404A:
                 LDA     mObjects + CreepObject::flags,X
                 EOR     OBJECT_TRIGGER_EXECUTE ; Trigger execute function for the object
                 STA     mObjects + CreepObject::flags,X
                 LDY     #5
                 LDA     mObjectsVars + CreepObjectVars_Door::color,X
-
-loc_4058:
-                STA     SPRITE_diagonal_exit_path_COLOR,Y
+:               STA     SPRITE_diagonal_exit_path_COLOR,Y
                 DEY
-                BPL     loc_4058
+                BPL     :-
                 LDA     #GfxID::diagonal_exit_path
                 STA     DRAW_Image_Foreground_GfxID
                 LDA     mObjects + CreepObject::XPos,X
@@ -8035,8 +7992,7 @@ loc_4058:
                 STA     DRAW_Image_Foreground_Top
                 JSR     Object_Redraw
 
-obj_Door_Execute_return:
-                JMP     Object_Execute_nextObject
+@return:        JMP     Object_Execute_nextObject
 .endproc
 
 
