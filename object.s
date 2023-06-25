@@ -1810,135 +1810,125 @@ _mapDrawRooms_roomHeight:.BYTE $A0
                 JSR     GAME_roomLoadAndDraw ; Load room for the currently active player(s)
 
                 LDX     #0
-loc_14D8:       LDA     mapDraw_playerInCurrentRoom,X
+@plyLoop:       LDA     mapDraw_playerInCurrentRoom,X
                 CMP     #1
-                BNE     loc_14E5
+                BNE     :+
                 STX     obj_Player_Add_playerNumber
                 JSR     obj_Player_Add  ; Add player to the current room
-loc_14E5:       INX
+:		        INX
                 CPX     #2
-                BCC     loc_14D8
+                BCC     @plyLoop
 
                 LDA     #1
-                STA     _roomMainLoop_InsideMainLoop_WRITE_ONLY
+                STA     @InsideMainLoop_WRITE_ONLY
                 LDA     #0
                 STA     KEY_RestorePressed
                 LDA     VIC::CR1         ; Control register 1
                 ORA     #VIC_CR1_FLAGS::DEN ; Video enable
                 STA     VIC::CR1         ; Control register 1
 
-roomMain_loop:  JSR     GAME_ExecuteEvents ; Handle 1/30 of all game processing
+@loop:		    JSR     GAME_ExecuteEvents ; Handle 1/30 of all game processing
 
                 LDA     PROT_5F6A_ALWAYS_0
                 CMP     #1
-                BNE     loc_150E
+                BNE     :+
                 LDA     #0
                 STA     PROT_2E02_UNUSED
                 JSR     PROT_UNKNOWN_FUNC
+:
 
-loc_150E:
                 LDA     KEY_GetJoystick_RunStopPressed
                 CMP     #1              ; RUN/STOP pressed?
-                BNE     roomMain_no_RUN_STOP ; => no
-
-loc_1515:       IRQ_DELAY 3 ; Wait for 3/60s
-
+                BNE     @no_RUN_STOP    ; => no
+@wait1:	        IRQ_DELAY 3 ; Wait for 3/60s
                 JSR     KEY_GetJoystick ; Check joystick for port #A and the RUN/STOP key
                 LDA     KEY_GetJoystick_RunStopPressed
                 CMP     #1              ; RUN/STOP released?
-                BEQ     loc_1515        ; => no, wait
-                LDX     #3
+                BEQ     @wait1          ; => no, wait
 
-loc_152B:
-                LDA     CIA1::TOD1,X   ; Real Time Clock 1/10s
-                STA     _roomMainLoop_COPY_CIA_TOD1 + CreepPlayerTime::player_1,X
+                LDX     #3
+:               LDA     CIA1::TOD1,X   ; Real Time Clock 1/10s
+                STA     @COPY_CIA_TOD1 + CreepPlayerTime::player_1,X
                 LDA     CIA2::TOD1,X   ; Real Time Clock 1/10s
-                STA     _roomMainLoop_COPY_CIA_TOD1 + CreepPlayerTime::player_2,X
+                STA     @COPY_CIA_TOD1 + CreepPlayerTime::player_2,X
                 DEX
-                BPL     loc_152B
+                BPL     :-
 
-loc_153A:
-                LDA     #0
+:               LDA     #0
                 JSR     KEY_GetJoystick ; Check joystick for port #A and the RUN/STOP key
                 LDA     KEY_GetJoystick_RunStopPressed
                 CMP     #1
-                BNE     loc_153A
+                BNE     :-
 
-loc_1546:       IRQ_DELAY 3 ; Wait for 2/60s
+@wait2:         IRQ_DELAY 3 ; Wait for 2/60s
 
                 JSR     KEY_GetJoystick ; Check joystick for port #A and the RUN/STOP key
                 LDA     KEY_GetJoystick_RunStopPressed
                 CMP     #1
-                BEQ     loc_1546
+                BEQ     @wait2
 
                 LDX     #3
-loc_155C:       LDA     _roomMainLoop_COPY_CIA_TOD1 + CreepPlayerTime::player_1,X
+:               LDA     @COPY_CIA_TOD1 + CreepPlayerTime::player_1,X
                 STA     CIA1::TOD1,X   ; Real Time Clock 1/10s
-                LDA     _roomMainLoop_COPY_CIA_TOD1 + CreepPlayerTime::player_2,X
+                LDA     @COPY_CIA_TOD1 + CreepPlayerTime::player_2,X
                 STA     CIA2::TOD1,X   ; Real Time Clock 1/10s
                 DEX
-                BPL     loc_155C
+                BPL     :-
+@no_RUN_STOP:
 
-roomMain_no_RUN_STOP:
                 LDA     KEY_RestorePressed
                 CMP     #1              ; RESTORE pressed?
-                BNE     loc_1594        ; => no
+                BNE     @noRestore      ; => no
                 LDA     #0
                 STA     KEY_RestorePressed
                 LDX     #1
-
-roomMain_RESTORE_pressed:
+@RESTORE_pressed:
                 LDA     CASTLE + CreepCastle::playerState,X
                 CMP     #PLAYER_STATE::IN_ROOM ; Player is in the current room
-                BNE     loc_1591
+                BNE     @nextPlayer
                 LDA     #PLAYER_STATE::DIEING ; Player is dieing by collision, trapdoor or pressing RESTORE
                 STA     CASTLE + CreepCastle::playerState,X
                 LDY     obj_Player_Execute_playerSpriteNumber,X
                 LDA     mSprites + CreepSprite::state,Y
                 ORA     SPRITE_FLAGS_SHOULD_DIE ; Let the sprite die, depending of the type by flashing it
                 STA     mSprites + CreepSprite::state,Y
+@nextPlayer:    DEX
+                BPL     @RESTORE_pressed
 
-loc_1591:
-                DEX
-                BPL     roomMain_RESTORE_pressed
-
-loc_1594:
-                LDA     CASTLE + CreepCastle::playerState + CreepPlayerData::player_1
+@noRestore:     LDA     CASTLE + CreepCastle::playerState + CreepPlayerData::player_1
                 CMP     #PLAYER_STATE::IN_ROOM ; Player is in the current room
-                BNE     loc_15A3
+                BNE     @loc_15A3
                 LDA     #0
                 STA     CASTLE + CreepCastle::firstPlayerIndexInRoom
-                JMP     roomMain_loop
+                JMP     @loop
 ; ---------------------------------------------------------------------------
 
-loc_15A3:
-                LDA     CASTLE + CreepCastle::playerState + CreepPlayerData::player_2
+@loc_15A3:      LDA     CASTLE + CreepCastle::playerState + CreepPlayerData::player_2
                 CMP     #PLAYER_STATE::IN_ROOM ; Player is in the current room
-                BNE     loc_15B2
+                BNE     @loc_15B2
                 LDA     #1
                 STA     CASTLE + CreepCastle::firstPlayerIndexInRoom
 
-loc_15AF:       JMP     roomMain_loop
+@loc_15AF:      JMP     @loop
 ; ---------------------------------------------------------------------------
 
-loc_15B2:       LDX     #0
-loc_15B4:       LDA     CASTLE + CreepCastle::playerState,X
+@loc_15B2:      LDX     #0
+@loc_15B4:      LDA     CASTLE + CreepCastle::playerState,X
                 CMP     #PLAYER_STATE::MOVING_IN_OUT ; Player is in the transition to move in or out of a room
-                BEQ     loc_15AF
+                BEQ     @loc_15AF
                 CMP     #PLAYER_STATE::START_MOVE_IN_OUT ; Start moving in or out transition to/from a room
-                BEQ     loc_15AF
+                BEQ     @loc_15AF
                 INX
                 CPX     #2
-                BCC     loc_15B4
+                BCC     @loc_15B4
 
                 LDA     #0
-                STA     _roomMainLoop_InsideMainLoop_WRITE_ONLY
+                STA     @InsideMainLoop_WRITE_ONLY
 
                 LDX     #30             ; 30 ticks = 1s
-
-loc_15CB:       JSR     GAME_ExecuteEvents ; Handle 1/30 of all game processing
+:      			JSR     GAME_ExecuteEvents ; Handle 1/30 of all game processing
                 DEX
-                BNE     loc_15CB
+                BNE     :-
                 PLA
                 TAX
                 PLA
@@ -1946,9 +1936,8 @@ loc_15CB:       JSR     GAME_ExecuteEvents ; Handle 1/30 of all game processing
                 PLA
                 RTS
 
-; ---------------------------------------------------------------------------
-_roomMainLoop_InsideMainLoop_WRITE_ONLY:.BYTE 0
-_roomMainLoop_COPY_CIA_TOD1: _CreepPlayerTime $A8,$A0,$A0,$A0, $A0,$A0,$C5,$A2
+@InsideMainLoop_WRITE_ONLY:.BYTE 0
+@COPY_CIA_TOD1: _CreepPlayerTime $A8,$A0,$A0,$A0, $A0,$A0,$C5,$A2
 .endproc
 
 ; =============== S U B R O U T I N E =======================================
@@ -1960,26 +1949,24 @@ _roomMainLoop_COPY_CIA_TOD1: _CreepPlayerTime $A8,$A0,$A0,$A0, $A0,$A0,$C5,$A2
                 TYA
                 PHA
 
-_DRAW_Objects_loop:
-                LDY     #0
+@loop:          LDY     #0
                 LDA     (object_Ptr),Y
-                STA     _DRAW_Objects_func+1
+                STA     @func+1
                 INY
                 LDA     (object_Ptr),Y
-                STA     _DRAW_Objects_func+2
+                STA     @func+2
                 CLC
                 LDA     object_Ptr
                 ADC     #2
                 STA     object_Ptr
-                BCC     loc_15FB
+                BCC     :+
                 INC     object_Ptr+1
-loc_15FB:       LDA     _DRAW_Objects_func+2
-                BEQ     _DRAW_Objects_return
-_DRAW_Objects_func:
-                JSR     _DRAW_Objects_func+1
-                JMP     _DRAW_Objects_loop
-_DRAW_Objects_return:
-                PLA
+:		        LDA     @func+2
+                BEQ     @return
+@func:          JSR     @func+1
+                JMP     @loop
+
+@return:        PLA
                 TAY
                 PLA
                 RTS
@@ -1995,11 +1982,10 @@ _DRAW_Objects_return:
                 LDA     #SCREEN_DRAW_MODE::Foreground
                 STA     DRAW_Image_Mode
 
-_obj_MultiDraw_Object_Setup_loop:
-                LDY     #CreepObj_MultiDraw::Repeat
+@loop:          LDY     #CreepObj_MultiDraw::Repeat
                 LDA     (object_Ptr),Y
-                BEQ     _obj_MultiDraw_Object_Setup_return
-                STA     _obj_MultiDraw_Prepare_Repeat
+                BEQ     @return
+                STA     @var_repeat
                 LDY     #CreepObj_MultiDraw::gfxID
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_GfxID
@@ -2010,11 +1996,10 @@ _obj_MultiDraw_Object_Setup_loop:
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Top
 
-_obj_MultiDraw_Object_Setup_drawRepeat:
-                JSR     DRAW_Image
+@drawRepeat:    JSR     DRAW_Image
 
-                DEC     _obj_MultiDraw_Prepare_Repeat
-                BEQ     _obj_MultiDraw_Object_Setup_nextObj
+                DEC     @var_repeat
+                BEQ     @nextObj
 
                 CLC
                 LDY     #CreepObj_MultiDraw::xOffset
@@ -2026,32 +2011,26 @@ _obj_MultiDraw_Object_Setup_drawRepeat:
                 LDA     DRAW_Image_Foreground_Top
                 ADC     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Top
-                JMP     _obj_MultiDraw_Object_Setup_drawRepeat
-; ---------------------------------------------------------------------------
+                JMP     @drawRepeat
 
-_obj_MultiDraw_Object_Setup_nextObj:
-                CLC
+@nextObj:       CLC
                 LDA     object_Ptr
                 ADC     #.SIZEOF(CreepObj_MultiDraw)
                 STA     object_Ptr
-                BCC     _obj_MultiDraw_Object_Setup_loop
+                BCC     @loop
                 INC     object_Ptr+1
-                JMP     _obj_MultiDraw_Object_Setup_loop
-; ---------------------------------------------------------------------------
+                JMP     @loop
 
-_obj_MultiDraw_Object_Setup_return:
-                INC     object_Ptr
-                BNE     loc_1665
+@return:        INC     object_Ptr
+                BNE     :+
                 INC     object_Ptr+1
-
-loc_1665:
+:
                 PLA
                 TAY
                 PLA
                 RTS
 
-; ---------------------------------------------------------------------------
-_obj_MultiDraw_Prepare_Repeat:.BYTE $A0
+@var_repeat:    .BYTE $A0
 .endproc
 
 ; =============== S U B R O U T I N E =======================================
@@ -2488,12 +2467,11 @@ _obj_Ladder_Prepare_Height:.BYTE $D2
                 PHA
                 LDA     SND_DisableSoundEffects ; Always 0, maybe 1 in the tape version?
                 CMP     #1
-                BEQ     loc_18F6
+                BEQ     :+
                 LDA     VIC::CR1         ; Control register 1
                 AND     #(~VIC_CR1_FLAGS::DEN & $FF) ; Video enable
                 STA     VIC::CR1         ; Control register 1
-
-loc_18F6:
+:
                 LDA     #0
                 STA     IRQ_VIC_ME      ; Sprite enabled
                 LDA     #<(TOP_HIGHRESVIDEORAM+$1F00)
@@ -2501,24 +2479,24 @@ loc_18F6:
                 LDA     #>(TOP_HIGHRESVIDEORAM+$1F00)
                 STA     PP_A+1
                 LDY     #$F9
-loc_1904:       LDA     #0
-loc_1906:       STA     (PP_A),Y
+@loop:          LDA     #0
+: 		        STA     (PP_A),Y
                 DEY
                 CPY     #$FF
-                BNE     loc_1906
+                BNE     :-
                 DEC     PP_A+1
                 LDA     PP_A+1
                 CMP     #>TOP_HIGHRESVIDEORAM
-                BCS     loc_1904
+                BCS     @loop
 
                 LDY     #CreepSprite::spriteType
-loc_1917:       LDA     SPRITE_FLAGS_UNUSED ; 1, if the sprite slot is unused
+:		        LDA     SPRITE_FLAGS_UNUSED ; 1, if the sprite slot is unused
                 STA     mSprites + CreepSprite::state,Y
                 TYA
                 CLC
                 ADC     #.SIZEOF(CreepSprite)
                 TAY
-                BNE     loc_1917
+                BNE     :-
                 LDA     #0
                 STA     OBJECT_COUNT
                 STA     IRQ_VECTOR_RASTER_INDEX
@@ -2533,23 +2511,23 @@ loc_1917:       LDA     SPRITE_FLAGS_UNUSED ; 1, if the sprite slot is unused
 ; =============== S U B R O U T I N E =======================================
 
 .proc GAME_WAIT_DELAY_100ms
-                STA     DELAY_TIME
+                STA     @DELAY_TIME
                 PHA
                 TXA
                 PHA
                 LDX     #6              ; Written for a 60Hz NTSC machine
-loc_193D:       LDA     DELAY_TIME
+@loop: 		    LDA     @DELAY_TIME
                 STA     IRQ_DELAY_COUNTER
-loc_1943:       LDA     IRQ_DELAY_COUNTER ; Wait for an IRQ, which happens at 60Hz on an NTSC machine
-                BNE     loc_1943        ; Wait for an IRQ, which happens at 60Hz on an NTSC machine
+: 		        LDA     IRQ_DELAY_COUNTER ; Wait for an IRQ, which happens at 60Hz on an NTSC machine
+                BNE     :- ; Wait for an IRQ, which happens at 60Hz on an NTSC machine
                 DEX
-                BNE     loc_193D
+                BNE     @loop
                 PLA
                 TAX
                 PLA
                 RTS
 
-DELAY_TIME:     .BYTE $A0
+@DELAY_TIME:    .BYTE $A0
 .endproc
 
 ; =============== S U B R O U T I N E =======================================
@@ -2566,14 +2544,13 @@ DELAY_TIME:     .BYTE $A0
 
                 LDA     CASTLE + CreepCastle::flags
                 AND     #CASTLE_FLAGS::HAS_ESCAPE
-                BEQ     loc_1971
+                BEQ     :+
                 LDA     CASTLE + CreepCastle::escapeCastleOutsidePtr
                 STA     object_Ptr
                 LDA     CASTLE + CreepCastle::escapeCastleOutsidePtr+1
                 STA     object_Ptr+1
                 JSR     DRAW_Objects    ; Draw all objects in the current room initially
-
-loc_1971:
+:
                 CLC
                 LDA     GAME_gameEscapeCastle_PlayerNumber
                 ADC     #'1'
@@ -2619,30 +2596,22 @@ loc_1971:
 
                 JSR     GetRandom
                 AND     #%1110
-                BEQ     loc_19D5        ; Walk with a goodbye wave after coming back
+                BEQ     @loc_19D5        ; Walk with a goodbye wave after coming back
                 LDA     #.SIZEOF(CreepEscapeState)*0 ; Regular walk with a goodbye wave
-                JMP     loc_19D7
-; ---------------------------------------------------------------------------
+                JMP     @loc_19D7
+@loc_19D5:      LDA     #.SIZEOF(CreepEscapeState)*4 ; Walk with a goodbye wave after coming back
+@loc_19D7:      STA     _gameEscapeCastle_stateIndex
 
-loc_19D5:
-                LDA     #.SIZEOF(CreepEscapeState)*4 ; Walk with a goodbye wave after coming back
-
-loc_19D7:
-                STA     _gameEscapeCastle_stateIndex
                 LDA     #0
                 STA     _gameEscapeCastle_stateSteps
-
-gameEscapeCastle_stateLoop:
+@stateLoop:
                 LDA     _gameEscapeCastle_stateSteps
-                BNE     loc_1A01
+                BNE     @loc_1A01
                 LDY     _gameEscapeCastle_stateIndex
                 LDA     _gameEscapeCastle_STATES + CreepEscapeState::XPos,Y
-                BNE     loc_19EF
-                JMP     gameEscapeCastle_return
-; ---------------------------------------------------------------------------
-
-loc_19EF:
-                STA     _gameEscapeCastle_stateSteps
+                BNE     :+
+                JMP     @return
+:		        STA     _gameEscapeCastle_stateSteps
                 LDA     _gameEscapeCastle_STATES + CreepEscapeState::nextState,Y
                 STA     _gameEscapeCastle_currentState
                 CLC
@@ -2650,49 +2619,43 @@ loc_19EF:
                 ADC     #.SIZEOF(CreepEscapeState)
                 STA     _gameEscapeCastle_stateIndex
 
-loc_1A01:
-                LDA     _gameEscapeCastle_currentState
+@loc_1A01:      LDA     _gameEscapeCastle_currentState
                 CMP     #ESCAPE_CASTLE_STATES::RUN_LEFT
-                BCC     gameEscapeCastle_walk_right
-                BEQ     gameEscapeCastle_walk_left
+                BCC     @walk_right
+                BEQ     @walk_left
 
-gameEscapeCastle_wave:
+@wave:
                 INC     mSprites + CreepSprite::gfxID,X
                 LDA     mSprites + CreepSprite::gfxID,X
                 CMP     #GfxID::player_wave_goodbye_end_marker
-                BCS     loc_1A18
+                BCS     :+
                 CMP     #GfxID::player_wave_goodbye_1
-                BCS     gameEscapeCastle_setSprite
-
-loc_1A18:
+                BCS     @setSprite
+:
                 LDA     #GfxID::player_wave_goodbye_1
-                JMP     gameEscapeCastle_setSprite
+                JMP     @setSprite
 ; ---------------------------------------------------------------------------
 
-gameEscapeCastle_walk_right:
-                INC     mSprites + CreepSprite::XPos,X
+@walk_right:    INC     mSprites + CreepSprite::XPos,X
                 INC     mSprites + CreepSprite::gfxID,X
                 LDA     mSprites + CreepSprite::gfxID,X
                 CMP     #GfxID::exit
-                BCS     loc_1A2E
+                BCS     :+
                 CMP     #GfxID::player_run_right_1
-                BCS     gameEscapeCastle_setSprite
-
-loc_1A2E:
+                BCS     @setSprite
+:
                 LDA     #GfxID::player_run_right_1
-                JMP     gameEscapeCastle_setSprite
+                JMP     @setSprite
 ; ---------------------------------------------------------------------------
 
-gameEscapeCastle_walk_left:
-                DEC     mSprites + CreepSprite::XPos,X
+@walk_left:     DEC     mSprites + CreepSprite::XPos,X
                 INC     mSprites + CreepSprite::gfxID,X
                 LDA     mSprites + CreepSprite::gfxID,X
                 CMP     #GfxID::player_run_right_1
-                BCC     gameEscapeCastle_setSprite
+                BCC     @setSprite
                 LDA     #GfxID::player_run_left_1
 
-gameEscapeCastle_setSprite:
-                STA     mSprites + CreepSprite::gfxID,X
+@setSprite:     STA     mSprites + CreepSprite::gfxID,X
                 TXA
                 LSR     A
                 LSR     A
@@ -2711,19 +2674,14 @@ gameEscapeCastle_setSprite:
                 STA     IRQ_VIC_MnX,Y   ; X Coordinate Sprite 0
                 LDA     mSprites + CreepSprite::XPos,X
                 CMP     #132
-                BCS     loc_1A6B
+                BCS     @loc_1A6B
                 LDA     BITMASK_01__80,Y
                 EOR     #%11111111
                 AND     IRQ_VIC_MSIGX   ; MSBs of X coordinates
-                JMP     loc_1A70
-; ---------------------------------------------------------------------------
-
-loc_1A6B:
-                LDA     BITMASK_01__80,Y
+                JMP     @loc_1A70
+@loc_1A6B:      LDA     BITMASK_01__80,Y
                 ORA     IRQ_VIC_MSIGX   ; MSBs of X coordinates
-
-loc_1A70:
-                STA     IRQ_VIC_MSIGX   ; MSBs of X coordinates
+@loc_1A70:      STA     IRQ_VIC_MSIGX   ; MSBs of X coordinates
                 CLI
 
                 LDA     mSprites + CreepSprite::YPos,X
@@ -2737,21 +2695,18 @@ loc_1A70:
                 STA     IRQ_VIC_ME      ; Sprite enabled
 
                 LDA     GAME_gameEscapeCastle_PlayerNumber
-                BEQ     loc_1A91
+                BEQ     @loc_1A91
                 LDA     obj_Player_Execute_PlayerHeadColorTab+1
-                JMP     loc_1A94
-; ---------------------------------------------------------------------------
-
-loc_1A91:       LDA     obj_Player_Execute_PlayerHeadColorTab
-loc_1A94:       STA     VIC::SP0COL,Y    ; Color sprite 0
+                JMP     @loc_1A94
+@loc_1A91:      LDA     obj_Player_Execute_PlayerHeadColorTab
+@loc_1A94:      STA     VIC::SP0COL,Y    ; Color sprite 0
 
                 DEC     _gameEscapeCastle_stateSteps
                 IRQ_DELAY 2 ; Wait for 2/60s
-                JMP     gameEscapeCastle_stateLoop
+                JMP     @stateLoop
 ; ---------------------------------------------------------------------------
 
-gameEscapeCastle_return:
-                LDA     #10             ; 1s delay
+@return:       LDA     #10             ; 1s delay
                 JSR     GAME_WAIT_DELAY_100ms
                 PLA
                 TAX
@@ -2815,8 +2770,8 @@ _gameEscapeCastle_stateIndex:.BYTE $A0
                 LDA     #0
                 STA     PP_A
                 STA     PP_A+1
-loc_1B18:       CPX     #0
-                BEQ     loc_1B2D
+: 		        CPX     #0
+                BEQ     :+
                 CLC
                 LDA     PP_A            ; PP_A += (((Height - 1) >> 3) + 1) * Width
                 ADC     PP_B
@@ -2825,18 +2780,15 @@ loc_1B18:       CPX     #0
                 ADC     #0
                 STA     PP_A+1
                 DEX
-                JMP     loc_1B18
-; ---------------------------------------------------------------------------
-
-loc_1B2D:       ASL     PP_A
+                JMP     :-
+:		        ASL     PP_A
                 ROL     PP_A+1          ; PP_A *= 2
                 LDY     #CreepObj_Image::Height
                 LDA     (object_Ptr),Y  ; Height
                 TAX
                 LDY     #0
-
-loc_1B38:       CPX     #0
-                BEQ     loc_1B4D
+: 			    CPX     #0
+                BEQ     :+
                 CLC
                 LDA     PP_A
                 ADC     (object_Ptr),Y  ; Width
@@ -2845,10 +2797,8 @@ loc_1B38:       CPX     #0
                 ADC     #0
                 STA     PP_A+1
                 DEX
-                JMP     loc_1B38
-; ---------------------------------------------------------------------------
-
-loc_1B4D:       CLC
+                JMP     :-
+:		        CLC
                 LDA     #.SIZEOF(CreepObj_Image) ; Headersize: Width + Height + Unknown
                 ADC     PP_A            ; PP_A += Headersize
                 STA     PP_A
@@ -2863,10 +2813,9 @@ loc_1B4D:       CLC
                 ADC     PP_A+1
                 STA     object_Ptr+1
 
-obj_Image_Prepare_loop:
-                LDY     #0
+@loop:          LDY     #0
                 LDA     (object_Ptr),Y
-                BNE     loc_1B7D
+                BNE     :+
                 CLC
                 LDA     object_Ptr
                 ADC     #1
@@ -2874,11 +2823,9 @@ obj_Image_Prepare_loop:
                 LDA     object_Ptr+1
                 ADC     #0
                 STA     object_Ptr+1
-                JMP     obj_Image_Draw_return
-; ---------------------------------------------------------------------------
+                JMP     @return
 
-loc_1B7D:
-                STA     DRAW_Image_Foreground_Left
+:               STA     DRAW_Image_Foreground_Left
                 INY
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Top
@@ -2891,11 +2838,9 @@ loc_1B7D:
                 LDA     object_Ptr+1
                 ADC     #0
                 STA     object_Ptr+1
-                JMP     obj_Image_Prepare_loop
-; ---------------------------------------------------------------------------
+                JMP     @loop
 
-obj_Image_Draw_return:
-                PLA
+@return:        PLA
                 TAX
                 PLA
                 TAY
@@ -2932,7 +2877,6 @@ loc_1BB6:
 loc_1BBE:
                 LDA     #10
                 STA     _gameHighScoresHandle_HighScorePosition
-
 loc_1BC3:       LDY     #3
 loc_1BC5:       LDA     (PP_A),Y
                 CMP     gameHighScoresHandle_PlayerName,Y
@@ -3674,13 +3618,13 @@ SND_FREQ_TABLE_HIGH:.BYTE $01,$01,$01,$01,$01,$01,$01,$01; 0
                 TYA
                 PHA
                 LDA     Intro_IsInIntroFlag
-                CMP     #1              ; No effects in the intro
-                BEQ     SND_PlayEffect_return
+                CMP     #1                  ; No effects in the intro
+                BEQ     @return
                 LDA     SND_DisableSoundEffects ; Always 0, maybe 1 in the tape version?
-                CMP     #1              ; No effects, if globally turned off
-                BEQ     SND_PlayEffect_return
-                LDA     SND_PlayingSound ; Already playing something?
-                BPL     SND_PlayEffect_return ; => yes!
+                CMP     #1                  ; No effects, if globally turned off
+                BEQ     @return
+                LDA     SND_PlayingSound    ; Already playing something?
+                BPL     @return             ; => yes!
 
                 LDA     SND_pA
                 STA     SND_PlayingSound
@@ -3698,7 +3642,7 @@ SND_FREQ_TABLE_HIGH:.BYTE $01,$01,$01,$01,$01,$01,$01,$01; 0
                 STA     SND_TimerCounter
                 STA     SND_TimerCounter+1
                 LDA     #15
-                STA     SID::SIGVOL    ; Chan 3 Off, High Pass, Band Pass, Low Pass, Volume
+                STA     SID::SIGVOL         ; Chan 3 Off, High Pass, Band Pass, Low Pass, Volume
                 LDA     #SID_NOTE::C2
                 STA     SND_NOTE_TRANSPOSE_VALUE
                 STA     SND_NOTE_TRANSPOSE_VALUE+1
@@ -3713,9 +3657,7 @@ SND_FREQ_TABLE_HIGH:.BYTE $01,$01,$01,$01,$01,$01,$01,$01; 0
                 STA     CIA1::ICR       ; Interrupt Control and status
                 LDA     #1
                 STA     CIA1::CRA       ; Control Timer A
-
-SND_PlayEffect_return:
-                PLA
+@return:        PLA
                 TAY
                 PLA
                 RTS
@@ -4156,47 +4098,38 @@ _gamePositionLoad_status:.BYTE $90
                 STA     gameFilenameGet_SaveOrResumeFlag
                 JSR     GAME_gameFilenameGet
                 LDX     KEY_StringInput_retLength
-                BEQ     loc_256B
-
-loc_250F:
-                DEX
-                BMI     loc_251B
+                BEQ     @return
+:               DEX
+                BMI     :+
                 LDA     KEY_StringInput_retBuffer,X
                 STA     DISK_SAVE_FILE_FILENAME+3,X
-                JMP     loc_250F
-; ---------------------------------------------------------------------------
-
-loc_251B:
-                LDA     KEY_StringInput_retLength
+                JMP     :-
+:               LDA     KEY_StringInput_retLength
                 STA     DISK_SAVE_FILE_FNAME_LENGTH
                 LDA     #FILETYPE::CASTLE
                 STA     DISK_SAVE_FILE_FILETYPE
                 JSR     DISK_ACCESS_PREPARE
                 JSR     DISK_CHECK
                 CMP     #DISK_STATUS::OK
-                BNE     loc_2540
+                BNE     :+
                 JSR     DISK_SAVE_FILE
                 JSR     kernal::READST          ; Fetch status of current input/output device, value of ST variable. (For RS232, status is cleared.)
                 CMP     #READST_ERRORS::NO_ERROR
-                BNE     loc_2540
+                BNE     :+
                 JSR     DISK_DELAY_AFTER_IO
-                JMP     loc_256B
-; ---------------------------------------------------------------------------
+                JMP     @return
 
-loc_2540:       JSR     DISK_DELAY_AFTER_IO
+:		        JSR     DISK_DELAY_AFTER_IO
                 CMP     #0
-                BEQ     loc_2550
-                LDA     #<_gamePositionSave_IO_ERROR_TXT
+                BEQ     :+
+                LDA     #<@IO_ERROR_TXT
                 STA     object_Ptr
-                LDA     #>_gamePositionSave_IO_ERROR_TXT
-                JMP     loc_2556
-; ---------------------------------------------------------------------------
-
-loc_2550:       LDA     #<_gamePositionSave_CANNOT_SAVE_TO_MASTER_TXT
+                LDA     #>@IO_ERROR_TXT
+                JMP     @setPtr
+:		        LDA     #<@CANNOT_SAVE_TO_MASTER_TXT
                 STA     object_Ptr
-                LDA     #>_gamePositionSave_CANNOT_SAVE_TO_MASTER_TXT
-
-loc_2556:       STA     object_Ptr+1
+                LDA     #>@CANNOT_SAVE_TO_MASTER_TXT
+@setPtr:        STA     object_Ptr+1
                 JSR     DRAW_ClearScreen
                 JSR     obj_Text_Object_Setup
                 LDA     VIC::CR1         ; Control register 1
@@ -4205,14 +4138,13 @@ loc_2556:       STA     object_Ptr+1
                 LDA     #35
                 JSR     GAME_WAIT_DELAY_100ms
 
-loc_256B:       PLA
+@return:        PLA
                 TAX
                 PLA
                 RTS
-.endproc
 
-; ---------------------------------------------------------------------------
-_gamePositionSave_CANNOT_SAVE_TO_MASTER_TXT:_CreepObj_Text 16, 64, COLOR::LIGHT_RED, TEXTFONT::s8x16|TEXTFONT::UPPERCASE
+@CANNOT_SAVE_TO_MASTER_TXT:
+				_CreepObj_Text 16, 64, COLOR::LIGHT_RED, TEXTFONT::s8x16|TEXTFONT::UPPERCASE
                 scrcode "YOU CANNOT SAVE YOU"
                 .BYTE $D2
                 _CreepObj_Text 36, 88, COLOR::LIGHT_RED, TEXTFONT::s8x16|TEXTFONT::UPPERCASE
@@ -4221,34 +4153,32 @@ _gamePositionSave_CANNOT_SAVE_TO_MASTER_TXT:_CreepObj_Text 16, 64, COLOR::LIGHT_
                 _CreepObj_Text 52, 112, COLOR::LIGHT_RED, TEXTFONT::s8x16|TEXTFONT::UPPERCASE
                 scrcode "MASTER DIS"
                 .BYTE $CB, 0
-_gamePositionSave_IO_ERROR_TXT:_CreepObj_Text 60, 80, COLOR::LIGHT_RED, TEXTFONT::s8x16|TEXTFONT::UPPERCASE
+@IO_ERROR_TXT:  _CreepObj_Text 60, 80, COLOR::LIGHT_RED, TEXTFONT::s8x16|TEXTFONT::UPPERCASE
                 scrcode "I/O ERRO"
                 .BYTE $D2, 0
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 .proc GAME_gameFilenameGet
                 PHA
                 JSR     DRAW_ClearScreen
-                LDA     #<_gameFilenameGet_0x2633
+                LDA     #<_gameFilenameGet_TYPE_FILENAME
                 STA     object_Ptr
-                LDA     #>_gameFilenameGet_0x2633
+                LDA     #>_gameFilenameGet_TYPE_FILENAME
                 STA     object_Ptr+1
                 JSR     DRAW_Objects    ; Draw all objects in the current room initially
 
                 LDA     gameFilenameGet_SaveOrResumeFlag
                 BEQ     loc_25D7
-                LDA     #<_gameFilenameGet_0x261F
+                LDA     #<_gameFilenameGet_RESUME_GAME
                 STA     object_Ptr
-                LDA     #>_gameFilenameGet_0x261F
+                LDA     #>_gameFilenameGet_RESUME_GAME
                 STA     object_Ptr+1
                 JMP     loc_25DF
-; ---------------------------------------------------------------------------
-
-loc_25D7:
-                LDA     #<_gameFilenameGet_0x2609
+loc_25D7:       LDA     #<_gameFilenameGet_SAVE_POSITION
                 STA     object_Ptr
-                LDA     #>_gameFilenameGet_0x2609
+                LDA     #>_gameFilenameGet_SAVE_POSITION
                 STA     object_Ptr+1
 
 loc_25DF:       JSR     DRAW_Objects    ; Draw all objects in the current room initially
@@ -4274,19 +4204,24 @@ loc_25DF:       JSR     DRAW_Objects    ; Draw all objects in the current room i
 ; ---------------------------------------------------------------------------
 gameFilenameGet_SaveOrResumeFlag:.BYTE $A0
 
-_gameFilenameGet_0x2609:.addr obj_Text_Object_Setup
+_gameFilenameGet_SAVE_POSITION:
+				.addr obj_Text_Object_Setup
                 _CreepObj_Text 44, 0, COLOR::WHITE, TEXTFONT::s8x16|TEXTFONT::UPPERCASE
                 scrcode "SAVE POSITIO"
                 .BYTE $CE
                 .addr 0
                 .BYTE 0
-_gameFilenameGet_0x261F:.addr obj_Text_Object_Setup
+
+_gameFilenameGet_RESUME_GAME:
+				.addr obj_Text_Object_Setup
                 _CreepObj_Text 52, 0, COLOR::WHITE, TEXTFONT::s8x16|TEXTFONT::UPPERCASE
                 scrcode "RESUME GAM"
                 .BYTE $C5
                 .addr 0
                 .BYTE 0
-_gameFilenameGet_0x2633:.addr obj_Text_Object_Setup
+
+_gameFilenameGet_TYPE_FILENAME:
+				.addr obj_Text_Object_Setup
                 _CreepObj_Text 28, 48, COLOR::LIGHT_GREEN, TEXTFONT::s8x8|TEXTFONT::UPPERCASE
                 scrcode "TYPE IN FILE NAM"
                 .BYTE $C5
@@ -4676,7 +4611,7 @@ _DISK_LOAD_FILE_FILETYPE_HIGHADDR:.BYTE >CASTLE
                 STA     C6510::R6510    ; Processor port
                 LDA     VIC::CR1        ; Control register 1
                 AND     #%00100000      ; Text mode?
-                BEQ     DISK_ACCESS_PREPARE_return ; => yes
+                BEQ     @return 		; => yes
                 LDA     CIA2::DDRA      ; Data direction Port A
                 ORA     #%00000011
                 STA     CIA2::DDRA      ; Data direction Port A
@@ -4686,14 +4621,13 @@ _DISK_LOAD_FILE_FILETYPE_HIGHADDR:.BYTE >CASTLE
 
                 LDA     BEFORE_MAINLOOP_FLAG ; 0, once the mainloop is reached
                 CMP     #1
-                BNE     DISK_ACCESS_PREPARE_return
+                BNE     @return
                 LDA     #COLOR::YELLOW
                 STA     VIC::EC_BORDER  ; Border color
                 LDA     #COLOR::WHITE
                 STA     VIC::BGCOL0     ; Background color 0
 
-DISK_ACCESS_PREPARE_return:
-                PLA
+@return:        PLA
                 TAX
                 PLA
                 TAY
@@ -4712,12 +4646,12 @@ DISK_ACCESS_PREPARE_return:
                 STA     _DISK_DELAY_AFTER_IO_DELAY_COUNTER
                 STA     _DISK_DELAY_AFTER_IO_DELAY_COUNTER+1
                 STA     _DISK_DELAY_AFTER_IO_DELAY_COUNTER+2
-_loop:          INC     _DISK_DELAY_AFTER_IO_DELAY_COUNTER
-                BNE     _loop
+:		        INC     _DISK_DELAY_AFTER_IO_DELAY_COUNTER
+                BNE     :-
                 INC     _DISK_DELAY_AFTER_IO_DELAY_COUNTER+1
-                BNE     _loop
+                BNE     :-
                 INC     _DISK_DELAY_AFTER_IO_DELAY_COUNTER+2
-                BNE     _loop
+                BNE     :-
                 JSR     DRAW_DisableSpritesAndStopSound
                 PLA
                 TAX
@@ -5151,15 +5085,14 @@ PROTECTION_CHECK:
                 LDY     #'5'
                 LDA     #0
                 JSR     PROTECTION_READ_TRACK ; Read Track #35, Sector #9
-                BEQ     PROTECTION_CHECK_exit ; Should return error code 27: Read Error (checksum in header)
+                BEQ     :+			; Should return error code 27: Read Error (checksum in header)
                 LDX     #'0'
                 LDY     #'1'
                 LDA     #1
                 JSR     PROTECTION_READ_TRACK ; Read Track #1, Sector #9
-                BNE     PROTECTION_CHECK_exit ; Should return error code 00: No Error
+                BNE     :+			; Should return error code 00: No Error
 
-PROTECTION_CHECK_exit:
-                JMP     PROTECTION_DECRYPT_JUMPS
+:               JMP     PROTECTION_DECRYPT_JUMPS
 
 ; ---------------------------------------------------------------------------
 PROTECTION_ERROR_CODE_1st_DIGIT:.BYTE   0,  0,  0,  0
@@ -5191,15 +5124,12 @@ PROTECTION_ERROR_CODE_2nd_DIGIT:.BYTE   0,' ','2','7'
                 LDX     #15
                 JSR     kernal::CHKOUT          ; Define file as default output. (Must call OPEN beforehands.) Input: X = Logical number.
                 LDY     #0
-
-loc_2C67:
-                LDA     PROTECTION_READ_SECTOR_CMD,Y ; "U1: 5 0 01 9\r"
-                BEQ     loc_2C72
+:               LDA     PROTECTION_READ_SECTOR_CMD,Y ; "U1: 5 0 01 9\r"
+                BEQ     :+
                 JSR     kernal::CHROUT          ; Write byte to default output. (If not screen, must call OPEN and CHKOUT beforehands.)
                 INY
-                BNE     loc_2C67
-
-loc_2C72:
+                BNE     :-
+:
                 JSR     kernal::CLRCHN          ; Close default input/output files (for serial bus, send UNTALK and/or UNLISTEN); restore default input/output to keyboard/screen.
                 LDX     #15
                 JSR     kernal::CHKIN           ; Define file as default input. (Must call OPEN beforehands.) Input: X = Logical number.
@@ -5209,10 +5139,9 @@ loc_2C72:
                 JSR     kernal::CHRIN           ; Read byte from default input (for keyboard, read a line from the screen). (If not keyboard, must call OPEN and CHKIN beforehands.)
                 STA     PROTECTION_ERROR_CODE_2nd_DIGIT,Y
 
-_loop:
-                JSR     kernal::CHRIN           ; Read byte from default input (for keyboard, read a line from the screen). (If not keyboard, must call OPEN and CHKIN beforehands.)
+:               JSR     kernal::CHRIN           ; Read byte from default input (for keyboard, read a line from the screen). (If not keyboard, must call OPEN and CHKIN beforehands.)
                 CMP     #13
-                BNE     _loop
+                BNE     :-
                 LDA     #15
                 JSR     kernal::CLOSE           ; Close file. Input: A = Logical number.
                 JSR     kernal::CLALL           ; Clear file table; call CLRCHN
@@ -11593,26 +11522,21 @@ FRANKENSTEIN_FACEING_LEFT:.BYTE $01
                 PHA
                 LDA     OBJECT_COUNT
                 CMP     #32
-                BNE     loc_575E
+                BNE     :+
                 SEC
-                JMP     object_Create_return
-; ---------------------------------------------------------------------------
-
-loc_575E:
-                INC     OBJECT_COUNT
+                JMP     @return
+:               INC     OBJECT_COUNT
                 ASL     A
                 ASL     A
                 ASL     A
                 TAX
                 LDY     #.SIZEOF(CreepRoom)
                 LDA     #OBJECT_TYPE::DOOR
-
-_loop:
-                STA     mObjects,X
+: 		        STA     mObjects,X
                 STA     mObjectsVars,X
                 INX
                 DEY
-                BNE     _loop
+                BNE     :-
                 TXA
                 SEC
                 SBC     #.SIZEOF(CreepRoom)
@@ -11621,8 +11545,7 @@ _loop:
                 STA     mObjects + CreepObject::flags,X
                 CLC
 
-object_Create_return:
-                PLA
+@return:        PLA
                 TAY
                 PLA
                 RTS
@@ -11683,7 +11606,7 @@ loc_57AB:
                 PHA
                 LDA     mObjects + CreepObject::flags,X
                 BIT     OBJECT_INVISIBLE ; Object is invisible
-                BNE     roomAnim_Disable_return
+                BNE     @return
 
                 LDA     #SCREEN_DRAW_MODE::Mask
                 STA     DRAW_Image_Mode
@@ -11699,8 +11622,7 @@ loc_57AB:
                 ORA     OBJECT_INVISIBLE ; Object is invisible
                 STA     mObjects + CreepObject::flags,X
 
-roomAnim_Disable_return:
-                PLA
+@return:        PLA
                 RTS
 .endproc
 
@@ -12674,55 +12596,41 @@ _Sprite_Update_WidthInBytes:.BYTE $8A
                 TYA
                 PHA
                 LDA     mSprites + CreepSprite::data + CreepSprite_Player::playerNumber,X ; Additional sprite depended data
-                BEQ     loc_5EAA
+                BEQ     @player1
                 LDA     CASTLE + CreepCastle::playerKeyCount + CreepPlayerData::player_2
                 STA     _obj_Key_NotFound_KeyCount
                 LDA     #<(CASTLE + CreepCastle::playerKeys + CreepPlayerKeys::player_2)
                 STA     PP_A
                 LDA     #>(CASTLE + CreepCastle::playerKeys + CreepPlayerKeys::player_2)
                 STA     PP_A+1
-                JMP     loc_5EB8
-; ---------------------------------------------------------------------------
-
-loc_5EAA:
-                LDA     CASTLE + CreepCastle::playerKeyCount + CreepPlayerData::player_1
+                JMP     @player2
+@player1:       LDA     CASTLE + CreepCastle::playerKeyCount + CreepPlayerData::player_1
                 STA     _obj_Key_NotFound_KeyCount
                 LDA     #<(CASTLE + CreepCastle::playerKeys + CreepPlayerKeys::player_1)
                 STA     PP_A
                 LDA     #>(CASTLE + CreepCastle::playerKeys + CreepPlayerKeys::player_1)
                 STA     PP_A+1
-
-loc_5EB8:
+@player2:
                 LDY     #0
-
-loc_5EBA:
-                CPY     _obj_Key_NotFound_KeyCount
-                BEQ     loc_5ECA
+@loop:          CPY     _obj_Key_NotFound_KeyCount
+                BEQ     @notFound
                 LDA     (PP_A),Y
                 CMP     _obj_Key_NotFound_pObjectNumber
-                BEQ     loc_5ECE
+                BEQ     @found
                 INY
-                JMP     loc_5EBA
-; ---------------------------------------------------------------------------
+                JMP     @loop
 
-loc_5ECA:
-                SEC
-                JMP     obj_Key_NotFound_return
-; ---------------------------------------------------------------------------
-
-loc_5ECE:
-                CLC
-
-obj_Key_NotFound_return:
-                PLA
+@notFound:      SEC
+                JMP     @return
+@found:         CLC
+@return:        PLA
                 TAY
                 PLA
                 RTS
-.endproc
 
-; ---------------------------------------------------------------------------
 _obj_Key_NotFound_KeyCount:.BYTE $B5
 _obj_Key_NotFound_pObjectNumber:.BYTE $D4
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -12764,13 +12672,11 @@ _GetRandom_SEED:.BYTE $A0,$C6,$57
 
                 LDA     CIA1::PRB       ; Monitoring/control of the 8 data lines of Port B.
                 AND     #%10000000      ; Row 7, Column 7 => RUN/STOP key
-                BEQ     _KEY_GetJoystick_RUNSTOP_YES
+                BEQ     @RUNSTOP_YES
                 LDA     #0
-                JMP     _KEY_GetJoystick_RUNSTOP_NO
-_KEY_GetJoystick_RUNSTOP_YES:
-                LDA     #1
-_KEY_GetJoystick_RUNSTOP_NO:
-                STA     KEY_GetJoystick_RunStopPressed
+                JMP     @RUNSTOP_NO
+@RUNSTOP_YES:   LDA     #1
+@RUNSTOP_NO:    STA     KEY_GetJoystick_RunStopPressed
 
                 LDA     #0
                 STA     PROT_5F6A_ALWAYS_0
@@ -12788,16 +12694,11 @@ _KEY_GetJoystick_RUNSTOP_NO:
                 STA     KEY_GetJoystick_Input ; 0=up, 1=up,right, 2=right, 3=down,right, 4=down, 5=down,left, 6=left, 7=up,left
                 LDA     _KEY_GetJoystick_inputPort
                 AND     #%00010000      ; Button pressed?
-                BNE     _KEY_GetJoystick_JButton_NO
+                BNE     @JButton_NO
                 LDA     #1
-                JMP     _KEY_GetJoystick_JButton_YES
-; ---------------------------------------------------------------------------
-
-_KEY_GetJoystick_JButton_NO:
-                LDA     #0
-
-_KEY_GetJoystick_JButton_YES:
-                STA     KEY_GetJoystick_Button
+                JMP     @JButton_YES
+@JButton_NO:    LDA     #0
+@JButton_YES:   STA     KEY_GetJoystick_Button
                 PLA
                 TAX
                 PLA
@@ -12808,10 +12709,11 @@ _KEY_GetJoystick_JButton_YES:
 KEY_GetJoystick_Input:.BYTE $82
 KEY_GetJoystick_Button:.BYTE $A0
 _KEY_GetJoystick_inputPort:.BYTE $BF
-KEY_GetJoystick_Table:.BYTE JOYSTICK_DIRECTION::NOTHING,JOYSTICK_DIRECTION::NOTHING,JOYSTICK_DIRECTION::NOTHING,JOYSTICK_DIRECTION::NOTHING
-                .BYTE JOYSTICK_DIRECTION::NOTHING,JOYSTICK_DIRECTION::DOWN_RIGHT,JOYSTICK_DIRECTION::UP_RIGHT,JOYSTICK_DIRECTION::RIGHT
-                .BYTE JOYSTICK_DIRECTION::NOTHING,JOYSTICK_DIRECTION::DOWN_LEFT,JOYSTICK_DIRECTION::UP_LEFT,JOYSTICK_DIRECTION::LEFT
-                .BYTE JOYSTICK_DIRECTION::NOTHING,JOYSTICK_DIRECTION::DOWN,JOYSTICK_DIRECTION::UP,JOYSTICK_DIRECTION::NOTHING
+KEY_GetJoystick_Table:
+				.BYTE JOYSTICK_DIRECTION::NOTHING, JOYSTICK_DIRECTION::NOTHING, JOYSTICK_DIRECTION::NOTHING, JOYSTICK_DIRECTION::NOTHING
+                .BYTE JOYSTICK_DIRECTION::NOTHING, JOYSTICK_DIRECTION::DOWN_RIGHT, JOYSTICK_DIRECTION::UP_RIGHT, JOYSTICK_DIRECTION::RIGHT
+                .BYTE JOYSTICK_DIRECTION::NOTHING, JOYSTICK_DIRECTION::DOWN_LEFT, JOYSTICK_DIRECTION::UP_LEFT, JOYSTICK_DIRECTION::LEFT
+                .BYTE JOYSTICK_DIRECTION::NOTHING, JOYSTICK_DIRECTION::DOWN, JOYSTICK_DIRECTION::UP, JOYSTICK_DIRECTION::NOTHING
 KEY_GetJoystick_RunStopPressed:.BYTE 0
 PROT_5F6A_ALWAYS_0:.BYTE 0
 
@@ -12919,14 +12821,13 @@ CalcScreenDirectionAddrForSprite_Bottom_subpixel:.BYTE $A0
 
                 LDA     Intro_IsInIntroFlag
                 CMP     #1
-                BNE     _selectRoom_notInIntro
+                BNE     @notInIntro
                 CLC
                 LDA     mRoomPtr+1
                 ADC     #>(SAVE_GAME_MEMORY - CASTLE)
                 STA     mRoomPtr+1
 
-_selectRoom_notInIntro:
-                PLA
+@notInIntro:    PLA
                 RTS
 .endproc
 
