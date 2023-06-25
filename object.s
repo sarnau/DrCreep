@@ -2,6 +2,14 @@
 
 .include "DrCreep.inc"
 
+; set a pointer to an address
+.macro IRQ_DELAY delayValue
+		LDA     #delayValue
+		STA     IRQ_DELAY_COUNTER
+:		LDA     IRQ_DELAY_COUNTER
+		BNE     :-
+.endmacro
+
 		.code
 		.org START
 CODE_ENTRY:
@@ -290,7 +298,7 @@ loc_99C:
                 STA     CIA2::CRB       ; Control Timer B
                 LDA     #%01111111
                 STA     CIA1::ICR       ; Interrupt Control and status
-                LDA     CIA1::ICR       ; Interrupt Control and status
+                LDA     CIA1::ICR
                 CLI
                 LDA     #1
                 CMP     _DisableSpritesAndStopSound_FIRST_RUN
@@ -299,10 +307,7 @@ loc_99C:
                 LDA     #%11111111
                 STA     IRQ_VIC_ME      ; Sprite enabled
 
-                LDA     #2
-                STA     IRQ_DELAY_COUNTER
-loc_9FF:        LDA     IRQ_DELAY_COUNTER
-                BNE     loc_9FF         ; Wait for 2/60s
+                IRQ_DELAY 2 ; Wait for 2/60s
 
 loc_A04:        LDA     #0
                 STA     IRQ_VIC_ME      ; Sprite enabled
@@ -1873,13 +1878,8 @@ loc_150E:
                 CMP     #1              ; RUN/STOP pressed?
                 BNE     roomMain_no_RUN_STOP ; => no
 
-loc_1515:
-                LDA     #3
-                STA     IRQ_DELAY_COUNTER
+loc_1515:       IRQ_DELAY 3 ; Wait for 3/60s
 
-loc_151A:
-                LDA     IRQ_DELAY_COUNTER ; Wait for 3/60s
-                BNE     loc_151A        ; Wait for 3/60s
                 JSR     KEY_GetJoystick ; Check joystick for port #A and the RUN/STOP key
                 LDA     KEY_GetJoystick_RunStopPressed
                 CMP     #1              ; RUN/STOP released?
@@ -1901,13 +1901,8 @@ loc_153A:
                 CMP     #1
                 BNE     loc_153A
 
-loc_1546:
-                LDA     #3
-                STA     IRQ_DELAY_COUNTER
+loc_1546:       IRQ_DELAY 3 ; Wait for 2/60s
 
-loc_154B:
-                LDA     IRQ_DELAY_COUNTER ; Wait for 3/60s
-                BNE     loc_154B        ; Wait for 3/60s
                 JSR     KEY_GetJoystick ; Check joystick for port #A and the RUN/STOP key
                 LDA     KEY_GetJoystick_RunStopPressed
                 CMP     #1
@@ -2788,12 +2783,7 @@ loc_1A91:       LDA     obj_Player_Execute_PlayerHeadColorTab
 loc_1A94:       STA     VIC::SP0COL,Y    ; Color sprite 0
 
                 DEC     _gameEscapeCastle_stateSteps
-                LDA     #2
-                STA     IRQ_DELAY_COUNTER
-
-gameEscapeCastle_wait:
-                LDA     IRQ_DELAY_COUNTER ; Wait for 2/60s
-                BNE     gameEscapeCastle_wait ; Wait for 2/60s
+                IRQ_DELAY 2 ; Wait for 2/60s
                 JMP     gameEscapeCastle_stateLoop
 ; ---------------------------------------------------------------------------
 
@@ -3980,17 +3970,13 @@ _optionsMenu_return:
 
 .proc GAME_optionsMenuWaitForButtonOrKeyReleased
                 PHA
-
-loc_237D:       LDA     #2
-                STA     IRQ_DELAY_COUNTER
-loc_2382:       LDA     IRQ_DELAY_COUNTER ; Wait for 2/60s
-                BNE     loc_2382        ; Wait for 2/60s
+@loop:          IRQ_DELAY 2 ; Wait for 2/60s
                 LDA     #0
                 JSR     KEY_GetJoystick ; Check joystick for port #A and the RUN/STOP key
                 LDA     KEY_GetJoystick_Input
-                BPL     loc_237D
+                BPL     @loop
                 LDA     KEY_GetJoystick_Button
-                BNE     loc_237D
+                BNE     @loop
                 PLA
                 RTS
 .endproc
@@ -4019,10 +4005,7 @@ _optionsMenu_PRESS_ENTER_TO_EXIT:_CreepObj_Text 16, 192, COLOR::GREY, TEXTFONT::
                 CPX     optionsMenu_CurrentLevel
                 BNE     loc_23C6
                 JMP     ChangeLevel_return
-; ---------------------------------------------------------------------------
-
-loc_23C6:
-                LDA     #$5A ; Z'
+loc_23C6:       LDA     #$5A ; Z'
                 STA     DISK_LOAD_FNAME
                 LDY     GAME_MENU + CreepOptionsMenu::YPos,X
                 LDA     MULT_40_TABLE_LSB,Y
@@ -4037,8 +4020,7 @@ loc_23C6:
                 BCC     loc_23E6
                 INC     PP_A+1
 
-loc_23E6:
-                LDY     #0
+loc_23E6:       LDY     #0
 loc_23E8:       LDA     (PP_A),Y
                 CMP     #' '
                 BCS     loc_23F0
@@ -4426,11 +4408,7 @@ loc_26F7:       JSR     KEY_GetKey
                 LDA     KEY_RestorePressed
                 CMP     #1
                 BEQ     loc_2712
-                LDA     #3
-                STA     IRQ_DELAY_COUNTER
-
-loc_270A:       LDA     IRQ_DELAY_COUNTER ; Wait for 3/60s
-                BNE     loc_270A        ; Wait for 3/60s
+                IRQ_DELAY 3 ; Wait for 3/60s
                 JMP     _inputLoop
 ; ---------------------------------------------------------------------------
 
@@ -4439,10 +4417,7 @@ loc_2712:       LDA     #0
 
 loc_2717:       LDA     #0
                 STA     KEY_RestorePressed
-                LDA     #3
-                STA     IRQ_DELAY_COUNTER
-loc_2721:       LDA     IRQ_DELAY_COUNTER ; Wait for 3/60s
-                BNE     loc_2721
+                IRQ_DELAY 3 ; Wait for 3/60s
                 LDA     KEY_RestorePressed
                 CMP     #0
                 BNE     loc_2717

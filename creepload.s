@@ -2,7 +2,7 @@
 
 .include "DrCreep.inc"
 
-.macro CopyMemory startPtr,destPtr,destEndAddr
+.macro COPY_MEMORY startPtr,destPtr,destEndAddr
 .scope
 	ldy     #0
 @loop:
@@ -28,8 +28,8 @@ DEST_PTR:	.word $0000 ; general destination pointer for copy operations
 	.code
 
 	; erase video ram with spaces
-	SetPtr SRC_PTR,SCREENRAM
-	SetPtr DEST_PTR,COLORRAM
+	SET_PTR SRC_PTR,SCREENRAM
+	SET_PTR DEST_PTR,COLORRAM
 	ldy     #0
 @loop1:
 	lda     #' '
@@ -44,7 +44,7 @@ DEST_PTR:	.word $0000 ; general destination pointer for copy operations
 	cmp     #>(SCREENRAM+1024)
 	bne     @loop1
 
-	SetPtr SRC_PTR,TITLE_TEXT
+	SET_PTR SRC_PTR,TITLE_TEXT
 @printloop:
 	ldy     #0
 	lda     (SRC_PTR),Y ; X position of the string
@@ -118,17 +118,17 @@ DEST_PTR:	.word $0000 ; general destination pointer for copy operations
 	ldy     #>START
 	jsr     kernal::LOAD
 
-	SetPtr SRC_PTR,START+$1F40
-	SetPtr DEST_PTR,TOP_SCREENRAM
-	CopyMemory SRC_PTR,DEST_PTR,TOP_SCREENRAM+1024
+	SET_PTR SRC_PTR,START+$1F40
+	SET_PTR DEST_PTR,TOP_SCREENRAM
+	COPY_MEMORY SRC_PTR,DEST_PTR,TOP_SCREENRAM+1024
 
-	SetPtr SRC_PTR,START
-	SetPtr DEST_PTR,TOP_HIGHRESVIDEORAM
-	CopyMemory SRC_PTR,DEST_PTR,TOP_HIGHRESVIDEORAM+8192
+	SET_PTR SRC_PTR,START
+	SET_PTR DEST_PTR,TOP_HIGHRESVIDEORAM
+	COPY_MEMORY SRC_PTR,DEST_PTR,TOP_HIGHRESVIDEORAM+8192
 
-	SetPtr SRC_PTR,START+$2328
-	SetPtr DEST_PTR,COLORRAM
-	CopyMemory SRC_PTR,DEST_PTR,COLORRAM+1024
+	SET_PTR SRC_PTR,START+$2328
+	SET_PTR DEST_PTR,COLORRAM
+	COPY_MEMORY SRC_PTR,DEST_PTR,COLORRAM+1024
 
 	; Select the position of the VIC-memory
 	lda     CIA2::DDRA

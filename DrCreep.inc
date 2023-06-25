@@ -6,7 +6,7 @@
 	scrcode
 
 ; set a pointer to an address
-.macro SetPtr ptr,addr
+.macro SET_PTR ptr,addr
 	lda     #<(addr)
 	sta     ptr
 	lda     #>(addr)
