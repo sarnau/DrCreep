@@ -484,7 +484,7 @@ TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 	Gs3
 	A3
 	As3
-	B4
+	B3
 	C4
 	Cs4
 	D4
@@ -496,6 +496,7 @@ TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 	Gs4
 	A4
 	As4
+	B4
 	C5
 	Cs5
 	D5
@@ -533,6 +534,15 @@ TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 	As7
 	B7
 .endenum
+.assert SID_NOTE::C0=12*0,error
+.assert SID_NOTE::C1=12*1,error
+.assert SID_NOTE::C2=12*2,error
+.assert SID_NOTE::C3=12*3,error
+.assert SID_NOTE::C4=12*4,error
+.assert SID_NOTE::C5=12*5,error
+.assert SID_NOTE::C6=12*6,error
+.assert SID_NOTE::C7=12*7,error
+.assert SID_NOTE::B7=95,error
 
 ; ################################################################################
 ; ### Structs

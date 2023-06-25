@@ -8988,7 +8988,7 @@ loc_4594:
                 LDA     (PP_A),Y
                 BIT     LIGHTNING_IS_ON
                 BNE     loc_45A7
-                LDA     #SID_NOTE::B4
+                LDA     #SID_NOTE::B3
                 STA     SNDEFFECT_LIGHTNING_SWITCHED_NOTE
                 LDA     #GfxID::lightning_switch_off
                 JMP     loc_45AE
