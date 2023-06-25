@@ -7,9 +7,10 @@ clean:
 all:
 	mkdir -p $(OBJDIR)/
 	$(BIN) -C c64-asm.cfg creepload.s --start-addr 0xc000 -o $(OBJDIR)/creepload.prg
-	$(BIN) -C c64-asm.cfg object_sndEffect.s --start-addr 0x7574 -o $(OBJDIR)/object_sndEffect.prg
+	$(BIN) -C c64-asm.cfg object_sndEffect.s -o $(OBJDIR)/object_sndEffect.prg
 	$(BIN) -C c64-asm.cfg object.s --start-addr 0x0800 -Ln $(OBJDIR)/object.vs -o $(OBJDIR)/object.prg
-	# skip 2 header bytes of a PRG file and append to the application
+	# skip 2 header bytes of a PRG file (the load address, which is irrelevant in our case)
+	# and append to the application
 	tail -c +3 $(OBJDIR)/object_sndEffect.prg >> $(OBJDIR)/object.prg
 	rm $(OBJDIR)/object_sndEffect.prg
 
