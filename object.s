@@ -148,35 +148,35 @@ MAP_ROOM_STOP_DRAW:.BYTE ROOM_FLAGS::STOP_DRAW
                 LDA     #>(COLORRAM - 192)
                 STA     PP_A+1
                 LDX     #200            ; starting at line 200
-loc_8CC:        LDA     PP_A
+@loop:          LDA     PP_A
                 STA     BITMAP_ADR_TABLE_LSB,X
                 LDA     PP_A+1
                 STA     BITMAP_ADR_TABLE_MSB,X
                 INX
                 CPX     #200
-                BEQ     loc_8F9
+                BEQ     @done
                 TXA
                 AND     #7
-                BEQ     loc_8E9
+                BEQ     :+
                 INC     PP_A
-                BNE     loc_8CC
+                BNE     @loop
                 INC     PP_A+1
-                JMP     loc_8CC
-loc_8E9:        CLC
+                JMP     @loop
+:               CLC
                 LDA     PP_A
                 ADC     #<(320-8+1)
                 STA     PP_A
                 LDA     PP_A+1
                 ADC     #>(320-8+1)
                 STA     PP_A+1
-                JMP     loc_8CC
-loc_8F9:
+                JMP     @loop
+@done:
 
                 LDA     #0
                 STA     PP_A
                 STA     PP_A+1
                 LDX     #0
-loc_901:        LDA     PP_A
+@loop2:         LDA     PP_A
                 STA     MULT_40_TABLE_LSB,X
                 LDA     PP_A+1
                 STA     MULT_40_TABLE_MSB,X
@@ -184,11 +184,11 @@ loc_901:        LDA     PP_A
                 LDA     PP_A
                 ADC     #40
                 STA     PP_A
-                BCC     loc_916
+                BCC     :+
                 INC     PP_A+1
-loc_916:        INX
+:		        INX
                 CPX     #32
-                BCC     loc_901
+                BCC     @loop2
 
                 JSR     PROTECTION_CHECK
 
@@ -207,15 +207,15 @@ loc_916:        INX
                 LDA     #>SNDEFFECT_TABLE_INIT
                 STA     PP_B+1
                 LDY     #0
-loc_93A:        LDA     (PP_B),Y
+:               LDA     (PP_B),Y
                 STA     (PP_A),Y
                 INY
-                BNE     loc_93A
+                BNE     :-
                 INC     PP_A+1
                 INC     PP_B+1
                 LDA     PP_A+1
                 CMP     #>CASTLE
-                BCC     loc_93A
+                BCC     :-
 
                 LDX     #16             ; Tutorial
                 JSR     GAME_ChangeLevel
@@ -259,13 +259,13 @@ BEFORE_MAINLOOP_FLAG:.BYTE 1
 
                 LDX     #0
                 LDA     #(SPRITE_BASE_A-SCR_DIR_2K_BUF)/64 ; $20 * $40 + $C000 => $C800…CA00 Sprites
-loc_990:        STA     IRQ_VIC_SPRITE_ADR,X
+:               STA     IRQ_VIC_SPRITE_ADR,X
                 INX
                 CPX     #8
-                BCS     loc_99C         ; Set MCM and CSEL (Multicolor-Mode, 40 columns)
+                BCS     :+              ; Set MCM and CSEL (Multicolor-Mode, 40 columns)
                 ADC     #1
-                JMP     loc_990
-loc_99C:
+                JMP     :-
+:
 
                 LDA     #VIC_CR1_FLAGS::RSEL|VIC_CR1_FLAGS::DEN ; Set MCM and CSEL (Multicolor-Mode, 40 columns)
                 STA     VIC::CR2        ; Control register 2
@@ -300,16 +300,17 @@ loc_99C:
                 STA     CIA1::ICR       ; Interrupt Control and status
                 LDA     CIA1::ICR
                 CLI
+
                 LDA     #1
                 CMP     _DisableSpritesAndStopSound_FIRST_RUN
-                BEQ     loc_A04
+                BEQ     @next
                 STA     _DisableSpritesAndStopSound_FIRST_RUN
                 LDA     #%11111111
                 STA     IRQ_VIC_ME      ; Sprite enabled
-
                 IRQ_DELAY 2 ; Wait for 2/60s
+@next:
 
-loc_A04:        LDA     #0
+                LDA     #0
                 STA     IRQ_VIC_ME      ; Sprite enabled
                 LDA     #VIC_CR1_FLAGS::YSCROLL_3|VIC_CR1_FLAGS::RSEL|VIC_CR1_FLAGS::DEN|VIC_CR1_FLAGS::BMM ; Video enable
                 STA     VIC::CR1        ; Control register 1
@@ -326,18 +327,18 @@ loc_A04:        LDA     #0
 
                 LDA     SND_MusicPlaying
                 CMP     #1
-                BNE     loc_A3D
+                BNE     @return
                 LDX     #24
-loc_A2A:        LDA     SND_SID_REG_MIRROR_1,X
+:               LDA     SND_SID_REG_MIRROR_1,X
                 STA     SID::FRELO1,X   ; Channel 1 Frequency Low-Byte
                 DEX
-                BPL     loc_A2A
+                BPL     :-
                 LDA     #%10000001
                 STA     CIA1::ICR       ; Interrupt Control and status
                 LDA     #%00000001
                 STA     CIA1::CRA       ; Control Timer A
 
-loc_A3D:        PLA
+@return:        PLA
                 TAX
                 PLA
                 RTS
@@ -365,24 +366,23 @@ _DisableSpritesAndStopSound_FIRST_RUN:.BYTE 0
                 STA     screenDraw_BitmapLineAdr
                 LDA     CASTLE + CreepCastle::size + 1 ; size of the castle structure in bytes
                 STA     screenDraw_BitmapLineAdr+1
-                BEQ     loc_A72
-loc_A63:        LDA     (PP_A),Y
+                BEQ     @loop
+@loop2:         LDA     (PP_A),Y
                 STA     (PP_B),Y
                 INY
-                BNE     loc_A63
+                BNE     @loop2
                 INC     PP_A+1
                 INC     PP_B+1
                 DEC     screenDraw_BitmapLineAdr+1
-                BNE     loc_A63
-loc_A72:        CPY     screenDraw_BitmapLineAdr
-                BEQ     copy_tutorial_castle_return
+                BNE     @loop2
+@loop:          CPY     screenDraw_BitmapLineAdr
+                BEQ     @return
                 LDA     (PP_A),Y
                 STA     (PP_B),Y
                 INY
-                JMP     loc_A72
+                JMP     @loop
 
-copy_tutorial_castle_return:
-                PLA
+@return:        PLA
                 TAY
                 PLA
                 RTS
@@ -399,13 +399,10 @@ copy_tutorial_castle_return:
                 CLD
                 LDA     VIC::IRQST      ; Interrupt register
                 AND     #%00000001
-                BNE     IRQ_VECTOR_videoIRQ
-                JMP     IRQ_VECTOR_noVideoIRQ
-; ---------------------------------------------------------------------------
-
-IRQ_VECTOR_videoIRQ:
-                LDA     VIC::IRQST      ; Interrupt register
-                STA     VIC::IRQST      ; Interrupt register
+                BNE     :+
+                JMP     @noVideoIRQ
+:               LDA     VIC::IRQST
+                STA     VIC::IRQST      ; confirm IRQ
 
                 LDX     _IRQ_VECTOR_RASTER_INDEX_CUR
                 LDA     IRQ_VECTOR_RASTER_TABLE + RASTER_LINE_INFO::color,X
@@ -420,12 +417,9 @@ IRQ_VECTOR_videoIRQ:
 ; with only 3 NOPs, here clear bit 7 in VIC_CR1
 
                 CPX     #0
-                BEQ     loc_AAE
-                JMP     loc_B4D
-; ---------------------------------------------------------------------------
-
-loc_AAE:
-                LDA     IRQ_VIC_MnX     ; X Coordinate Sprite 0
+                BEQ     :+
+                JMP     @rasterIRQ
+:               LDA     IRQ_VIC_MnX     ; X Coordinate Sprite 0
                 STA     VIC::M0X         ; X Coordinate Sprite 0
                 LDA     IRQ_VIC_MnX+1   ; X Coordinate Sprite 0
                 STA     VIC::M1X         ; X Coordinate Sprite 1
@@ -487,29 +481,24 @@ loc_AAE:
                 STA     TOP_SCREENRAM+$3FF
 
                 LDA     IRQ_DELAY_COUNTER
-                BEQ     loc_B4D
+                BEQ     @rasterIRQ
                 DEC     IRQ_DELAY_COUNTER
 
-loc_B4D:
-                INX
+@rasterIRQ:     INX
                 INX
                 CPX     IRQ_VECTOR_RASTER_INDEX
-                BEQ     loc_B58
-                BCC     loc_B58
+                BEQ     :+
+                BCC     :+
                 LDX     #0
-
-loc_B58:
-                LDA     IRQ_VECTOR_RASTER_TABLE + RASTER_LINE_INFO::rasterLine,X
+:               LDA     IRQ_VECTOR_RASTER_TABLE + RASTER_LINE_INFO::rasterLine,X
                 STA     VIC::RASTER      ; Raster counter
                 STX     _IRQ_VECTOR_RASTER_INDEX_CUR
 
-IRQ_VECTOR_noVideoIRQ:
-                LDA     CIA1::ICR       ; Interrupt Control and status
+@noVideoIRQ:    LDA     CIA1::ICR       ; Interrupt Control and status
                 AND     #%00000001
-                BEQ     IRQ_VECTOR_return
+                BEQ     :+
                 JSR     SND_CIA1_TIMER_A_IRQ_musicBufferFeed
-
-IRQ_VECTOR_return:
+:
                 PLA
                 TAX
                 PLA
@@ -557,7 +546,7 @@ KEY_RestorePressed:.BYTE 0
                 TXA
                 PHA
 
-Intro_loopInit:
+@loopInit:
                 LDA     #0
                 STA     _Intro_mMenuMusicScore
                 LDA     #3
@@ -568,12 +557,12 @@ Intro_loopInit:
                 STA     Intro_JoystickPressed
                 STA     Intro_RoomNumber
 
-Intro_roomLoop:
+@roomLoop:
                 INC     _Intro_RoomLoopCounter
                 LDA     _Intro_RoomLoopCounter
                 AND     #3
                 STA     _Intro_RoomLoopCounter
-                BEQ     Intro_roomLoop_titleScreen
+                BEQ     @Intro_roomLoop_titleScreen
 
                 INC     Intro_RoomNumber
                 LDA     Intro_RoomNumber
@@ -582,16 +571,16 @@ Intro_roomLoop:
                 LDY     #CreepRoom::flagsColor ; Bit 0-3: color, Bit 6: end of room list, Bit 7: room visible
                 LDA     (mRoomPtr),Y
                 BIT     MAP_ROOM_STOP_DRAW
-                BEQ     loc_BCD
+                BEQ     @loc_BCD
                 LDA     #0
                 STA     Intro_RoomNumber
 
-loc_BCD:
+@loc_BCD:
                 JSR     GAME_roomLoadAndDraw ; Load room for the currently active player(s)
-                JMP     loc_BE1
+                JMP     @loc_BE1
 ; ---------------------------------------------------------------------------
 
-Intro_roomLoop_titleScreen:
+@Intro_roomLoop_titleScreen:
                 JSR     DRAW_ClearScreen
                 LDA     #<_Intro_ROOM_TITLE_SCREEN
                 STA     object_Ptr
@@ -599,114 +588,104 @@ Intro_roomLoop_titleScreen:
                 STA     object_Ptr+1
                 JSR     DRAW_Objects    ; Draw all objects in the current room initially
 
-loc_BE1:
+@loc_BE1:
                 LDA     VIC::CR1         ; Control register 1
                 ORA     #VIC_CR1_FLAGS::DEN ; Video enable
                 STA     VIC::CR1         ; Control register 1
 
                 LDA     SND_MusicPlaying
                 CMP     #1
-                BEQ     loc_BFD
+                BEQ     :+
                 LDA     _Intro_RoomLoopCounter
-                BNE     loc_BFD
+                BNE     :+
                 LDA     _Intro_mMenuMusicScore
-                BNE     Intro_load_next_music
+                BNE     @Intro_load_next_music
                 INC     _Intro_mMenuMusicScore
-
-loc_BFD:
+:
                 LDA     #200
                 STA     _Intro_waitForInputTimeout
 
-Intro_WaitForInput:
+@Intro_WaitForInput:
                 LDA     _Intro_RoomLoopCounter
-                BEQ     loc_C0D         ; Wait for 2/60s
+                BEQ     :+              ; Wait for 2/60s
                 JSR     GAME_ExecuteEvents ; Handle 1/30 of all game processing
-                JMP     loc_C17
-; ---------------------------------------------------------------------------
-
-loc_C0D:
-                LDA     IRQ_DELAY_COUNTER ; Wait for 2/60s
-                BNE     loc_C0D         ; Wait for 2/60s
+                JMP     @loc_C17
+:               LDA     IRQ_DELAY_COUNTER ; Wait for 2/60s
+                BNE     :-         ; Wait for 2/60s
                 LDA     #2
                 STA     IRQ_DELAY_COUNTER
 
-loc_C17:
-                LDA     Intro_JoystickPressed
+@loc_C17:       LDA     Intro_JoystickPressed
                 JSR     KEY_GetJoystick ; Check joystick for port #A and the RUN/STOP key
                 LDA     KEY_GetJoystick_Button
-                BEQ     loc_C25         ; Joystick button
+                BEQ     @loc_C25        ; Joystick button
 
-loc_C22:
-                JMP     Intro_return
+@loc_C22:       JMP     @return
 ; ---------------------------------------------------------------------------
 
-loc_C25:
+@loc_C25:
                 LDA     Intro_JoystickPressed
                 EOR     #1
                 STA     Intro_JoystickPressed
                 LDA     KEY_GetJoystick_RunStopPressed
                 CMP     #1
-                BEQ     Intro_RUNSTOP
+                BEQ     @Intro_RUNSTOP
                 DEC     _Intro_waitForInputTimeout
-                BNE     Intro_WaitForInput
-                JMP     Intro_roomLoop
+                BNE     @Intro_WaitForInput
+                JMP     @roomLoop
 ; ---------------------------------------------------------------------------
 
-Intro_RUNSTOP:
+@Intro_RUNSTOP:
                 JSR     GAME_optionsMenu
                 LDA     gamePositionLoad_SaveGameLoaded
                 CMP     #1
-                BEQ     loc_C22
-                JMP     Intro_loopInit
+                BEQ     @loc_C22
+                JMP     @loopInit
 ; ---------------------------------------------------------------------------
 
-Intro_load_next_music:
+@Intro_load_next_music:
                 INC     _Intro_str_MUSIC+5
                 LDX     #6
                 STX     DISK_LOAD_FNAME_LENGTH
-_loop:          DEX
-                BMI     _select_first_music
+:               DEX
+                BMI     @select_first_music
                 LDA     _Intro_str_MUSIC,X
                 STA     DISK_LOAD_FNAME,X
-                JMP     _loop
-; ---------------------------------------------------------------------------
+                JMP     :-
 
-_select_first_music:
+@select_first_music:
                 LDA     #FILETYPE::CASTLE
                 STA     DISK_LOAD_FILETYPE
                 JSR     DISK_ACCESS_PREPARE
                 JSR     DISK_CHECK
                 CMP     #DISK_STATUS::MASTERDISK_DETECTED
-                BNE     loc_C88
+                BNE     @loc_C88
 
-_next_music_loop:
+@next_music_loop:
                 JSR     DISK_LOAD_FILE
                 JSR     kernal::READST          ; Fetch status of current input/output device, value of ST variable. (For RS232, status is cleared.)
                 CMP     #READST_ERRORS::END_OF_FILE
-                BEQ     loc_C8D
+                BEQ     @loc_C8D
                 LDA     _Intro_str_MUSIC+5
                 CMP     #'0'
-                BEQ     loc_C88
+                BEQ     @loc_C88
                 LDA     #'0'
                 STA     _Intro_str_MUSIC+5
                 STA     DISK_LOAD_FNAME+5
-                JMP     _next_music_loop
+                JMP     @next_music_loop
 ; ---------------------------------------------------------------------------
 
-loc_C88:
+@loc_C88:
                 LDA     #$24 ; '$'
                 STA     CASTLE + CreepCastle::flags    ; at this point, this is where the music is loaded, not the castle
 
-loc_C8D:
-                JSR     DISK_DELAY_AFTER_IO
+@loc_C8D:       JSR     DISK_DELAY_AFTER_IO
                 LDA     #<(CASTLE + CreepCastle::flags)
                 STA     SND_PTR
                 LDA     #>(CASTLE + CreepCastle::flags)
                 STA     SND_PTR+1
                 LDX     #14
-
-_sid_init_loop:
-                LDA     SND_SID_REG_MIRROR_1+4,X
+:               LDA     SND_SID_REG_MIRROR_1+4,X
                 AND     #(~1 & $FF)
                 STA     SND_SID_REG_MIRROR_1+4,X
                 STA     SID::VCREG1,X       ; NOISE   PULSE   SAW TRI TEST    RING    SYNC    GATE
@@ -714,7 +693,7 @@ _sid_init_loop:
                 TXA
                 SBC     #7
                 TAX
-                BCS     _sid_init_loop
+                BCS     :-
                 LDA     SND_MIRROR_FILTER_RES_ROUTING
                 AND     #%11110000
                 STA     SID::Res_Filt    ; Filter Resonance, Filt Ex, Filt 3, Filt 2, Filt 1
@@ -734,11 +713,10 @@ _sid_init_loop:
                 STA     CIA1::ICR       ; Interrupt Control and status
                 LDA     #%00000001
                 STA     CIA1::CRA       ; Control Timer A
-                JMP     Intro_roomLoop
+                JMP     @roomLoop
 ; ---------------------------------------------------------------------------
 
-Intro_return:
-                LDA     #0
+@return:        LDA     #0
                 STA     SND_MusicPlaying
                 LDA     #0
                 STA     Intro_IsInIntroFlag
@@ -748,9 +726,7 @@ Intro_return:
                 STA     CIA1::ICR       ; Interrupt Control and status
                 LDA     CIA1::ICR       ; Interrupt Control and status
                 LDX     #14
-
-_sid_reset_loop:
-                LDA     SND_SID_REG_MIRROR_1+4,X
+:               LDA     SND_SID_REG_MIRROR_1+4,X
                 AND     #(~1 & $FF)
                 STA     SND_SID_REG_MIRROR_1+4,X
                 STA     SID::VCREG1,X       ; NOISE   PULSE   SAW TRI TEST    RING    SYNC    GATE
@@ -758,7 +734,7 @@ _sid_reset_loop:
                 TXA
                 SBC     #7
                 TAX
-                BCS     _sid_reset_loop
+                BCS     :-
                 PLA
                 TAX
                 PLA
@@ -806,16 +782,16 @@ _Intro_ROOM_TITLE_SCREEN:.addr obj_MultiDraw_Object_Setup
                 PHA
                 LDA     gamePositionLoad_SaveGameLoaded
                 CMP     #1
-                BNE     _copy_saved_game
+                BNE     @copy_saved_game
                 LDA     #0
                 STA     gamePositionLoad_SaveGameLoaded
                 LDA     CASTLE + CreepCastle::flags
                 ORA     #CASTLE_FLAGS::SAVED_GAME
                 STA     CASTLE + CreepCastle::flags
-                JMP     Game_Loop
+                JMP     @Game_Loop
 ; ---------------------------------------------------------------------------
 
-_copy_saved_game:
+@copy_saved_game:
                 LDY     #0
                 LDA     #<SAVE_GAME_MEMORY
                 STA     PP_A
@@ -829,36 +805,34 @@ _copy_saved_game:
                 STA     screenDraw_BitmapLineAdr
                 LDA     SAVE_GAME_MEMORY+1
                 STA     screenDraw_BitmapLineAdr+1
-                BEQ     loc_DBA
+                BEQ     @loc_DBA
 
-loc_DAB:
-                LDA     (PP_A),Y
+:               LDA     (PP_A),Y
                 STA     (PP_B),Y
                 INY
-                BNE     loc_DAB
+                BNE     :-
                 INC     PP_A+1
                 INC     PP_B+1
                 DEC     screenDraw_BitmapLineAdr+1
-                BNE     loc_DAB
+                BNE     :-
 
-loc_DBA:
+@loc_DBA:
                 CPY     screenDraw_BitmapLineAdr
-                BEQ     loc_DC6
+                BEQ     @loc_DC6
                 LDA     (PP_A),Y
                 STA     (PP_B),Y
                 INY
-                JMP     loc_DBA
+                JMP     @loc_DBA
 ; ---------------------------------------------------------------------------
 
-loc_DC6:
+@loc_DC6:
                 LDA     Intro_JoystickPressed
                 STA     CASTLE + CreepCastle::playerCount
                 LDY     #7
                 LDA     #0
-
-loc_DD0:        STA     CASTLE + CreepCastle::playerTimer,Y
+:               STA     CASTLE + CreepCastle::playerTimer,Y
                 DEY
-                BPL     loc_DD0
+                BPL     :-
                 LDA     #0
                 STA     CASTLE + CreepCastle::playerHasEscaped + CreepPlayerData::player_1
                 STA     CASTLE + CreepCastle::playerHasEscaped + CreepPlayerData::player_2
@@ -876,46 +850,42 @@ loc_DD0:        STA     CASTLE + CreepCastle::playerTimer,Y
                 STA     CASTLE + CreepCastle::playerIsAlive + CreepPlayerData::player_1
                 LDA     CASTLE + CreepCastle::playerCount
                 CMP     #1
-                BEQ     loc_E14
+                BEQ     @loc_E14
                 LDA     #0
                 STA     CASTLE + CreepCastle::playerIsAlive + CreepPlayerData::player_2
                 LDA     #PLAYER_STATE::NOT_PLAYING ; Player #2 is not playing
                 STA     CASTLE + CreepCastle::playerState + CreepPlayerData::player_2
-                JMP     Game_Loop
-; ---------------------------------------------------------------------------
-
-loc_E14:
-                LDA     #1
+                JMP     @Game_Loop
+@loc_E14:       LDA     #1
                 STA     CASTLE + CreepCastle::playerIsAlive + CreepPlayerData::player_2
 
-Game_Loop:
+@Game_Loop:
                 LDA     CASTLE + CreepCastle::playerIsAlive + CreepPlayerData::player_1
                 CMP     #1
-                BEQ     Game_Loop_AtLeastOnePlayerAlive
+                BEQ     @Game_Loop_AtLeastOnePlayerAlive
                 LDA     CASTLE + CreepCastle::playerIsAlive + CreepPlayerData::player_2
                 CMP     #1
-                BEQ     Game_Loop_AtLeastOnePlayerAlive
-                JMP     Game_return
+                BEQ     @Game_Loop_AtLeastOnePlayerAlive
+                JMP     @return
 ; ---------------------------------------------------------------------------
 
-Game_Loop_AtLeastOnePlayerAlive:
+@Game_Loop_AtLeastOnePlayerAlive:
                 LDA     CASTLE + CreepCastle::playerIsAlive + CreepPlayerData::player_1
                 CMP     #1
-                BNE     loc_E5F
+                BNE     @loc_E5F
                 LDA     CASTLE + CreepCastle::playerIsAlive + CreepPlayerData::player_2
                 CMP     #1
-                BNE     loc_E5F
+                BNE     @loc_E5F
                 LDA     CASTLE + CreepCastle::playerCurrentRoom + CreepPlayerData::player_1
                 CMP     CASTLE + CreepCastle::playerCurrentRoom + CreepPlayerData::player_2
-                BNE     loc_E4B
+                BNE     @loc_E4B
                 LDA     #1
                 STA     mapDraw_playerInCurrentRoom + CreepPlayerData::player_1
                 STA     mapDraw_playerInCurrentRoom + CreepPlayerData::player_2
-                JMP     loc_E7D
+                JMP     @loc_E7D
 ; ---------------------------------------------------------------------------
 
-loc_E4B:
-                LDX     CASTLE + CreepCastle::firstPlayerIndexInRoom
+@loc_E4B:       LDX     CASTLE + CreepCastle::firstPlayerIndexInRoom
                 LDA     #0
                 STA     mapDraw_playerInCurrentRoom,X
                 TXA
@@ -923,57 +893,54 @@ loc_E4B:
                 TAX
                 LDA     #1
                 STA     mapDraw_playerInCurrentRoom,X
-                JMP     loc_E7D
+                JMP     @loc_E7D
 ; ---------------------------------------------------------------------------
 
-loc_E5F:
-                LDA     CASTLE + CreepCastle::playerIsAlive + CreepPlayerData::player_1
+@loc_E5F:       LDA     CASTLE + CreepCastle::playerIsAlive + CreepPlayerData::player_1
                 CMP     #1
-                BEQ     loc_E73
+                BEQ     @loc_E73
                 LDA     #1
                 STA     mapDraw_playerInCurrentRoom + CreepPlayerData::player_2
                 LDA     #0
                 STA     mapDraw_playerInCurrentRoom + CreepPlayerData::player_1
-                JMP     loc_E7D
+                JMP     @loc_E7D
 ; ---------------------------------------------------------------------------
 
-loc_E73:
-                LDA     #1
+@loc_E73:       LDA     #1
                 STA     mapDraw_playerInCurrentRoom + CreepPlayerData::player_1
                 LDA     #0
                 STA     mapDraw_playerInCurrentRoom + CreepPlayerData::player_2
 
-loc_E7D:
-                JSR     GAME_mapDraw    ; Show the map of all rooms, wait for a button to exit
+@loc_E7D:       JSR     GAME_mapDraw    ; Show the map of all rooms, wait for a button to exit
                 JSR     GAME_roomMainLoop ; Loop for the game code, exists if player left a room or died
                 JSR     DRAW_ClearScreen
                 LDA     #0
                 STA     _Game_PlayersDead_ExitGameLoop
                 LDX     #0
 
-Game_Loop_Players:
+@Game_Loop_Players:
                 LDA     mapDraw_playerInCurrentRoom,X
                 CMP     #1
-                BNE     Game_Loop_NextPlayer
+                BNE     @Game_Loop_NextPlayer
                 LDA     CASTLE + CreepCastle::playerState,X
                 CMP     #PLAYER_STATE::DIEING ; Player is dieing by collision, trapdoor or pressing RESTORE
-                BEQ     Game_Loop_PlayerIsDieing
+                BEQ     @Game_Loop_PlayerIsDieing
 
                 LDA     CASTLE + CreepCastle::playerHasEscaped,X
                 CMP     #1
-                BNE     Game_Loop_NextPlayer
+                BNE     @Game_Loop_NextPlayer
                 STX     GAME_gameEscapeCastle_PlayerNumber
                 JSR     GAME_gameEscapeCastle
 
                 LDA     CASTLE + CreepCastle::flags
                 AND     #CASTLE_FLAGS::SAVED_GAME
-                BNE     Game_Loop_PlayerIsDead
+                BNE     @Game_Loop_PlayerIsDead
                 LDA     optionsMenu_UnlimitedLives
                 CMP     #$FF
-                BEQ     Game_Loop_PlayerIsDead
+                BEQ     @Game_Loop_PlayerIsDead
                 LDA     optionsMenu_CurrentLevel
                 CMP     #$FF
-                BEQ     Game_Loop_PlayerIsDead
+                BEQ     @Game_Loop_PlayerIsDead
                 TXA
                 ASL     A
                 ASL     A
@@ -984,44 +951,44 @@ Game_Loop_Players:
                 ADC     #0
                 STA     PP_A+1
                 LDY     #3
-loc_ECD:        LDA     (PP_A),Y
+:		        LDA     (PP_A),Y
                 STA     gameHighScoresHandle_PlayerName,Y
                 DEY
-                BPL     loc_ECD
+                BPL     :-
                 STX     gameHighScoresHandle_playerIndex
                 JSR     GAME_gameHighScoresHandle
-                JMP     Game_Loop_PlayerIsDead
+                JMP     @Game_Loop_PlayerIsDead
 ; ---------------------------------------------------------------------------
 
-Game_Loop_PlayerIsDieing:
+@Game_Loop_PlayerIsDieing:
                 LDA     optionsMenu_UnlimitedLives
                 CMP     #$FF
-                BEQ     loc_EED
+                BEQ     :+
                 DEC     CASTLE + CreepCastle::playerRemainingLives,X
                 LDA     CASTLE + CreepCastle::playerRemainingLives,X
-                BEQ     Game_Loop_PlayerIsDead
-
-loc_EED:        LDA     CASTLE + CreepCastle::playerStartRoom,X
+                BEQ     @Game_Loop_PlayerIsDead
+:
+                LDA     CASTLE + CreepCastle::playerStartRoom,X
                 STA     CASTLE + CreepCastle::playerCurrentRoom,X
                 LDA     CASTLE + CreepCastle::playerStartDoor,X
                 STA     CASTLE + CreepCastle::playerCurrentDoor,X
-                JMP     Game_Loop_NextPlayer
+                JMP     @Game_Loop_NextPlayer
 ; ---------------------------------------------------------------------------
 
-Game_Loop_PlayerIsDead:
+@Game_Loop_PlayerIsDead:
                 LDA     #0
                 STA     CASTLE + CreepCastle::playerIsAlive,X
                 LDA     #1
                 STA     _Game_PlayersDead_ExitGameLoop
 
-Game_Loop_NextPlayer:
+@Game_Loop_NextPlayer:
                 INX
                 CPX     #2
-                BCC     Game_Loop_Players
+                BCC     @Game_Loop_Players
 
                 LDA     _Game_PlayersDead_ExitGameLoop
                 CMP     #1
-                BNE     _Game_Loop
+                BNE     @_Game_Loop
 
                 JSR     DRAW_ClearScreen
                 LDA     #<_Game_GAME_OVER_STR
@@ -1032,37 +999,37 @@ Game_Loop_NextPlayer:
 
                 LDA     CASTLE + CreepCastle::playerCount
                 CMP     #0
-                BEQ     loc_F4B
+                BEQ     @loc_F4B
+
                 LDA     CASTLE + CreepCastle::playerIsAlive + CreepPlayerData::player_1
                 CMP     #1
-                BEQ     loc_F39
+                BEQ     :+
                 LDA     #<_Game_PLAYER_1_STR
                 STA     object_Ptr
                 LDA     #>_Game_PLAYER_1_STR
                 STA     object_Ptr+1
                 JSR     obj_Text_Object_Setup
-
-loc_F39:        LDA     CASTLE + CreepCastle::playerIsAlive + CreepPlayerData::player_2
+:
+                LDA     CASTLE + CreepCastle::playerIsAlive + CreepPlayerData::player_2
                 CMP     #1
-                BEQ     loc_F4B
+                BEQ     @loc_F4B
                 LDA     #<_Game_PLAYER_2_STR
                 STA     object_Ptr
                 LDA     #>_Game_PLAYER_2_STR
                 STA     object_Ptr+1
                 JSR     obj_Text_Object_Setup
 
-loc_F4B:        LDA     VIC::CR1         ; Control register 1
+@loc_F4B:       LDA     VIC::CR1         ; Control register 1
                 ORA     #VIC_CR1_FLAGS::DEN ; Video enable
                 STA     VIC::CR1         ; Control register 1
                 LDA     #35
                 JSR     GAME_WAIT_DELAY_100ms
 
-_Game_Loop:
-                JMP     Game_Loop
+@_Game_Loop:
+                JMP     @Game_Loop
 ; ---------------------------------------------------------------------------
 
-Game_return:
-                PLA
+@return:        PLA
                 TAX
                 PLA
                 TAY
@@ -1732,34 +1699,30 @@ _mapDrawRooms_roomHeight:.BYTE $A0
                 LDA     #>SCR_DIR_2K_BUF
                 STA     PP_A+1
                 LDY     #0
-loc_1402:       LDA     #0
-loc_1404:       STA     (PP_A),Y
+@loop:          LDA     #0
+: 		        STA     (PP_A),Y
                 INY
-                BNE     loc_1404
+                BNE     :-
                 INC     PP_A+1
                 LDA     PP_A+1
                 CMP     #>SPRITE_BASE_A
-                BCC     loc_1402
+                BCC     @loop
 
                 LDA     mapDraw_playerInCurrentRoom + CreepPlayerData::player_1
                 CMP     #1              ; Player #1 in the current room?
-                BEQ     loc_141D        ; Load room for player #1 (and maybe player #2 is in it as well)
+                BEQ     @loc_141D        ; Load room for player #1 (and maybe player #2 is in it as well)
                 LDX     #1              ; Load room for player #2
-                JMP     loc_141F
-; ---------------------------------------------------------------------------
+                JMP     @loc_141F
+@loc_141D:      LDX     #0              ; Load room for player #1 (and maybe player #2 is in it as well)
+@loc_141F:
 
-loc_141D:       LDX     #0              ; Load room for player #1 (and maybe player #2 is in it as well)
-loc_141F:       LDA     Intro_IsInIntroFlag
+	            LDA     Intro_IsInIntroFlag
                 CMP     #1
-                BNE     loc_142C
+                BNE     :+
                 LDA     Intro_RoomNumber
-                JMP     _roomLoadAndDraw_room_in_A
-; ---------------------------------------------------------------------------
-
-loc_142C:       LDA     CASTLE + CreepCastle::playerCurrentRoom,X
-
-_roomLoadAndDraw_room_in_A:
-                JSR     GAME_selectRoom ; Set roomPtr to room # in A
+                JMP     @room_in_A
+: 	            LDA     CASTLE + CreepCastle::playerCurrentRoom,X
+@room_in_A:     JSR     GAME_selectRoom ; Set roomPtr to room # in A
 
                 LDY     #CreepRoom::flagsColor ; Bit 0-3: color, Bit 6: end of room list, Bit 7: room visible
                 LDA     (mRoomPtr),Y
@@ -1794,12 +1757,12 @@ _roomLoadAndDraw_room_in_A:
                 STA     OBJECT_trapdoor_6_ROOMCOLOR+1
                 STA     OBJECT_trapdoor_6_ROOMCOLOR+2
                 LDY     #7
-loc_1489:       STA     OBJECT_MovingSidewalk_anim_1_ROOMCOLOR,Y
+:		        STA     OBJECT_MovingSidewalk_anim_1_ROOMCOLOR,Y
                 STA     OBJECT_MovingSidewalk_anim_2_ROOMCOLOR,Y
                 STA     OBJECT_MovingSidewalk_anim_3_ROOMCOLOR,Y
                 STA     OBJECT_MovingSidewalk_anim_4_ROOMCOLOR,Y
                 DEY
-                BPL     loc_1489
+                BPL     :-
                 AND     #%00001111
                 ORA     #(COLOR::WHITE<<4)+COLOR::BLACK
                 STA     OBJECT_sliding_pole_onePixel_ROOMCOLOR
@@ -1818,13 +1781,13 @@ loc_1489:       STA     OBJECT_MovingSidewalk_anim_1_ROOMCOLOR,Y
 
                 LDA     Intro_IsInIntroFlag
                 CMP     #1
-                BNE     loc_14C5
+                BNE     @loc_14C5
                 CLC
                 LDA     object_Ptr+1
                 ADC     #>(SAVE_GAME_MEMORY - CASTLE)
                 STA     object_Ptr+1
 
-loc_14C5:       JSR     DRAW_Objects    ; Draw all objects in the current room initially
+@loc_14C5:      JSR     DRAW_Objects    ; Draw all objects in the current room initially
 
                 PLA
                 TAX
