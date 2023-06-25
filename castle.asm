@@ -2,7 +2,7 @@
 
 #import "basicmacro.asm"
 
-.segment CASTLE [outPrg="bin/castle.prg"]
+.segment CASTLE [outPrg="Objects/castle.prg"]
 {
     BasicProgram(List().add(
          "10 IF X=1 THEN 40",

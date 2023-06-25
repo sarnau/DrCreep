@@ -3,11 +3,11 @@
 #import "castle.asm"
 
 // Generate the disk image
-.disk [filename="bin/The Castles of Dr. Creep.d64", name="DUNGEONMASTER",id="AX22A" ]
+.disk [filename="Objects/The Castles of Dr. Creep.d64", name="DUNGEONMASTER",id="AX22A" ]
 {
 	[name="CASTLE", type="prg", segments="CASTLE" ],
-	[name="CREEPLOAD", type="prg", prgFiles="bin/creepload.prg" ],
-	[name="OBJECT", type="prg", prgFiles="bin/object.prg" ],
+	[name="CREEPLOAD", type="prg", prgFiles="Objects/creepload.prg" ],
+	[name="OBJECT", type="prg", prgFiles="Objects/object.prg" ],
 
 	[name="ZTUTORIAL", type="prg", prgFiles="files/ztutorial.prg" ],
 	[name="ZSYLVANIA", type="prg", prgFiles="files/zsylvania.prg" ],
