@@ -13,12 +13,12 @@
                 LDX     #3
                 LDY     #0
                 LDA     #' '
-loc_17585:      STA     (PP_A),Y
+:               STA     (PP_A),Y
                 INY
-                BNE     loc_17585
+                BNE     :-
                 INC     PP_A+1
                 DEX
-                BPL     loc_17585
+                BPL     :-
 
                 LDA     #0
                 STA     optionsMenu_CurrentSelection
@@ -26,28 +26,31 @@ loc_17585:      STA     (PP_A),Y
                 STA     object_Ptr
                 LDA     #>TXT_GameSelection
                 STA     object_Ptr+1
-loc_1759C:      LDY     #CreepOptionsMenu::XPos
+
+@menuLoop:      LDY     #CreepOptionsMenu::XPos
                 LDA     (object_Ptr),Y
                 CMP     #$FF
-                BEQ     loc_1760A
+                BEQ     @endOfMenus
+
                 LDY     #CreepOptionsMenu::action
                 LDA     (object_Ptr),Y
                 CMP     #OPTION_ACTION::NONE
-                BEQ     loc_175C0
+                BEQ     @noAction
+
                 LDY     #0
                 LDX     optionsMenu_CurrentSelection
-
-loc_175B1:      LDA     (object_Ptr),Y
+: 			    LDA     (object_Ptr),Y
                 STA     GAME_MENU,X
                 INX
                 INY
                 CPY     #.SIZEOF(CreepOptionsMenu)
-                BCC     loc_175B1
+                BCC     :-
                 INX
                 STX     optionsMenu_CurrentSelection
 
-loc_175C0:      LDY     #CreepOptionsMenu::YPos
+@noAction:      LDY     #CreepOptionsMenu::YPos
                 LDA     (object_Ptr),Y
+				; use the Y position to cala the screen ptr
                 TAX
                 CLC
                 LDA     MULT_40_TABLE_LSB,X
@@ -56,46 +59,44 @@ loc_175C0:      LDY     #CreepOptionsMenu::YPos
                 LDA     MULT_40_TABLE_MSB,X
                 ADC     #>SCREENRAM
                 STA     PP_A+1
+				; add the X position to the screen ptr
                 CLC
                 LDA     PP_A
                 LDY     #CreepOptionsMenu::XPos
                 ADC     (object_Ptr),Y
                 STA     PP_A
-                BCC     loc_175E1
+                BCC     :+
                 INC     PP_A+1
-
-loc_175E1:
+:
                 LDY     #CreepOptionsMenu::XPos
                 CLC
                 LDA     object_Ptr
                 ADC     #.SIZEOF(CreepOptionsMenu)
                 STA     object_Ptr
-                BCC     loc_175EE
+                BCC     :+
                 INC     object_Ptr+1
 
-loc_175EE:
-                LDA     (object_Ptr),Y
+:               LDA     (object_Ptr),Y
                 AND     #%00111111      ; Copy character to screen memory
                 STA     (PP_A),Y
 
                 LDA     (object_Ptr),Y
-                BMI     loc_175FC       ; => end of string
+                BMI     :+       ; => end of string
                 INY
-                JMP     loc_175EE
-; ---------------------------------------------------------------------------
+                JMP     :-
 
-loc_175FC:
-                CLC
+:               CLC
                 INY
                 TYA
                 ADC     object_Ptr
                 STA     object_Ptr
-                BCC     loc_1759C
+                BCC     @menuLoop
                 INC     object_Ptr+1
-                JMP     loc_1759C
+                JMP     @menuLoop
 ; ---------------------------------------------------------------------------
 
-loc_1760A:
+@endOfMenus:
+				; set selection marker
                 LDX     GAME_MENU + CreepOptionsMenu::XPos+9
                 CLC
                 LDA     #<SCREENRAM
@@ -110,6 +111,7 @@ loc_1760A:
                 LDA     #'>'
                 STA     (PP_A),Y
 
+				; invert the current selection
                 CLC
                 LDX     #7
                 LDA     #<SCREENRAM
@@ -119,15 +121,14 @@ loc_1760A:
                 ADC     MULT_40_TABLE_MSB,X
                 STA     PP_A+1
                 LDY     #23
-
-loc_17638:
-                LDA     (PP_A),Y
-                ORA     #%10000000      ; Invert selection
+:		        LDA     (PP_A),Y
+                ORA     #%10000000 ; Invert character
                 STA     (PP_A),Y
                 INY
                 CPY     #26
-                BCC     loc_17638
+                BCC     :-
 
+				; LOAD "$0:Z*" to find all castles on the disk
                 LDA     #'$'
                 STA     DISK_LOAD_FNAME
                 LDA     #'0'
@@ -155,60 +156,55 @@ loc_17638:
                 LDA     #3
                 STA     _optionsMenuPrepare_XPos
 
-loc_17681:
-                LDA     PP_A+1
+@dirCastleLoop:
+				; end address reached?
+				LDA     PP_A+1
                 CMP     DISK_LOAD_FILEADDR+1
-                BCC     loc_17691
-                BNE     loc_1769A
+                BCC     :+
+                BNE     @_return
                 LDA     PP_A
                 CMP     DISK_LOAD_FILEADDR
-                BCS     loc_1769A
+                BCS     @_return
 
-loc_17691:
-                LDY     #0
+				; 16 bit next BASIC line address = $0000 => end of the program
+:               LDY     #0
                 LDA     (PP_A),Y
                 INY
                 ORA     (PP_A),Y
-                BNE     loc_1769D
+                BNE     @processLine
 
-loc_1769A:
-                JMP     loc_17749
-; ---------------------------------------------------------------------------
+@_return:       JMP     @return
 
-loc_1769D:
-                CLC
+
+@processLine:   CLC
                 LDA     PP_A
-                ADC     #4
+                ADC     #4		; skip filesize (line number)
                 STA     PP_A
-                BCC     loc_176A8
+                BCC     @filenameLoop
                 INC     PP_A+1
 
-loc_176A8:
-                LDY     #0
+@filenameLoop:  LDY     #0
                 LDA     (PP_A),Y
-                BNE     loc_176B7
+                BNE     @nextChar
                 INC     PP_A
-                BNE     loc_17681
+                BNE     @dirCastleLoop
                 INC     PP_A+1
-                JMP     loc_17681
-; ---------------------------------------------------------------------------
+                JMP     @dirCastleLoop
 
-loc_176B7:
-                CMP     #'"'
-                BNE     loc_176C2
+@nextChar:      CMP     #'"'
+                BNE     @nextCharLoop
                 INY
                 LDA     (PP_A),Y
                 CMP     #$5A ; 'Z'
-                BEQ     loc_176CB
-
-loc_176C2:
+                BEQ     @findCastleFilename
+@nextCharLoop:
                 INC     PP_A
-                BNE     loc_176A8
+                BNE     @filenameLoop
                 INC     PP_A+1
-                JMP     loc_176A8
+                JMP     @filenameLoop
 ; ---------------------------------------------------------------------------
 
-loc_176CB:
+@findCastleFilename:
                 LDX     optionsMenu_CurrentSelection
                 LDA     _optionsMenuPrepare_XPos
                 STA     GAME_MENU + CreepOptionsMenu::XPos,X
@@ -231,20 +227,18 @@ loc_176CB:
                 TXA
                 ADC     PP_B
                 STA     PP_B
-                BCC     loc_17700
+                BCC     :+
                 INC     PP_B+1
-
-loc_17700:      LDY     #2
-loc_17702:      LDA     (PP_A),Y
+: 			    
+			    LDY     #2
+: 			    LDA     (PP_A),Y
                 CMP     #'"'
-                BEQ     loc_17710
+                BEQ     @endOfFilename
                 AND     #%00111111
                 STA     (PP_B),Y
                 INY
-                JMP     loc_17702
-; ---------------------------------------------------------------------------
-
-loc_17710:
+                JMP     :-
+@endOfFilename:
                 LDX     optionsMenu_CurrentSelection
                 TYA
                 STA     GAME_MENU + CreepOptionsMenu::XPos+3,X
@@ -258,29 +252,29 @@ loc_17710:
                 TYA
                 ADC     PP_A
                 STA     PP_A
-                BCC     loc_1772B
+                BCC     :+
                 INC     PP_A+1
 
-loc_1772B:
-                LDA     _optionsMenuPrepare_XPos
+				; calculate the next screen position for the castle filename
+:               LDA     _optionsMenuPrepare_XPos
                 CMP     #3
-                BNE     loc_1773A
+                BNE     @switchFirstCol
                 LDA     #22
                 STA     _optionsMenuPrepare_XPos
 
-loc_17737:
-                JMP     loc_176C2
+@next:
+                JMP     @nextCharLoop
 ; ---------------------------------------------------------------------------
 
-loc_1773A:
+@switchFirstCol:
                 LDA     #3
                 STA     _optionsMenuPrepare_XPos
                 INC     _optionsMenuPrepare_YPos
                 LDA     _optionsMenuPrepare_YPos
                 CMP     #24
-                BCC     loc_17737
+                BCC     @next
 
-loc_17749:      LDX     optionsMenu_CurrentSelection
+@return:        LDX     optionsMenu_CurrentSelection
                 DEX
                 DEX
                 DEX
