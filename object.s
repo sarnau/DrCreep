@@ -2,6 +2,8 @@
 
 .include "DrCreep.inc"
 
+DISABLE_PROTECTION := 0
+
 ; set a pointer to an address
 .macro IRQ_DELAY delayValue
 		LDA     #delayValue
@@ -28,19 +30,31 @@ SNDEFFECT_TRAPDOOR_SWITCHED_NOTE := $759F
 CODE_ENTRY:
 		JMP     GAME_start
 _ObjectDoor:
-;		JMP     obj_Door_Object_Setup
+.if DISABLE_PROTECTION
+		JMP     obj_Door_Object_Setup
+.else
 		.byte $4C,.LOBYTE(obj_Door_Object_Setup),.HIBYTE(obj_Door_Object_Setup) ^ $32
+.endif
 _ObjectWalkway:
-;		JMP     obj_Walkway_Object_Setup
+.if DISABLE_PROTECTION
+		JMP     obj_Walkway_Object_Setup
+.else
 		.byte $4C,.LOBYTE(obj_Walkway_Object_Setup),.HIBYTE(obj_Walkway_Object_Setup) ^ $32
+.endif
 _ObjectSlidingPole:
-;		JMP     obj_SlidingPole_Object_Setup
+.if DISABLE_PROTECTION
+		JMP     obj_SlidingPole_Object_Setup
+.else
 		.byte $4C,.LOBYTE(obj_SlidingPole_Object_Setup),.HIBYTE(obj_SlidingPole_Object_Setup) ^ $37
+.endif
 _ObjectLadder:
 		JMP     obj_Ladder_Object_Setup
 _ObjectDoorBell:
-;		JMP     obj_DoorBell_Object_Setup
+.if DISABLE_PROTECTION
+		JMP     obj_DoorBell_Object_Setup
+.else
 		.byte $4C,.LOBYTE(obj_DoorBell_Object_Setup),.HIBYTE(obj_DoorBell_Object_Setup) ^ $37
+.endif
 _ObjectLightning:
 		JMP     obj_Lightning_Object_Setup
 _ObjectForcefield:
@@ -5094,7 +5108,11 @@ PROT_UNKNOWN_FUNC:.BYTE   0,  0,  0,  0,  0,  0,  0,  0
 ; =============== S U B R O U T I N E =======================================
 
 PROTECTION_CHECK:
+.if DISABLE_PROTECTION
+	RTS
+.else
                 LDX     #'3'
+.endif
                 LDY     #'5'
                 LDA     #0
                 JSR     PROTECTION_READ_TRACK ; Read Track #35, Sector #9

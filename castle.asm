@@ -1,6 +1,6 @@
 // Basic code to load the actual loader
 
-#import "basicmacro.s"
+#import "basicmacro.asm"
 
 .segment CASTLE [outPrg="bin/castle.prg"]
 {
