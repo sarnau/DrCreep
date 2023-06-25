@@ -2,7 +2,7 @@
 
 .include "DrCreep.inc"
 
-DISABLE_PROTECTION := 0
+DISABLE_PROTECTION := 1
 
 ; set a pointer to an address
 .macro IRQ_DELAY delayValue
@@ -30,31 +30,19 @@ SNDEFFECT_TRAPDOOR_SWITCHED_NOTE := $759F
 CODE_ENTRY:
 		JMP     GAME_start
 _ObjectDoor:
-.if DISABLE_PROTECTION
-		JMP     obj_Door_Object_Setup
-.else
+;		JMP     obj_Door_Object_Setup
 		.byte $4C,.LOBYTE(obj_Door_Object_Setup),.HIBYTE(obj_Door_Object_Setup) ^ $32
-.endif
 _ObjectWalkway:
-.if DISABLE_PROTECTION
-		JMP     obj_Walkway_Object_Setup
-.else
+;		JMP     obj_Walkway_Object_Setup
 		.byte $4C,.LOBYTE(obj_Walkway_Object_Setup),.HIBYTE(obj_Walkway_Object_Setup) ^ $32
-.endif
 _ObjectSlidingPole:
-.if DISABLE_PROTECTION
-		JMP     obj_SlidingPole_Object_Setup
-.else
+;		JMP     obj_SlidingPole_Object_Setup
 		.byte $4C,.LOBYTE(obj_SlidingPole_Object_Setup),.HIBYTE(obj_SlidingPole_Object_Setup) ^ $37
-.endif
 _ObjectLadder:
 		JMP     obj_Ladder_Object_Setup
 _ObjectDoorBell:
-.if DISABLE_PROTECTION
-		JMP     obj_DoorBell_Object_Setup
-.else
+;		JMP     obj_DoorBell_Object_Setup
 		.byte $4C,.LOBYTE(obj_DoorBell_Object_Setup),.HIBYTE(obj_DoorBell_Object_Setup) ^ $37
-.endif
 _ObjectLightning:
 		JMP     obj_Lightning_Object_Setup
 _ObjectForcefield:
@@ -5109,11 +5097,12 @@ PROT_UNKNOWN_FUNC:.BYTE   0,  0,  0,  0,  0,  0,  0,  0
 
 PROTECTION_CHECK:
 .if DISABLE_PROTECTION
-	RTS
+				JMP     PROTECTION_DECRYPT_JUMPS
+				BRK
 .else
                 LDX     #'3'
-.endif
                 LDY     #'5'
+.endif
                 LDA     #0
                 JSR     PROTECTION_READ_TRACK ; Read Track #35, Sector #9
                 BEQ     :+			; Should return error code 27: Read Error (checksum in header)
@@ -5126,9 +5115,13 @@ PROTECTION_CHECK:
 :               JMP     PROTECTION_DECRYPT_JUMPS
 
 ; ---------------------------------------------------------------------------
+.if DISABLE_PROTECTION
+PROTECTION_ERROR_CODE_1st_DIGIT:.BYTE   '2',  0,  0,  0
+PROTECTION_ERROR_CODE_2nd_DIGIT:.BYTE   '7',' ','2','7'
+.else
 PROTECTION_ERROR_CODE_1st_DIGIT:.BYTE   0,  0,  0,  0
 PROTECTION_ERROR_CODE_2nd_DIGIT:.BYTE   0,' ','2','7'
-
+.endif
 ; =============== S U B R O U T I N E =======================================
 
 .proc PROTECTION_READ_TRACK

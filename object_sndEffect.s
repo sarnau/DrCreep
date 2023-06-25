@@ -2,6 +2,35 @@
 
 .include "DrCreep.inc"
 
+; This is NASTY! With some linker trickery, it might be solvable…
+;
+; The optionsMenu and the sound effects are compiled to the _same_ base address.
+; During initialization the option menu is build and then the code is replaced by the
+; sound effect code, which in the binary is stored just behind it.
+; This saves some needed memory. For now I compile the option menu at the correct address
+; and create another code block with just the sound effects for the same address.
+; The make script then appends it to the object.prg. That all works fine,
+; _but_ the entry point and all patches to the note values during the runtime are
+; now hardcoded in the table below. Any changes in the sound effects and these addresses
+; need to be corrected. AFAIK the KickAssembler can do this: compile code for a different
+; address than where it ends up. CA65 doesn't seem to have an easy way to do this.
+; And because I want to move on and probably patching the sound effects is rare, I
+; just created this table of pointers.
+
+; Code entriess for the sound effects, which is an overlay
+; SNDEFFECT_DOOR_OPEN_NOTE := $75B7
+; SNDEFFECT_FORCEFIELD_TIMER_NOTE := $75AB
+; SNDEFFECT_LASER_FIRED_NOTE := $7593
+; SNDEFFECT_LIGHTNING_SWITCHED_NOTE := $75E7
+; SNDEFFECT_MOVINGSIDEWALK_SWITCH_NOTE := $7624
+; SNDEFFECT_MUMMY_RELEASE_NOTE := $7630
+; SNDEFFECT_SPRITE_FLASH_NOTE := $760C
+; SNDEFFECT_TABLE := $7572
+; SNDEFFECT_TELEPORT_CHANGE_NOTE := $75DB
+; SNDEFFECT_TELEPORT_NOTE := $75CF
+; SNDEFFECT_TRAPDOOR_SWITCHED_NOTE := $759F
+
+
 				.CODE
 				.ORG OPTION_MENU_START
 SNDEFFECT_TABLE:.addr SNDEFFECT_LASER_FIRED; 0

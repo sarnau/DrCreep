@@ -8,5 +8,5 @@ all:
 	tail -c +3 ./bin/object_sndEffect.prg >> ./bin/object.prg
 	rm ./bin/object_sndEffect.prg
 
-	java --class-path /Applications/KickAssembler/KickAss.jar cml.kickass.KickAssembler "DrCreep_Build.asm" -log "bin/BuildLog.txt" -vicesymbols -showmem -symbolfiledir "./bin"
+	java --class-path /Applications/KickAssembler/KickAss.jar cml.kickass.KickAssembler "DrCreep_Build.asm" -log "bin/BuildLog.txt" -symbolfiledir "./bin"
 	/Applications/VICE/bin/x64sc -basicload "bin/The Castles of Dr. Creep.d64"
