@@ -7,15 +7,19 @@
 CODE_ENTRY:
 		JMP     GAME_start
 _ObjectDoor:
-		JMP     obj_Door_Object_Setup
+;		JMP     obj_Door_Object_Setup
+		.byte $4C,.LOBYTE(obj_Door_Object_Setup),.HIBYTE(obj_Door_Object_Setup) ^ $32
 _ObjectWalkway:
-		JMP     obj_Walkway_Object_Setup
+;		JMP     obj_Walkway_Object_Setup
+		.byte $4C,.LOBYTE(obj_Walkway_Object_Setup),.HIBYTE(obj_Walkway_Object_Setup) ^ $32
 _ObjectSlidingPole:
-		JMP     obj_SlidingPole_Object_Setup
+;		JMP     obj_SlidingPole_Object_Setup
+		.byte $4C,.LOBYTE(obj_SlidingPole_Object_Setup),.HIBYTE(obj_SlidingPole_Object_Setup) ^ $37
 _ObjectLadder:
 		JMP     obj_Ladder_Object_Setup
 _ObjectDoorBell:
-		JMP     obj_DoorBell_Object_Setup
+;		JMP     obj_DoorBell_Object_Setup
+		.byte $4C,.LOBYTE(obj_DoorBell_Object_Setup),.HIBYTE(obj_DoorBell_Object_Setup) ^ $37
 _ObjectLightning:
 		JMP     obj_Lightning_Object_Setup
 _ObjectForcefield:
@@ -44,33 +48,32 @@ _ObjectImage:
 		JMP     obj_Image_Object_Setup
 
 ; ---------------------------------------------------------------------------
-SND_DisableSoundEffects:.BYTE 0         ; Always 0, maybe 1 in the tape version?
+SND_DisableSoundEffects:.BYTE 0  ; Always 0, maybe 1 in the tape version?
 
                 .BYTE $80, $40, $20, $10 ; unused
 
 OBJECT_COUNT:   .BYTE 0
-OBJECT_INVISIBLE:.BYTE $80              ; Object is invisible
-OBJECT_TRIGGER_EXECUTE:.BYTE $40        ; Trigger execute function for the object
-OBJECT_DELETE:  .BYTE $20               ; Delete the object, e.g. after a key was picked
 
-ObjectType_Table:.WORD obj_Door_Object_Execute, obj_Door_Object_ObjectCollision; 0
-                .WORD 0, obj_DoorBell_Object_ObjectCollision; 2 ; Processor port data direction register (0 = Bit #x in processor port can only be read; 1 = Bit #x in processor port can be read and written.)
-                .WORD obj_LightningMachine_Object_Execute, 0; 4
-                .WORD 0, obj_LightningMachineSwitch_Object_ObjectCollision; 6
-                .WORD obj_ForcefieldButton_Object_Execute, obj_ForcefieldButton_Object_ObjectCollision; 8
-                .WORD obj_Ankh_Object_Execute, obj_Ankh_Object_ObjectCollision; 10
-                .WORD 0, obj_Key_Object_ObjectCollision; 12
-                .WORD 0, obj_KeyLock_Object_ObjectCollision; 14
-                .WORD obj_RayGun_Object_Execute, 0; 16
-                .WORD 0, obj_RayGun_Controller_Object_ObjectCollision; 18
-                .WORD obj_MatterTransmitter_Object_Execute, obj_MatterTransmitter_Object_ObjectCollision; 20
-                .WORD obj_TrapDoor_Switch_Object_Execute, 0; 22
-                .WORD 0, 0      ; 24
-                .WORD obj_MovingSidewalk_Object_Execute, obj_MovingSidewalk_Object_ObjectCollision; 26
-                .WORD 0, obj_MovingSidewalkButton_Object_ObjectCollision; 28
-                .WORD 0, 0      ; 30
+OBJECT_INVISIBLE:.BYTE $80       ; Object is invisible
+OBJECT_TRIGGER_EXECUTE:.BYTE $40 ; Trigger execute function for the object
+OBJECT_DELETE:  .BYTE $20        ; Delete the object, e.g. after a key was picked
 
-
+ObjectType_Table:.addr obj_Door_Object_Execute, obj_Door_Object_ObjectCollision
+                .addr 0, obj_DoorBell_Object_ObjectCollision
+                .addr obj_LightningMachine_Object_Execute, 0
+                .addr 0, obj_LightningMachineSwitch_Object_ObjectCollision
+                .addr obj_ForcefieldButton_Object_Execute, obj_ForcefieldButton_Object_ObjectCollision
+                .addr obj_Ankh_Object_Execute, obj_Ankh_Object_ObjectCollision
+                .addr 0, obj_Key_Object_ObjectCollision
+                .addr 0, obj_KeyLock_Object_ObjectCollision
+                .addr obj_RayGun_Object_Execute, 0
+                .addr 0, obj_RayGun_Controller_Object_ObjectCollision
+                .addr obj_MatterTransmitter_Object_Execute, obj_MatterTransmitter_Object_ObjectCollision
+                .addr obj_TrapDoor_Switch_Object_Execute, 0
+                .addr 0, 0
+                .addr obj_MovingSidewalk_Object_Execute, obj_MovingSidewalk_Object_ObjectCollision
+                .addr 0, obj_MovingSidewalkButton_Object_ObjectCollision
+                .addr 0, 0
 
 SPRITE_FLAGS_CREATED:.BYTE SPRITE_STATE::CREATED ; Sprite was just created, reset during the first execute call
 SPRITE_FLAGS_SHOULD_DIE:.BYTE SPRITE_STATE::SHOULD_DIE ; Let the sprite die, depending of the type by flashing it
@@ -87,51 +90,51 @@ SPRITE_NO_PRIORITY:.BYTE SPRITE_FLAGS::NO_PRIORITY
 SPRITE_NO_MULTICOLOR:.BYTE SPRITE_FLAGS::NO_MULTICOLOR ; Sprite is a multicolor sprite
 SPRITE_FLASH_ENABLED:.BYTE SPRITE_FLAGS::FLASH_ENABLED ; Sprite flashes during dying?
 
-Sprite_Execute_Table:.WORD obj_Player_Sprite_Execute
-Sprite_Collision_Table:.WORD obj_Player_Sprite_SpriteCollision
-Sprite_ObjectCollision_Table:.WORD obj_Player_Sprite_ObjectCollision
-Sprite_CollisionMask_Table:.BYTE %00000000
-Sprite_Flashes_Table:.BYTE SPRITE_FLAGS::FLASH_ENABLED
+Sprite_Table: ; SPRITE_TABLE
+                .addr obj_Player_Sprite_Execute
+                .addr obj_Player_Sprite_SpriteCollision
+                .addr obj_Player_Sprite_ObjectCollision
+                .BYTE %00000000
+                .BYTE SPRITE_FLAGS::FLASH_ENABLED
 
-                .WORD obj_Lightning_Sprite_Execute
-                .WORD obj_Lightning_Sprite_SpriteCollision
-                .WORD 0
+                .addr obj_Lightning_Sprite_Execute
+                .addr obj_Lightning_Sprite_SpriteCollision
+                .addr 0
                 .BYTE %00000100
                 .BYTE 0
 
-                .WORD obj_Forcefield_Sprite_Execute
-                .WORD obj_Forcefield_Sprite_SpriteCollision
-                .WORD 0
+                .addr obj_Forcefield_Sprite_Execute
+                .addr obj_Forcefield_Sprite_SpriteCollision
+                .addr 0
                 .BYTE %00000011
                 .BYTE 0
 
-                .WORD obj_Mummy_Sprite_Execute
-                .WORD obj_Mummy_Sprite_SpriteCollision
-                .WORD obj_Mummy_Sprite_Collision
+                .addr obj_Mummy_Sprite_Execute
+                .addr obj_Mummy_Sprite_SpriteCollision
+                .addr obj_Mummy_Sprite_Collision
                 .BYTE %00000010
                 .BYTE SPRITE_FLAGS::FLASH_ENABLED ; Sprite flashes during dying?
 
-                .WORD obj_RayGun_Shot_Sprite_Execute
-                .WORD 0
-                .WORD obj_RayGun_Shot_Sprite_ObjectCollision
+                .addr obj_RayGun_Shot_Sprite_Execute
+                .addr 0
+                .addr obj_RayGun_Shot_Sprite_ObjectCollision
                 .BYTE %00000100
                 .BYTE 0
 
-                .WORD obj_Frankenstein_Sprite_Execute
-                .WORD obj_Frankenstein_Sprite_SpriteCollision
-                .WORD obj_Frankenstein_Sprite_ObjectCollision
+                .addr obj_Frankenstein_Sprite_Execute
+                .addr obj_Frankenstein_Sprite_SpriteCollision
+                .addr obj_Frankenstein_Sprite_ObjectCollision
                 .BYTE %00000000
                 .BYTE SPRITE_FLAGS::FLASH_ENABLED ; Sprite flashes during dying?
 
                 .BYTE $80
-
 
 MAP_ROOM_VISIBLE:.BYTE ROOM_FLAGS::VISIBLE
 MAP_ROOM_STOP_DRAW:.BYTE ROOM_FLAGS::STOP_DRAW
 
 ; =============== S U B R O U T I N E =======================================
 
-GAME_start:
+.proc GAME_start
                 LDA     #<(COLORRAM - 192)
                 STA     PP_A
                 LDA     #>(COLORRAM - 192)
@@ -215,14 +218,13 @@ loc_953:        JSR     GAME_CopyTutorialCastle
 loc_956:        LDA     #0
                 STA     BEFORE_MAINLOOP_FLAG
                 JMP     GAME_mainLoop
-
+.endproc
 
 BEFORE_MAINLOOP_FLAG:.BYTE 1
 
 ; =============== S U B R O U T I N E =======================================
 
-
-DRAW_DisableSpritesAndStopSound:
+.proc DRAW_DisableSpritesAndStopSound
                 PHA
                 TXA
                 PHA
@@ -336,11 +338,12 @@ loc_A3D:        PLA
                 RTS
 
 _DisableSpritesAndStopSound_FIRST_RUN:.BYTE 0
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 
-GAME_CopyTutorialCastle:
+.proc GAME_CopyTutorialCastle
                 PHA
                 TYA
                 PHA
@@ -378,11 +381,12 @@ copy_tutorial_castle_return:
                 TAY
                 PLA
                 RTS
-
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-IRQ_VECTOR:     PHA
+.proc IRQ_VECTOR
+                PHA
                 TYA
                 PHA
                 TXA
@@ -507,9 +511,10 @@ IRQ_VECTOR_return:
                 TAY
                 PLA
                 RTI
+_IRQ_VECTOR_RASTER_INDEX_CUR:.BYTE 0
+.endproc
 
 ; ---------------------------------------------------------------------------
-_IRQ_VECTOR_RASTER_INDEX_CUR:.BYTE 0
 IRQ_VECTOR_RASTER_INDEX:.BYTE 0
 
 IRQ_VECTOR_RASTER_TABLE:
@@ -520,26 +525,27 @@ IRQ_VECTOR_RASTER_TABLE:
 
 ; =============== S U B R O U T I N E =======================================
 
-NMI_VECTOR:
+.proc NMI_VECTOR
                 PHA
                 LDA     #1
                 STA     KEY_RestorePressed
                 PLA
                 RTI
+.endproc
 
 KEY_RestorePressed:.BYTE 0
 
 ; =============== S U B R O U T I N E =======================================
 
-GAME_mainLoop:
+.proc GAME_mainLoop
                 JSR     GAME_Intro
                 JSR     GAME_Game
                 JMP     GAME_mainLoop
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-
-GAME_Intro:
+.proc GAME_Intro
                 PHA
                 TYA
                 PHA
@@ -755,8 +761,10 @@ _sid_reset_loop:
                 PLA
                 RTS
 
-; ---------------------------------------------------------------------------
 _Intro_RoomLoopCounter:.BYTE $85
+.endproc
+
+; ---------------------------------------------------------------------------
 Intro_IsInIntroFlag:.BYTE 0
 Intro_JoystickPressed:.BYTE $A0
 Intro_RoomNumber:.BYTE $B0
@@ -765,10 +773,10 @@ _Intro_waitForInputTimeout:.BYTE $A0
 _Intro_str_MUSIC:scrcode "MUSIC0"
 _Intro_mMenuMusicScore:.BYTE $FF
 
-_Intro_ROOM_TITLE_SCREEN:.WORD obj_MultiDraw_Object_Setup
+_Intro_ROOM_TITLE_SCREEN:.addr obj_MultiDraw_Object_Setup
                 _CreepObj_MultiDraw 8, GfxID::exit, 16, 88, 20, 0
                 .BYTE 0
-                .WORD obj_Text_Object_Setup
+                .addr obj_Text_Object_Setup
                 _CreepObj_Text 40, 48, COLOR::ORANGE, TEXTFONT::s8x8|TEXTFONT::UPPERCASE
                 scrcode "THE CASTLES O"
                 .BYTE $C6
@@ -781,12 +789,11 @@ _Intro_ROOM_TITLE_SCREEN:.WORD obj_MultiDraw_Object_Setup
                 _CreepObj_Text 16, 192, COLOR::GREY, TEXTFONT::s8x8|TEXTFONT::UPPERCASE
                 scrcode "BR0DERBUND  SOFTWAR"
                 .BYTE $C5, 0
-                .WORD 0
+                .addr 0
 
 ; =============== S U B R O U T I N E =======================================
 
-
-GAME_Game:
+.proc GAME_Game
                 PHA
                 TYA
                 PHA
@@ -1056,6 +1063,7 @@ Game_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
                 .BYTE $B4
@@ -1075,7 +1083,7 @@ _Game_PLAYER_2_STR:_CreepObj_Text 48, 128, COLOR::ORANGE, TEXTFONT::s8x8|TEXTFON
 
 ; Show the map of all rooms, wait for a button to exit
 
-GAME_mapDraw:
+.proc GAME_mapDraw
                 PHA
                 TYA
                 PHA
@@ -1384,6 +1392,7 @@ _mapDisplay_waitForButtonRelease:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 mapDraw_playerInCurrentRoom: _CreepPlayerData $A0,$A0
@@ -1414,7 +1423,7 @@ _mapDraw_TWO_UP:_CreepObj_Text 116, 0, COLOR::WHITE, TEXTFONT::s8x16|TEXTFONT::U
 
 ; Draw the actual rooms with doors but without players, etc
 
-GAME_mapDrawRooms:
+.proc GAME_mapDrawRooms
                 PHA
                 TYA
                 PHA
@@ -1692,19 +1701,19 @@ mapRoomDraw_return:
                 PLA
                 RTS
 
-; ---------------------------------------------------------------------------
 _mapDrawRooms_WidthIn4Pixel:.BYTE $A0
 _mapDrawRooms_HeightIn8Pixel:.BYTE $B1
 _mapDrawRooms_roomX:.BYTE $A0
 _mapDrawRooms_roomY:.BYTE $8C
 _mapDrawRooms_roomWidth:.BYTE $A0
 _mapDrawRooms_roomHeight:.BYTE $A0
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 ; Load room for the currently active player(s)
 
-GAME_roomLoadAndDraw:
+.proc GAME_roomLoadAndDraw
                 PHA
                 TYA
                 PHA
@@ -1818,13 +1827,13 @@ loc_14C5:       JSR     DRAW_Objects    ; Draw all objects in the current room i
                 TAY
                 PLA
                 RTS
-
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 ; Loop for the game code, exists if player left a room or died
 
-GAME_roomMainLoop:
+.proc GAME_roomMainLoop
                 PHA
                 TYA
                 PHA
@@ -1982,12 +1991,14 @@ loc_15CB:       JSR     GAME_ExecuteEvents ; Handle 1/30 of all game processing
 ; ---------------------------------------------------------------------------
 _roomMainLoop_InsideMainLoop_WRITE_ONLY:.BYTE 0
 _roomMainLoop_COPY_CIA_TOD1: _CreepPlayerTime $A8,$A0,$A0,$A0, $A0,$A0,$C5,$A2
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 ; Draw all objects in the current room initially
 
-DRAW_Objects:   PHA
+.proc DRAW_Objects
+                PHA
                 TYA
                 PHA
 
@@ -2004,27 +2015,22 @@ _DRAW_Objects_loop:
                 STA     object_Ptr
                 BCC     loc_15FB
                 INC     object_Ptr+1
-
-loc_15FB:
-                LDA     _DRAW_Objects_func+2
+loc_15FB:       LDA     _DRAW_Objects_func+2
                 BEQ     _DRAW_Objects_return
-
 _DRAW_Objects_func:
                 JSR     _DRAW_Objects_func+1
                 JMP     _DRAW_Objects_loop
-; ---------------------------------------------------------------------------
-
 _DRAW_Objects_return:
                 PLA
                 TAY
                 PLA
                 RTS
-
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_MultiDraw_Object_Setup:
+.proc obj_MultiDraw_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -2088,11 +2094,12 @@ loc_1665:
 
 ; ---------------------------------------------------------------------------
 _obj_MultiDraw_Prepare_Repeat:.BYTE $A0
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Walkway_Object_Setup:
+.proc obj_Walkway_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -2242,11 +2249,11 @@ obj_Walkway_Prepare_return:
 _obj_Walkway_Prepare_Index:.BYTE $A0
 _obj_Walkway_Prepare_Pos:.BYTE $A0
 _obj_Walkway_Prepare_Length:.BYTE $A9
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-
-obj_SlidingPole_Object_Setup:
+.proc obj_SlidingPole_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -2355,11 +2362,12 @@ obj_SlidingPole_Prepare_return:
 
 ; ---------------------------------------------------------------------------
 _obj_SlidingPole_Prepare_Length:.BYTE $80
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Ladder_Object_Setup:
+.proc obj_Ladder_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -2512,11 +2520,11 @@ obj_Ladder_Prepare_return:
 
 ; ---------------------------------------------------------------------------
 _obj_Ladder_Prepare_Height:.BYTE $D2
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-
-DRAW_ClearScreen:
+.proc DRAW_ClearScreen
                 PHA
                 TYA
                 PHA
@@ -2562,12 +2570,11 @@ loc_1917:       LDA     SPRITE_FLAGS_UNUSED ; 1, if the sprite slot is unused
                 TAY
                 PLA
                 RTS
-
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-
-GAME_WAIT_DELAY_100ms:
+.proc GAME_WAIT_DELAY_100ms
                 STA     DELAY_TIME
                 PHA
                 TXA
@@ -2584,13 +2591,12 @@ loc_1943:       LDA     IRQ_DELAY_COUNTER ; Wait for an IRQ, which happens at 60
                 PLA
                 RTS
 
-; ---------------------------------------------------------------------------
 DELAY_TIME:     .BYTE $A0
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-
-GAME_gameEscapeCastle:
+.proc GAME_gameEscapeCastle
                 PHA
                 TYA
                 PHA
@@ -2800,6 +2806,7 @@ gameEscapeCastle_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 GAME_gameEscapeCastle_PlayerNumber:.BYTE $B5
@@ -2826,7 +2833,7 @@ _gameEscapeCastle_stateIndex:.BYTE $A0
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Image_Object_Setup:
+.proc obj_Image_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -2941,12 +2948,13 @@ obj_Image_Draw_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-GAME_gameHighScoresHandle:
+.proc GAME_gameHighScoresHandle
                 PHA
                 TYA
                 PHA
@@ -3141,6 +3149,7 @@ gameHighScoresHandle_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 gameHighScoresHandle_PlayerName:.BYTE $CD, $A5, $AA, $D0
 gameHighScoresHandle_playerIndex:.BYTE $B6
@@ -3148,7 +3157,7 @@ _gameHighScoresHandle_HighScorePosition:.BYTE $A0
 _gameHighScoresHandle_byte_1CFF:.BYTE $A5
                 .BYTE $A0
 _gameHighScoresHandle_ASCII_NUMBER_1_2:_CreepPlayerData $B1, $B2
-_gameHighScoresHandle_word_1D03:.WORD $A0A0
+_gameHighScoresHandle_word_1D03:.addr $A0A0
 _gameHighScoresHandle_0x1D05:_CreepObj_Text 64, 160, COLOR::LIGHT_BLUE, TEXTFONT::s8x16|TEXTFONT::UPPERCASE
                 scrcode "PLAYER "
 _gameHighScoresHandle_PLAYER_ASCII_NUMBER:.BYTE $A0
@@ -3164,7 +3173,7 @@ _gameHighScoresHandle_PLAYER_ASCII_NUMBER:.BYTE $A0
 
 ; =============== S U B R O U T I N E =======================================
 
-GAME_gameHighScores:
+.proc GAME_gameHighScores
                 PHA
                 TYA
                 PHA
@@ -3321,13 +3330,13 @@ gameHighScores_loop_return:
                 PLA
                 RTS
 
-; ---------------------------------------------------------------------------
 _gameHighScores_headline:_CreepObj_Text 40, 0, COLOR::YELLOW, TEXTFONT::s8x8|TEXTFONT::UPPERCASE
                 scrcode "BEST TIMES FO"
                 .BYTE $D2
                 _CreepObj_Text 24, 40, COLOR::LIGHT_GREEN, TEXTFONT::s8x8|TEXTFONT::UPPERCASE
                 scrcode "1 PLAYER  2 PLAYER"
                 .BYTE $D3, 0
+.endproc
 _gameHighScores_color_value_table:.BYTE COLOR::WHITE   ; 0
                 .BYTE COLOR::YELLOW  ; 1
                 .BYTE COLOR::YELLOW  ; 2
@@ -3341,8 +3350,7 @@ _gameHighScores_color_value_table:.BYTE COLOR::WHITE   ; 0
 
 ; =============== S U B R O U T I N E =======================================
 
-
-DISK_CHECK:
+.proc DISK_CHECK
                 PHA
                 TYA
                 PHA
@@ -3420,17 +3428,16 @@ loc_1F08:       STA     _DISK_CHECK_DISK_DETECTED
                 LDA     _DISK_CHECK_DISK_DETECTED
                 RTS
 
-; ---------------------------------------------------------------------------
 _DISK_CHECK_FILENAME_DIR:scrcode "$"
 _DISK_CHECK_STR_DUNGEONMASTER:scrcode "DUNGEONMASTE"
                             .byte $D2
 _DISK_CHECK_DISK_DETECTED:.BYTE $A0
 _DISK_CHECK_FILENAME_I:scrcode "I"
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-
-SND_CIA1_TIMER_A_IRQ_musicBufferFeed:
+.proc SND_CIA1_TIMER_A_IRQ_musicBufferFeed
                 PHA
                 TYA
                 PHA
@@ -3641,12 +3648,11 @@ CIA1_TIMER_A_IRQ_musicBufferFeed_return:
                 TAY
                 PLA
                 RTS
-
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-
-SND_selectVoice:
+.proc SND_selectVoice
                 PHA
                 TXA
                 PHA
@@ -3666,14 +3672,15 @@ SND_selectVoice:
                 TAX
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 SND_COMMAND_BUF:.BYTE $99,$A0,$C1,$C6,$CE,$A2,$AA
 SND_COMMAND_SIZE_TABLE:.BYTE   2,  1,  2,  2,  6,  5,  2,  2,  2,  1
 SND_TimerCounter:.WORD 0
 SND_MusicPlaying:.BYTE 0
-SND_regAddr:    .WORD SID::FRELO1,SID::FRELO2,SID::FRELO3
-SND_regMirrorAddr:.WORD SND_SID_REG_MIRROR_1,SND_SID_REG_MIRROR_2,SND_SID_REG_MIRROR_3
+SND_regAddr:    .addr SID::FRELO1,SID::FRELO2,SID::FRELO3
+SND_regMirrorAddr:.addr SND_SID_REG_MIRROR_1,SND_SID_REG_MIRROR_2,SND_SID_REG_MIRROR_3
 SND_SID_REG_MIRROR_1:.BYTE $A0,$A9,$B5,$A0,$E5,$A0,$86
 SND_SID_REG_MIRROR_2:.BYTE $A0,$80,$BA,$CE,$8D,$A0,$82
 SND_SID_REG_MIRROR_3:.BYTE $A0,$B8,$BC,$A0,$B0,$A0,$CC
@@ -3711,7 +3718,7 @@ SND_FREQ_TABLE_HIGH:.BYTE $01,$01,$01,$01,$01,$01,$01,$01; 0
 
 ; =============== S U B R O U T I N E =======================================
 
-SND_PlayEffect:
+.proc SND_PlayEffect
                 PHA
                 STA     SND_pA
                 TYA
@@ -3762,6 +3769,7 @@ SND_PlayEffect_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 SND_pA:         .BYTE $A0
@@ -3770,7 +3778,7 @@ SND_PlayingSound:.BYTE $FF
 ; =============== S U B R O U T I N E =======================================
 
 
-GAME_optionsMenu:
+.proc GAME_optionsMenu
                 PHA
                 TYA
                 PHA
@@ -3965,12 +3973,12 @@ _optionsMenu_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
-
-GAME_optionsMenuWaitForButtonOrKeyReleased:
+.proc GAME_optionsMenuWaitForButtonOrKeyReleased
                 PHA
 
 loc_237D:       LDA     #2
@@ -3985,6 +3993,7 @@ loc_2382:       LDA     IRQ_DELAY_COUNTER ; Wait for 2/60s
                 BNE     loc_237D
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 optionsMenu_CurrentSelection:.BYTE $A0
@@ -4003,8 +4012,7 @@ _optionsMenu_PRESS_ENTER_TO_EXIT:_CreepObj_Text 16, 192, COLOR::GREY, TEXTFONT::
 
 ; =============== S U B R O U T I N E =======================================
 
-
-GAME_ChangeLevel:
+.proc GAME_ChangeLevel
                 PHA
                 TYA
                 PHA
@@ -4137,11 +4145,12 @@ ChangeLevel_return:
 
 ; ---------------------------------------------------------------------------
 _ChangeLevel_byte_24A6:.BYTE $86
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 
-GAME_gamePositionLoad:
+.proc GAME_gamePositionLoad
                 PHA
                 TXA
                 PHA
@@ -4188,6 +4197,7 @@ loc_24F9:       PLA
                 TAX
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 gamePositionLoad_SaveGameLoaded:.BYTE 0
@@ -4196,7 +4206,7 @@ _gamePositionLoad_status:.BYTE $90
 ; =============== S U B R O U T I N E =======================================
 
 
-GAME_gamePositionSave:
+.proc GAME_gamePositionSave
                 PHA
                 TXA
                 PHA
@@ -4257,6 +4267,7 @@ loc_256B:       PLA
                 TAX
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 _gamePositionSave_CANNOT_SAVE_TO_MASTER_TXT:_CreepObj_Text 16, 64, COLOR::LIGHT_RED, TEXTFONT::s8x16|TEXTFONT::UPPERCASE
@@ -4274,8 +4285,7 @@ _gamePositionSave_IO_ERROR_TXT:_CreepObj_Text 60, 80, COLOR::LIGHT_RED, TEXTFONT
 
 ; =============== S U B R O U T I N E =======================================
 
-
-GAME_gameFilenameGet:
+.proc GAME_gameFilenameGet
                 PHA
                 JSR     DRAW_ClearScreen
                 LDA     #<_gameFilenameGet_0x2633
@@ -4317,23 +4327,24 @@ loc_25DF:       JSR     DRAW_Objects    ; Draw all objects in the current room i
                 JSR     KEY_StringInput
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 gameFilenameGet_SaveOrResumeFlag:.BYTE $A0
 
-_gameFilenameGet_0x2609:.WORD obj_Text_Object_Setup
+_gameFilenameGet_0x2609:.addr obj_Text_Object_Setup
                 _CreepObj_Text 44, 0, COLOR::WHITE, TEXTFONT::s8x16|TEXTFONT::UPPERCASE
                 scrcode "SAVE POSITIO"
                 .BYTE $CE
-                .WORD 0
+                .addr 0
                 .BYTE 0
-_gameFilenameGet_0x261F:.WORD obj_Text_Object_Setup
+_gameFilenameGet_0x261F:.addr obj_Text_Object_Setup
                 _CreepObj_Text 52, 0, COLOR::WHITE, TEXTFONT::s8x16|TEXTFONT::UPPERCASE
                 scrcode "RESUME GAM"
                 .BYTE $C5
-                .WORD 0
+                .addr 0
                 .BYTE 0
-_gameFilenameGet_0x2633:.WORD obj_Text_Object_Setup
+_gameFilenameGet_0x2633:.addr obj_Text_Object_Setup
                 _CreepObj_Text 28, 48, COLOR::LIGHT_GREEN, TEXTFONT::s8x8|TEXTFONT::UPPERCASE
                 scrcode "TYPE IN FILE NAM"
                 .BYTE $C5
@@ -4352,13 +4363,12 @@ _gameFilenameGet_0x2633:.WORD obj_Text_Object_Setup
                 _CreepObj_Text 72, 128, COLOR::LIGHT_RED, TEXTFONT::s8x8|TEXTFONT::UPPERCASE
                 scrcode "CANCE"
                 .BYTE $CC
-                .WORD 0
+                .addr 0
                 .BYTE 0
 
 ; =============== S U B R O U T I N E =======================================
 
-
-KEY_StringInput:
+.proc KEY_StringInput
                 PHA
                 TXA
                 PHA
@@ -4475,12 +4485,11 @@ loc_276E:       PLA
                 TAX
                 PLA
                 RTS
-
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-
-KEY_StringInput_PrintChar:
+.proc KEY_StringInput_PrintChar
                 PHA
                 LDA     KEY_StringInput_StringBuf
                 ORA     #$80
@@ -4492,6 +4501,7 @@ KEY_StringInput_PrintChar:
                 JSR     DRAW_String
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 KEY_StringInput_TextXPos:.BYTE $A0
@@ -4508,7 +4518,7 @@ KEY_StringInput_RotatingCursorChars:.BYTE $6C, $7B, $7E, $7C; 0
 ; =============== S U B R O U T I N E =======================================
 
 
-KEY_GetKey:
+.proc KEY_GetKey
                 PHA
                 TYA
                 PHA
@@ -4595,6 +4605,7 @@ _StringInput_GetKey_return:
                 PLA
                 LDA     _KEY_GetKey_ASCII
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 _KEY_GetKey_table:.BYTE 8, $D, 8, $80, $80, $80, $80, $80, $33, $57, $41
@@ -4614,7 +4625,6 @@ _KEY_GetKey_tableIndex:.BYTE $A0
 _KEY_GetKey_ASCII:.BYTE $FF
 
 ; =============== S U B R O U T I N E =======================================
-
 
 .proc DISK_SAVE_FILE
                 PHA
@@ -4663,12 +4673,12 @@ _KEY_GetKey_ASCII:.BYTE $FF
 DISK_SAVE_FILE_FILETYPE:.BYTE $A0
 DISK_SAVE_FILE_FNAME_LENGTH:.BYTE $FF
 DISK_SAVE_FILE_FILENAME:.BYTE '@','0',':', $F0,$B0,$B1,$B2,$A0,$F0,$A0,$96,$A0,$A0,$B8,$A0,$85,$A0,$D3,$A0
-_DISK_SAVE_FILE_FILETYPE_TABLE:.WORD CASTLE
-                .WORD SAVE_GAME_MEMORY
-                .WORD HIGHSCORES
+_DISK_SAVE_FILE_FILETYPE_TABLE:
+				.addr CASTLE
+                .addr SAVE_GAME_MEMORY
+                .addr HIGHSCORES
 
 ; =============== S U B R O U T I N E =======================================
-
 
 .proc DISK_LOAD_FILE
                 PHA
@@ -4789,8 +4799,7 @@ _DISK_DELAY_AFTER_IO_DELAY_COUNTER:.BYTE $F0,$A0,$B7
 
 ; =============== S U B R O U T I N E =======================================
 
-
-ConvertTimerToTime:
+.proc ConvertTimerToTime
                 PHA
                 TYA
                 PHA
@@ -4810,12 +4819,11 @@ ConvertTimerToTime:
                 TAY
                 PLA
                 RTS
-
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-
-ConvertTimerToTime_convertBCDToImage:
+.proc ConvertTimerToTime_convertBCDToImage
                 PHA
                 STA     _convertTimeToNumber_Value
                 TYA
@@ -4950,11 +4958,11 @@ _convertTimeToNumber_FONT_8x8_CHARS_0_9:.BYTE %11111100
                 .BYTE %00000000
 _convertTimeToNumber_Value:.BYTE $85
 _convertTimeToNumber_Index:.BYTE $A0
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-
-obj_Text_Object_Setup:
+.proc obj_Text_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -4994,12 +5002,13 @@ obj_Text_Prepare_return:
                 TAY
                 PLA
                 RTS
-
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 
-DRAW_String:    PHA
+.proc DRAW_String
+                PHA
                 TYA
                 PHA
                 TXA
@@ -5187,6 +5196,7 @@ loc_2BDD:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 DRAW_String_TextXPos:.BYTE $C5
@@ -5194,7 +5204,7 @@ DRAW_String_TextYPos:.BYTE $C4
 DRAW_String_TextColor:.BYTE $A0
 DRAW_String_TextFont:.BYTE $CC
 _DRAW_String_TextFontSize:.BYTE $CA
-_DRAW_String_ROMFontAddrTable:.WORD $D000,$D400,$D800,$DC00
+_DRAW_String_ROMFontAddrTable:.addr $D000,$D400,$D800,$DC00
 _DRAW_String_ROMFontCopyCharacter:.BYTE $89,$CE,$F0,$C1,$A0,$BA,$B1,$A0
 _DRAW_String_BitConverterTable:.BYTE %00000000         ; 0
                 .BYTE %00000001         ; 1
@@ -5217,7 +5227,6 @@ PROT_UNKNOWN_FUNC:.BYTE   0,  0,  0,  0,  0,  0,  0,  0
 
 ; =============== S U B R O U T I N E =======================================
 
-
 PROTECTION_CHECK:
                 LDX     #'3'
                 LDY     #'5'
@@ -5238,7 +5247,6 @@ PROTECTION_ERROR_CODE_1st_DIGIT:.BYTE   0,  0,  0,  0
 PROTECTION_ERROR_CODE_2nd_DIGIT:.BYTE   0,' ','2','7'
 
 ; =============== S U B R O U T I N E =======================================
-
 
 .proc PROTECTION_READ_TRACK
                 STA     PROTECTION_INDEX
@@ -5355,7 +5363,7 @@ events_Execute_EngineTicks:.BYTE $A0
 
 ; Update all sprite collision states
 
-Sprite_Collision_VIC_Flags_Update:
+.proc Sprite_Collision_VIC_Flags_Update
                 PHA
                 TXA
                 PHA
@@ -5399,9 +5407,9 @@ _Sprite_Collision_Set_nextSprite:
 ; ---------------------------------------------------------------------------
 _Sprite_Collision_Set_VIC_MM:.BYTE $C5
 _Sprite_Collision_Set_VIC_MD:.BYTE $D0
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
-
 
 Sprite_Execute:
                 PHA
@@ -5464,9 +5472,9 @@ Sprite_Execute_exec:
                 ASL     A
                 ASL     A
                 TAY
-                LDA     Sprite_Execute_Table,Y
+                LDA     Sprite_Table+SPRITE_TABLE::execute,Y
                 STA     loc_2EE8+1
-                LDA     Sprite_Execute_Table+1,Y
+                LDA     Sprite_Table+SPRITE_TABLE::execute+1,Y
                 STA     loc_2EE8+2
 
 loc_2EE8:       JMP     loc_2EE8+1
@@ -5580,8 +5588,7 @@ BITMASK_01__80: .BYTE $01, $02, $04, $08, $10, $20, $40, $80
 
 ; =============== S U B R O U T I N E =======================================
 
-
-Sprite_IsDieingAnimation:
+.proc Sprite_IsDieingAnimation
                 PHA
                 TYA
                 PHA
@@ -5605,7 +5612,7 @@ loc_2FA3:
                 ASL     A
                 ASL     A
                 TAY
-                LDA     Sprite_Flashes_Table,Y ; Does this sprite type support flashing?
+                LDA     Sprite_Table+SPRITE_TABLE::flashes,Y ; Does this sprite type support flashing?
                 BIT     SPRITE_FLASH_ENABLED ; Sprite flashes during dying?
                 BNE     loc_2FC4
 
@@ -5687,13 +5694,14 @@ Sprite_FlashOnOff_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 ; Check sprite #X for sprite-sprite collisions
 
-Sprite_Collision_Check:
+.proc Sprite_Collision_Check
                 PHA
                 TYA
                 PHA
@@ -5703,7 +5711,7 @@ Sprite_Collision_Check:
                 ASL     A
                 ASL     A
                 TAY
-                LDA     Sprite_CollisionMask_Table,Y
+                LDA     Sprite_Table+SPRITE_TABLE::collisionMask,Y
                 BPL     loc_303B
                 JMP     Sprite_Collision_Check_return
 ; ---------------------------------------------------------------------------
@@ -5746,7 +5754,7 @@ Sprite_Collision_Check_loop:
                 ASL     A
                 ASL     A
                 TAY
-                LDA     Sprite_CollisionMask_Table,Y
+                LDA     Sprite_Table+SPRITE_TABLE::collisionMask,Y
                 BMI     Sprite_Collision_Check_next ; all sprite collisions ignored? => (This is not used)
                 BIT     _Sprite_Collision_IgnoreHitMask
                 BNE     Sprite_Collision_Check_next ; Ignore collision of these two sprite types? =>
@@ -5791,6 +5799,7 @@ Sprite_Collision_Check_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -5810,9 +5819,9 @@ Sprite_Collision:
                 ASL     A
                 ASL     A
                 TAY
-                LDA     Sprite_Collision_Table,Y
+                LDA     Sprite_Table+SPRITE_TABLE::collision,Y
                 STA     loc_3101+1
-                LDA     Sprite_Collision_Table+1,Y
+                LDA     Sprite_Table+SPRITE_TABLE::collision+1,Y
                 STA     loc_3101+2
                 BEQ     Sprite_Collision_die
                 LDY     _Sprite_Collision_pSpriteNumber2
@@ -5917,9 +5926,9 @@ loc_3159:
                 ASL     A
                 ASL     A
                 TAY
-                LDA     Sprite_ObjectCollision_Table,Y
+                LDA     Sprite_Table+SPRITE_TABLE::objectCollision,Y
                 STA     loc_31A9+1      ; Validate collision of sprite #X with object #Y
-                LDA     Sprite_ObjectCollision_Table+1,Y
+                LDA     Sprite_Table+SPRITE_TABLE::objectCollision+1,Y
                 STA     loc_31A9+2      ; Validate collision of sprite #X with object #Y
                 BEQ     _Sprite_Object_Collision_Check_nextObj2
                 LDY     _Sprite_Object_Collision_Check_ObjectNumber
@@ -5981,8 +5990,7 @@ Sprite_Object_Collision_DieFlag:.BYTE $C3 ; 0 = Object survives collision, 1 = O
 
 ; =============== S U B R O U T I N E =======================================
 
-
-obj_Player_Sprite_Execute:
+.proc obj_Player_Sprite_Execute
                 LDA     mSprites + CreepSprite::state,X
                 BIT     SPRITE_FLAGS_DESTROY ; Sprite to be destroyed, will be freed in the next execute loop
                 BEQ     obj_Player_Execute_CREATE
@@ -6364,6 +6372,7 @@ obj_Player_Color_Set:
                 LDY     _obj_Player_Execute_spriteNumber
                 STA     VIC::SP0COL,Y    ; Color sprite 0
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 _obj_Player_Execute_ExitStates:_CreepState   0,   0, GfxID::player_run_exit_1, PLAYER_STATE::NEXT_STATE ; Player is in the current room
@@ -6392,7 +6401,6 @@ _obj_Player_Execute_PlayerTime_Ptr:.addr CASTLE + CreepCastle::playerTimer + Cre
                 .addr CASTLE + CreepCastle::playerTimer + CreepPlayerTime::player_2
 
 ; =============== S U B R O U T I N E =======================================
-
 
 obj_Player_Sprite_ObjectCollision:
                 LDA     mObjects + CreepObject::objectType,Y
@@ -6595,7 +6603,7 @@ obj_Player_Add_playerNumber:.BYTE $BA
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Lightning_Sprite_Execute:
+.proc obj_Lightning_Sprite_Execute
                 LDA     mSprites + CreepSprite::state,X
                 BIT     SPRITE_FLAGS_DESTROY ; Sprite to be destroyed, will be freed in the next execute loop
                 BEQ     loc_364D
@@ -6635,21 +6643,19 @@ loc_3679:
 
 obj_Lightning_Execute_return:
                 JMP     Sprite_Execute_nextObj
-
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-
-obj_Lightning_Sprite_SpriteCollision:
+.proc obj_Lightning_Sprite_SpriteCollision
                 LDA     #0              ; The lightning survives all collisions with sprites
                 STA     Sprite_Collision_DieFlag ; 0 = Sprite survives collision, 1 = Sprite will die after collision
                 JMP     Sprite_Collision_next
-
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
-
-obj_Lightning_Sprite_Create:
+.proc obj_Lightning_Sprite_Create
                 PHA
                 TYA
                 PHA
@@ -6673,12 +6679,12 @@ obj_Lightning_Sprite_Create:
                 TAY
                 PLA
                 RTS
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
-
-obj_Forcefield_Sprite_Execute:
+.proc obj_Forcefield_Sprite_Execute
                 LDA     mSprites + CreepSprite::state,X
                 BIT     SPRITE_FLAGS_DESTROY ; Sprite to be destroyed, will be freed in the next execute loop
                 BEQ     loc_36C7
@@ -6768,21 +6774,21 @@ loc_3746:
 
 obj_Forcefield_Execute_return:
                 JMP     Sprite_Execute_nextObj
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
-
-obj_Forcefield_Sprite_SpriteCollision:
+.proc obj_Forcefield_Sprite_SpriteCollision
                 LDA     #0              ; The forcefield survives all collisions with sprites
                 STA     Sprite_Collision_DieFlag ; 0 = Sprite survives collision, 1 = Sprite will die after collision
                 JMP     Sprite_Collision_next
-
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Forcefield_Create_Sprite:
+.proc obj_Forcefield_Create_Sprite
                 PHA
                 TYA
                 PHA
@@ -6817,12 +6823,12 @@ obj_Forcefield_Create_Sprite:
                 TAY
                 PLA
                 RTS
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
-
-obj_Mummy_Sprite_Execute:
+.proc obj_Mummy_Sprite_Execute
                 LDA     mSprites + CreepSprite::state,X
                 BIT     SPRITE_FLAGS_DESTROY ; Sprite to be destroyed, will be freed in the next execute loop
                 BEQ     loc_37AE
@@ -6997,12 +7003,13 @@ loc_38C8:
 
 obj_Mummy_Execute_return:
                 JMP     Sprite_Execute_nextObj
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Mummy_Sprite_Collision:
+.proc obj_Mummy_Sprite_Collision
                 STY     _obj_Mummy_Collision_collisionId
                 LDA     mObjects + CreepObject::objectType,Y
                 CMP     #OBJECT_TYPE::TRAPDOOR
@@ -7063,12 +7070,13 @@ loc_3919:
 
 obj_Mummy_Collision_return:
                 JMP     Sprite_Object_Collision_Check_nextObj
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Mummy_Sprite_SpriteCollision:
+.proc obj_Mummy_Sprite_SpriteCollision
                 LDA     mSprites + CreepSprite::spriteType,Y
                 BEQ     loc_3949        ; Mummy survives collisions with player and Frankenstein
                 CMP     #SPRITE_TYPE::FRANKENSTEIN
@@ -7095,12 +7103,13 @@ loc_3951:
 
 loc_3967:
                 JMP     Sprite_Collision_next
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Mummy_Sprite_Create:
+.proc obj_Mummy_Sprite_Create
                 PHA
                 STA     _obj_Mummy_Sprite_Create_inputFlag
                 TYA
@@ -7172,6 +7181,7 @@ loc_39E8:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 _obj_Mummy_Sprite_Create_inputFlag:.BYTE $B3
@@ -7190,7 +7200,7 @@ _obj_Mummy_Collision_collisionId:.BYTE $BA
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_RayGun_Shot_Sprite_Execute:
+.proc obj_RayGun_Shot_Sprite_Execute
                 LDA     mSprites + CreepSprite::state,X
                 BIT     SPRITE_FLAGS_DESTROY ; Sprite to be destroyed, will be freed in the next execute loop
                 BEQ     loc_3A37
@@ -7237,12 +7247,13 @@ obj_RayGun_Laser_Execute_removeShot:
 
 obj_RayGun_Laser_Execute_return:
                 JMP     Sprite_Execute_nextObj
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_RayGun_Shot_Sprite_ObjectCollision:
+.proc obj_RayGun_Shot_Sprite_ObjectCollision
                 LDA     mObjects + CreepObject::objectType,Y
                 CMP     #OBJECT_TYPE::LIGHTNINGMACHINE
                 BEQ     obj_RayGun_Laser_Collision_return
@@ -7260,12 +7271,13 @@ loc_3A77:
 
 obj_RayGun_Laser_Collision_return:
                 JMP     Sprite_Object_Collision_Check_nextObj
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_RayGun_Shot_Create:
+.proc obj_RayGun_Shot_Create
                 PHA
                 TYA
                 PHA
@@ -7325,12 +7337,13 @@ obj_RayGun_Laser_Shot_Create_done:
                 TAY
                 PLA
                 RTS
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Frankenstein_Sprite_Execute:
+.proc obj_Frankenstein_Sprite_Execute
                 LDA     mSprites + CreepSprite::state,X
                 BIT     SPRITE_FLAGS_DESTROY ; Sprite to be destroyed, will be freed in the next execute loop
                 BEQ     loc_3AFF
@@ -7699,12 +7712,13 @@ obj_Frankenstein_Sprite_Execute_noMovement:
 
 _obj_Frankenstein_Sprite_Execute_return:
                 JMP     Sprite_Execute_nextObj
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Frankenstein_Sprite_ObjectCollision:
+.proc obj_Frankenstein_Sprite_ObjectCollision
                 CLC
                 LDA     mSprites + CreepSprite::XPos,X
                 ADC     mSprites + CreepSprite::xOffset,X ; X-Offset for collision testing
@@ -7765,12 +7779,13 @@ loc_3DA1:
 
 obj_Frankenstein_Collision__return:
                 JMP     Sprite_Object_Collision_Check_nextObj
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Frankenstein_Sprite_SpriteCollision:
+.proc obj_Frankenstein_Sprite_SpriteCollision
                 LDA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::flags,X ; Additional sprite depended data
                 BIT     FRANKENSTEIN_AWAKE
                 BEQ     _obj_Frankenstein_Sprite_Collision_noCollision
@@ -7860,12 +7875,13 @@ obj_Frankenstein_Sprite_Collision_noCollision:
 
 obj_Frankenstein_Sprite_Collision_return:
                 JMP     Sprite_Collision_next
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Frankenstein_Sprite_Create:
+.proc obj_Frankenstein_Sprite_Create
                 PHA
                 TYA
                 PHA
@@ -7936,6 +7952,7 @@ obj_Frankenstein_Sprite_Create_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 _obj_Frankenstein_Execute_playerIndex:.BYTE $85
@@ -7949,7 +7966,7 @@ _obj_Frankenstein_Execute_dirAllow:.BYTE $85
 ; =============== S U B R O U T I N E =======================================
 
 
-Sprite_Create:
+.proc Sprite_Create
                 PHA
                 TYA
                 PHA
@@ -7992,6 +8009,7 @@ Sprite_CreepGetFree_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -8097,7 +8115,7 @@ _Object_Execute_Index:.BYTE $84
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Door_Object_Execute:
+.proc obj_Door_Object_Execute
                 LDA     mObjectsVars + CreepObjectVars_Door::doorIsOpen,X
                 BNE     loc_4017
                 LDA     #1
@@ -8181,12 +8199,13 @@ loc_4058:
 
 obj_Door_Execute_return:
                 JMP     Object_Execute_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Door_Object_ObjectCollision:
+.proc obj_Door_Object_ObjectCollision
                 STY     _obj_Door_Object_ObjectCollision_Y
                 LDA     mObjectsVars + CreepObjectVars_Door::doorIsOpen,Y
                 BEQ     loc_4082
@@ -8266,12 +8285,12 @@ loc_40DD:
 obj_Door_InFront_return:
                 LDY     _obj_Door_Object_ObjectCollision_Y
                 JMP     _Sprite_Object_Collision_Check_nextObject
-
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Door_Object_Setup:
+.proc obj_Door_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -8386,6 +8405,7 @@ _obj_Door_Object_Setup_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 _obj_Door_Object_Setup_DoorIndex:.BYTE $A0
@@ -8399,7 +8419,7 @@ _obj_Door_Object_ObjectCollision_playerDoor:.BYTE $A0
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_DoorBell_Object_ObjectCollision:
+.proc obj_DoorBell_Object_ObjectCollision
                 STX     _obj_DoorBell_Object_ObjectCollision_X
                 LDA     mSprites + CreepSprite::spriteType,X
                 BNE     obj_Door_Button_InFront_return
@@ -8444,12 +8464,12 @@ loc_4216:
 obj_Door_Button_InFront_return:
                 LDX     _obj_DoorBell_Object_ObjectCollision_X
                 JMP     _Sprite_Object_Collision_Check_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
-
-obj_DoorBell_Object_Setup:
+.proc obj_DoorBell_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -8534,6 +8554,7 @@ obj_Door_Button_Prepare_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 _obj_DoorBell_Setup_ButtonCount:.BYTE $A0
@@ -8542,7 +8563,7 @@ _obj_DoorBell_Object_ObjectCollision_X:.BYTE $FF
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_LightningMachine_Object_Execute:
+.proc obj_LightningMachine_Object_Execute
                 CLC
                 LDA     obj_Lightning_Ptr
                 ADC     mObjectsVars + CreepObjectVars_LightningMachine::id,X
@@ -8718,11 +8739,12 @@ obj_Lightning_Pole_Execute_return:
 ; ---------------------------------------------------------------------------
 _obj_Lightning_Pole_Execute_Length:.BYTE $A5
 _obj_Lightning_Pole_Execute_phase:.BYTE $A0
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Lightning_Object_Setup:
+.proc obj_Lightning_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -8876,11 +8898,12 @@ obj_Lightning_Prepare_return:
 ; ---------------------------------------------------------------------------
 _obj_Lightning_Prepare_LightningCount:.BYTE $95
 _obj_Lightning_Prepare_Length:.BYTE $80
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_LightningMachineSwitch_Object_ObjectCollision:
+.proc obj_LightningMachineSwitch_Object_ObjectCollision
                 LDA     mSprites + CreepSprite::spriteType,X
                 BNE     obj_Lightning_Switch_InFront_return_
                 CLC
@@ -9023,6 +9046,7 @@ _obj_Lightning_Switch_InFront_index:.BYTE $99
 _obj_Lightning_Switch_InFront_byte_45D8:.BYTE $80
 _obj_Lightning_Switch_InFront_byte_45D9:.BYTE $A0
 _obj_Lightning_Switch_InFront_id:.BYTE $C8
+.endproc
 obj_Lightning_Ptr:.addr $CEA0
 LIGHTNING_IS_SWITCH:.BYTE $80
 LIGHTNING_IS_ON:.BYTE $40
@@ -9031,7 +9055,7 @@ LIGHTNING_END_MARKER:.BYTE $20
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_ForcefieldButton_Object_Execute:
+.proc obj_ForcefieldButton_Object_Execute
                 DEC     mObjectsVars + CreepObjectVars_Forcefield_Button::timerTicks,X
                 BNE     obj_Forcefield_Timer_Execute_return
                 DEC     mObjectsVars + CreepObjectVars_Forcefield_Button::remainingTime,X
@@ -9086,12 +9110,13 @@ loc_4633:
 
 obj_Forcefield_Timer_Execute_return:
                 JMP     Object_Execute_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_ForcefieldButton_Object_ObjectCollision:
+.proc obj_ForcefieldButton_Object_ObjectCollision
                 LDA     mSprites + CreepSprite::spriteType,X
                 BNE     obj_Forcefield_Timer_InFront_return
                 LDA     mSprites + CreepSprite::data + CreepSprite_Player::joystickButton,X ; Additional sprite depended data
@@ -9136,12 +9161,13 @@ obj_ForcefieldButton_Object_ObjectCollision:
 
 obj_Forcefield_Timer_InFront_return:
                 JMP     _Sprite_Object_Collision_Check_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Forcefield_Object_Setup:
+.proc obj_Forcefield_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -9236,6 +9262,7 @@ obj_Forcefield_Prepare_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 obj_Forcefield_Prepare_ForcefieldCount:.BYTE $BA
@@ -9245,7 +9272,7 @@ _obj_Forcefield_Timer_Execute_soundFreq:.BYTE SID_NOTE::As4,SID_NOTE::A4,SID_NOT
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Ankh_Object_Execute:
+.proc obj_Ankh_Object_Execute
                 LDA     events_Execute_EngineTicks
                 AND     #%11
                 BNE     obj_Mummy_Tomb_Execute_return
@@ -9282,12 +9309,13 @@ loc_4786:       STA     OBJECT_ankh_COLOR,Y
 
 obj_Mummy_Tomb_Execute_return:
                 JMP     Object_Execute_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Ankh_Object_ObjectCollision:
+.proc obj_Ankh_Object_ObjectCollision
                 STX     _obj_Ankh_ObjectCollision_saveX
                 STY     _obj_Ankh_ObjectCollision_saveY
                 LDA     mSprites + CreepSprite::spriteType,X
@@ -9395,11 +9423,12 @@ _obj_Mummy_Infront_return:
 _obj_Ankh_ObjectCollision_saveX:.BYTE $FF
 _obj_Ankh_ObjectCollision_saveY:.BYTE $A0
 _obj_Ankh_Object_ObjectCollision_counter:.BYTE $B5
+.endproc
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_MummyTomb_Object_Setup:
+.proc obj_MummyTomb_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -9549,6 +9578,7 @@ obj_Mummy_Prepare_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 obj_Mummy_Ptr:  .addr $CCA0
@@ -9559,7 +9589,7 @@ _obj_Mummy_Prepare_WCount:.BYTE $A0
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Key_Object_ObjectCollision:
+.proc obj_Key_Object_ObjectCollision
                 STY     _obj_Key_Infront_pObjectNumber
                 LDA     mSprites + CreepSprite::spriteType,X
                 BNE     obj_Key_Infront_return
@@ -9609,12 +9639,13 @@ loc_49E9:       LDY     CASTLE + CreepCastle::playerKeyCount + CreepPlayerData::
 
 obj_Key_Infront_return:
                 JMP     _Sprite_Object_Collision_Check_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Key_Object_Setup:
+.proc obj_Key_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -9680,6 +9711,7 @@ obj_Key_Prepare_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 _obj_Key_InfrontPrepare_KeyID:.BYTE $A0
@@ -9689,7 +9721,7 @@ _obj_Key_Infront_pObjectNumber:.BYTE $A0
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_KeyLock_Object_ObjectCollision:
+.proc obj_KeyLock_Object_ObjectCollision
                 STX     _obj_DoorLock_Object_ObjectCollision_saveX
                 LDA     mSprites + CreepSprite::spriteType,X
                 BNE     obj_Door_Lock_InFront_return
@@ -9731,12 +9763,13 @@ loc_4AA2:
 obj_Door_Lock_InFront_return:
                 LDX     _obj_DoorLock_Object_ObjectCollision_saveX
                 JMP     _Sprite_Object_Collision_Check_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_KeyLock_Object_Setup:
+.proc obj_KeyLock_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -9797,6 +9830,7 @@ loc_4B13:       PLA
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 _obj_DoorLock_Object_ObjectCollision_saveX:.BYTE $C2
@@ -9804,7 +9838,7 @@ _obj_DoorLock_Object_ObjectCollision_saveX:.BYTE $C2
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_RayGun_Object_Execute:
+.proc obj_RayGun_Object_Execute
                 LDA     events_Execute_EngineTicks
                 AND     #%11
                 BEQ     loc_4B24
@@ -9984,12 +10018,13 @@ loc_4C44:       LDY     #CreepObj_Raygun::Flags
 
 obj_RayGun_Execute_return:
                 JMP     Object_Execute_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_RayGun_Object_Setup:
+.proc obj_RayGun_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -10143,6 +10178,7 @@ loc_4D55:       PLA
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 obj_RayGun_Ptr: .addr $B780
@@ -10164,7 +10200,7 @@ _obj_RayGun_Execute_RAYGUN_animTbl:.BYTE GfxID::raygun_facing_right_4, GfxID::ra
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_RayGun_Controller_Object_ObjectCollision:
+.proc obj_RayGun_Controller_Object_ObjectCollision
                 STY     obj_RayGun_Control_InFront_pObjectNumber
                 LDA     mSprites + CreepSprite::spriteType,X
                 BNE     obj_RayGun_Control_InFront_return
@@ -10227,12 +10263,13 @@ loc_4DE4:       STA     (mVObjectPtr),Y
 
 obj_RayGun_Control_InFront_return:
                 JMP     _Sprite_Object_Collision_Check_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_RayGun_Control_Update_Color:
+.proc obj_RayGun_Control_Update_Color
                 PHA
                 STA     obj_RayGun_Control_Update_colorVal
                 TYA
@@ -10270,6 +10307,7 @@ obj_RayGun_Control_Update_Color:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 obj_RayGun_Control_InFront_pObjectNumber:.BYTE $9F
@@ -10278,7 +10316,7 @@ obj_RayGun_Control_Update_colorVal:.BYTE $A7
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_MatterTransmitter_Object_Execute:
+.proc obj_MatterTransmitter_Object_Execute
                 LDA     events_Execute_EngineTicks
                 AND     #1
                 BNE     obj_MatterTransmitter_Object_Execute_next
@@ -10338,12 +10376,13 @@ loc_4E8D:       JSR     obj_MatterTransmitter_SetColor
 
 obj_MatterTransmitter_Object_Execute_next:
                 JMP     Object_Execute_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_MatterTransmitter_Object_ObjectCollision:
+.proc obj_MatterTransmitter_Object_ObjectCollision
                 LDA     mObjects + CreepObject::flags,Y
                 BIT     OBJECT_TRIGGER_EXECUTE ; Trigger execute function for the object
                 BNE     obj_Teleport_InFront_return2
@@ -10436,12 +10475,13 @@ obj_Teleport_InFront_button:
 
 obj_Teleport_InFront_return:
                 JMP     _Sprite_Object_Collision_Check_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_MatterTransmitter_Object_Setup:
+.proc obj_MatterTransmitter_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -10578,12 +10618,13 @@ obj_Teleport_Prepare_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_MatterTransmitter_SetColor:
+.proc obj_MatterTransmitter_SetColor
                 PHA
                 STA     _obj_MatterTransmitter_SetColor_COLOR
                 TYA
@@ -10640,6 +10681,7 @@ obj_MatterTransmitter_SetColor:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 _obj_MatterTransmitter_ObjectCollision_temp:.BYTE $A0
@@ -10650,7 +10692,7 @@ _obj_MatterTransmitter_SetColor_COLOR:.BYTE $C3
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_TrapDoor_Switch_Object_Execute:
+.proc obj_TrapDoor_Switch_Object_Execute
                 CLC
                 LDA     mObjectsVars + CreepObjectVars_TrapDoor_Switch::id,X
                 ADC     obj_TrapDoor_Ptr
@@ -10732,13 +10774,14 @@ loc_5165:
 
 obj_TrapDoor_Switch_Execute_return:
                 JMP     Object_Execute_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 ; Play trapdoor sound modfied by A
 
-obj_TrapDoor_PlaySound:
+.proc obj_TrapDoor_PlaySound
                 PHA
                 SEC
                 SBC     #SID_NOTE::C6
@@ -10747,12 +10790,13 @@ obj_TrapDoor_PlaySound:
                 JSR     SND_PlayEffect
                 PLA
                 RTS
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_TrapDoor_Object_Setup:
+.proc obj_TrapDoor_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -10883,13 +10927,14 @@ obj_TrapDoor_Prepare_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 ; Check switch for trapdoor #A and trigger, if necessary
 
-obj_TrapDoor_Switch_Trigger:
+.proc obj_TrapDoor_Switch_Trigger
                 PHA
                 STA     obj_TrapDoor_Switch_Check_trapDoorIndex
                 TYA
@@ -11041,6 +11086,7 @@ _obj_TrapDoor_Switch_Check_continue:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 obj_TrapDoor_Prepare_objNumber:.BYTE $A5
@@ -11055,7 +11101,7 @@ TRAPDOOR_OPEN:  .BYTE $01
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_MovingSidewalk_Object_Execute:
+.proc obj_MovingSidewalk_Object_Execute
                 CLC
                 LDA     obj_MovingSidewalk_Ptr
                 ADC     mObjectsVars + CreepObjectVars_MovingSidewalk_Button::id,X
@@ -11188,12 +11234,13 @@ loc_5479:
 
 obj_MovingSidewalk_Execute_return:
                 JMP     Object_Execute_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_MovingSidewalk_Object_ObjectCollision:
+.proc obj_MovingSidewalk_Object_ObjectCollision
                 CLC
                 LDA     obj_MovingSidewalk_Ptr
                 ADC     mObjectsVars + CreepObjectVars_MovingSidewalk_Button::id,Y
@@ -11259,12 +11306,13 @@ loc_54F4:
 
 obj_MovingSidewalk_InFront_next:
                 JMP     _Sprite_Object_Collision_Check_nextObject
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_MovingSidewalk_Object_Setup:
+.proc obj_MovingSidewalk_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -11408,12 +11456,13 @@ obj_MovingSidewalk_Prepare_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_MovingSidewalkButton_Object_ObjectCollision:
+.proc obj_MovingSidewalkButton_Object_ObjectCollision
                 LDA     mSprites + CreepSprite::spriteType,X
                 BNE     obj_MovingSidewalkButton_InFront_return
                 LDA     mSprites + CreepSprite::data + CreepSprite_Player::joystickButton,X ; Additional sprite depended data
@@ -11443,6 +11492,7 @@ loc_5639:
 
 obj_MovingSidewalkButton_InFront_return:
                 JMP     _Sprite_Object_Collision_Check_nextObject
+.endproc
 
 ; ---------------------------------------------------------------------------
 MOVINGSIDEWALK_END_MARKER:.BYTE $80
@@ -11460,7 +11510,7 @@ _obj_MovingSidewalk_InFront_byte_564D:.BYTE $A0
 ; =============== S U B R O U T I N E =======================================
 
 
-obj_Frankenstein_Object_Setup:
+.proc obj_Frankenstein_Object_Setup
                 PHA
                 TYA
                 PHA
@@ -11613,6 +11663,7 @@ obj_Frankenstein_Prepare_return:
                 TAY
                 PLA
                 RTS
+.endproc
 
 ; ---------------------------------------------------------------------------
 obj_Frankenstein_Ptr:.addr $A090
@@ -13011,2283 +13062,22 @@ selectedDoor_Count:.BYTE $A1
 
 
 
+				.include "object_images.s"
 
 
-
-IMAGE_DATA_TABLE:.WORD SPRITE_player_run_left_1; 0
-                .WORD SPRITE_player_run_left_2; 1
-                .WORD SPRITE_player_run_left_3; 2
-                .WORD SPRITE_player_run_right_1; 3
-                .WORD SPRITE_player_run_right_2; 4
-                .WORD SPRITE_player_run_right_3; 5
-                .WORD OBJECT_exit       ; 6
-                .WORD OBJECT_metal_gate ; 7
-                .WORD OBJECT_diagonal_exit_path; 8
-                .WORD OBJECT_button     ; 9
-                .WORD OBJECT_roommap_floor_square; 10
-                .WORD OBJECT_roommap_topButtomEdge; 11
-                .WORD OBJECT_roommap_leftEdge; 12
-                .WORD OBJECT_roommap_rightEdge; 13
-                .WORD OBJECT_roommap_door_topButtomLeft; 14
-                .WORD OBJECT_roommap_door_topButtomRight; 15
-                .WORD OBJECT_roommap_door_left; 16
-                .WORD OBJECT_roommap_door_right; 17
-                .WORD SPRITE_roommap_arrow_up; 18
-                .WORD SPRITE_roommap_arrow_right; 19
-                .WORD SPRITE_roommap_arrow_down; 20
-                .WORD SPRITE_roommap_arrow_left; 21
-                .WORD 0             ; 22
-                .WORD 0             ; 23
-                .WORD 0             ; 24
-                .WORD 0             ; 25
-                .WORD 0             ; 26
-                .WORD OBJECT_walkway_left; 27
-                .WORD OBJECT_walkway_center; 28
-                .WORD OBJECT_walkway_right; 29
-                .WORD SPRITE_player_run_exit_1; 30
-                .WORD SPRITE_player_run_exit_2; 31
-                .WORD SPRITE_player_run_exit_3; 32
-                .WORD SPRITE_player_run_exit_4; 33
-                .WORD SPRITE_player_run_exit_5; 34
-                .WORD SPRITE_player_run_exit_6; 35
-                .WORD OBJECT_sliding_pole_plain; 36
-                .WORD OBJECT_sliding_pole_platform_mask; 37
-                .WORD SPRITE_player_climb_pole; 38
-                .WORD OBJECT_sliding_pole_empty; 39
-                .WORD OBJECT_ladder_top ; 40
-                .WORD OBJECT_ladder_bottom_floor; 41
-                .WORD OBJECT_ladder_bottom_floor_mask; 42
-                .WORD OBJECT_ladder_middle; 43
-                .WORD OBJECT_ladder_middle_floor; 44
-                .WORD OBJECT_ladder_middle_floor_mask; 45
-                .WORD SPRITE_player_climb_ladder_1; 46
-                .WORD SPRITE_player_climb_ladder_2; 47
-                .WORD SPRITE_player_climb_ladder_3; 48
-                .WORD SPRITE_player_climb_ladder_4; 49
-                .WORD OBJECT_lightning_pole; 50
-                .WORD OBJECT_lightning_globe; 51
-                .WORD OBJECT_lightning_colormask; 52
-                .WORD SPRITE_forcefield_anim_1; 53
-                .WORD OBJECT_lightning_switch; 54
-                .WORD OBJECT_lightning_switch_on; 55
-                .WORD OBJECT_lightning_switch_off; 56
-                .WORD SPRITE_lightning_anim_1; 57
-                .WORD SPRITE_lightning_anim_2; 58
-                .WORD SPRITE_lightning_anim_3; 59
-                .WORD SPRITE_lightning_anim_4; 60
-                .WORD SPRITE_forcefield_anim_2; 61
-                .WORD OBJECT_forcefield_gate_top; 62
-                .WORD OBJECT_forcefield_switch; 63
-                .WORD OBJECT_forcefield_progress; 64
-                .WORD SPRITE_forcefield_anim_off; 65
-                .WORD OBJECT_mummy_casket_bricks; 66
-                .WORD OBJECT_mummy_casket_open; 67
-                .WORD OBJECT_ankh       ; 68
-                .WORD SPRITE_mummy_slide_1; 69
-                .WORD SPRITE_mummy_slide_2; 70
-                .WORD SPRITE_mummy_slide_3; 71
-                .WORD SPRITE_mummy_slide_4; 72
-                .WORD SPRITE_mummy_slide_5; 73
-                .WORD SPRITE_mummy_slide_6; 74
-                .WORD SPRITE_mummy_left_1; 75
-                .WORD SPRITE_mummy_left_2; 76
-                .WORD SPRITE_mummy_left_3; 77
-                .WORD SPRITE_mummy_right_1; 78
-                .WORD SPRITE_mummy_right_2; 79
-                .WORD SPRITE_mummy_right_3; 80
-                .WORD OBJECT_key_1      ; 81
-                .WORD OBJECT_key_2      ; 82
-                .WORD OBJECT_key_3      ; 83
-                .WORD OBJECT_key_4      ; 84
-                .WORD OBJECT_key_5      ; 85
-                .WORD OBJECT_key_6      ; 86
-                .WORD OBJECT_key_7      ; 87
-                .WORD OBJECT_lock       ; 88
-                .WORD 0             ; 89
-                .WORD 0             ; 90
-                .WORD 0             ; 91
-                .WORD 0             ; 92
-                .WORD 0             ; 93
-                .WORD 0             ; 94
-                .WORD OBJECT_raygun_track_left; 95
-                .WORD OBJECT_raygun_track_right; 96
-                .WORD OBJECT_raygun_facing_right_1; 97
-                .WORD OBJECT_raygun_facing_right_2; 98
-                .WORD OBJECT_raygun_facing_right_3; 99
-                .WORD OBJECT_raygun_facing_right_4; 100
-                .WORD OBJECT_raygun_facing_left_1; 101
-                .WORD OBJECT_raygun_facing_left_2; 102
-                .WORD OBJECT_raygun_facing_left_3; 103
-                .WORD OBJECT_raygun_facing_left_4; 104
-                .WORD 0             ; 105
-                .WORD 0             ; 106
-                .WORD 0             ; 107
-                .WORD SPRITE_raygun_shot; 108
-                .WORD OBJECT_raygun_button; 109
-                .WORD OBJECT_raygun_button_colormask; 110
-                .WORD OBJECT_teleport_booth; 111
-                .WORD OBJECT_teleport_2 ; 112
-                .WORD OBJECT_teleport_booth_colormask; 113
-                .WORD OBJECT_teleport_destination; 114
-                .WORD OBJECT_trapdoor_1 ; 115
-                .WORD OBJECT_trapdoor_2 ; 116
-                .WORD OBJECT_trapdoor_3 ; 117
-                .WORD OBJECT_trapdoor_4 ; 118
-                .WORD OBJECT_trapdoor_5 ; 119
-                .WORD OBJECT_trapdoor_6 ; 120
-                .WORD OBJECT_trapdoor_7 ; 121
-                .WORD OBJECT_trapdoor_controller; 122
-                .WORD OBJECT_trapdoor_mask; 123
-                .WORD OBJECT_door       ; 124
-                .WORD OBJECT_movingsidewalk_mask; 125
-                .WORD OBJECT_movingsidewalk_anim_1; 126
-                .WORD OBJECT_movingsidewalk_anim_2; 127
-                .WORD OBJECT_movingsidewalk_anim_3; 128
-                .WORD OBJECT_movingsidewalk_anim_4; 129
-                .WORD OBJECT_MovingSidewalk_controller; 130
-                .WORD OBJECT_MovingSidewalk_7; 131
-                .WORD SPRITE_frankenstein_right_1; 132
-                .WORD SPRITE_frankenstein_right_2; 133
-                .WORD SPRITE_frankenstein_right_3; 134
-                .WORD SPRITE_frankenstein_left_1; 135
-                .WORD SPRITE_frankenstein_left_2; 136
-                .WORD SPRITE_frankenstein_left_3; 137
-                .WORD SPRITE_frankenstein_slide; 138
-                .WORD SPRITE_frankenstein_climb_ladder_1; 139
-                .WORD SPRITE_frankenstein_climb_ladder_2; 140
-                .WORD SPRITE_frankenstein_climb_ladder_3; 141
-                .WORD SPRITE_frankenstein_climb_ladder_4; 142
-                .WORD SPRITE_frankenstein_sleep; 143
-                .WORD OBJECT_frankenstein_coffin_facing_right; 144
-                .WORD OBJECT_frankenstein_coffin_facing_left; 145
-                .WORD OBJECT_frankenstein_coffin_mask; 146
-                .WORD OBJECT_time_separators; 147
-                .WORD OBJECT_drawchar_mask; 148
-                .WORD OBJECT_drawchar_characterimage; 149
-                .WORD OBJECT_house      ; 150
-                .WORD SPRITE_player_wave_goodbye_1; 151
-                .WORD SPRITE_player_wave_goodbye_2; 152
-                .WORD SPRITE_player_wave_goodbye_1; 153
-                .WORD SPRITE_player_wave_goodbye_3; 154
-
-SPRITE_player_run_left_1:_CreepIMG_Header 2, 20, COLOR::YELLOW
-                .BYTE %00000010, %00000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00000010, %00000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000101, %01010000
-                .BYTE %00010001, %01000100
-                .BYTE %00010001, %01000100
-                .BYTE %10000001, %01001000
-                .BYTE %00000001, %01000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001100, %11111000
-                .BYTE %00001100, %00001000
-                .BYTE %00001100, %00001000
-                .BYTE %00001000, %00000000
-                .BYTE %00101000, %00000000
-SPRITE_player_run_left_2:_CreepIMG_Header 2, 20, COLOR::YELLOW
-                .BYTE %00000010, %00000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00000010, %00000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01010000
-                .BYTE %00000001, %01010000
-                .BYTE %00000001, %01010000
-                .BYTE %10010101, %01100000
-                .BYTE %00000001, %01000000
-                .BYTE %00000011, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00000011, %11010000
-                .BYTE %00000000, %11010000
-                .BYTE %00000000, %11010000
-                .BYTE %00000000, %10000000
-                .BYTE %00000010, %10000000
-SPRITE_player_run_left_3:_CreepIMG_Header 2, 20, COLOR::YELLOW
-                .BYTE %00000010, %00000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00000010, %00000000
-                .BYTE %00000001, %01000000
-                .BYTE %10000001, %01010100
-                .BYTE %00010101, %01000010
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00001111, %11000000
-                .BYTE %00111100, %11000000
-                .BYTE %00110000, %00110000
-                .BYTE %00110000, %00110000
-                .BYTE %00100000, %00001100
-                .BYTE %10100000, %00001000
-                .BYTE %00000000, %00101000
-                .BYTE %00000000, %00100000
-SPRITE_player_run_right_1:_CreepIMG_Header 2, 20, COLOR::YELLOW
-                .BYTE %00000000, %10000000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000000, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000101, %01010000
-                .BYTE %00010001, %01000100
-                .BYTE %00010001, %01000100
-                .BYTE %00100001, %01000010
-                .BYTE %00000001, %01000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11110000
-                .BYTE %00101111, %00110000
-                .BYTE %00100000, %00110000
-                .BYTE %00100000, %00110000
-                .BYTE %00000000, %00100000
-                .BYTE %00000000, %00101000
-SPRITE_player_run_right_2:_CreepIMG_Header 2, 20, COLOR::YELLOW
-                .BYTE %00000000, %10000000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000000, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000101, %01000000
-                .BYTE %00000101, %01000000
-                .BYTE %00000101, %01000000
-                .BYTE %00001001, %01010110
-                .BYTE %00000001, %01000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %00110000
-                .BYTE %00000011, %11110000
-                .BYTE %00001011, %11000000
-                .BYTE %00001011, %00000000
-                .BYTE %00001011, %00000000
-                .BYTE %00000010, %00000000
-                .BYTE %00000010, %10000000
-SPRITE_player_run_right_3:_CreepIMG_Header 2, 20, COLOR::YELLOW
-                .BYTE %00000000, %10000000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000000, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00010101, %01000010
-                .BYTE %10000001, %01010100
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %00111100
-                .BYTE %00001100, %00001100
-                .BYTE %00001100, %00001100
-                .BYTE %00110000, %00001000
-                .BYTE %00100000, %00001010
-                .BYTE %00101000, %00000000
-                .BYTE %00001000, %00000000
-OBJECT_exit:    _CreepIMG_Header 5, 32, COLOR::BLACK
-                .BYTE %01010101, %01010001, %01010101, %01000101, %01010101
-                .BYTE %01010101, %01010001, %01010101, %01000101, %01010101
-                .BYTE %00010101, %01010001, %01010101, %01000101, %01010100
-                .BYTE %00010101, %01010001, %01010101, %01000101, %01010100
-                .BYTE %01000101, %01010000, %01010101, %00000101, %01010001
-                .BYTE %01000101, %01010100, %01010101, %00010101, %01010001
-                .BYTE %01010001, %01010100, %01010101, %00010101, %01000101
-                .BYTE %01010001, %01010100, %01010101, %00010101, %01000101
-                .BYTE %01010100, %01010100, %00000000, %00010101, %00010101
-                .BYTE %01010100, %00010000, %00000000, %00000100, %00010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %01000000, %00000000, %00000001, %01010101
-                .BYTE %01010101, %01000000, %00000000, %00000001, %01010101
-                .BYTE %00000000, %00000000, %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000, %00000000, %00000000
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %00000000, %00000000, %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000, %00000000, %00000000
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE %01010101, %00000000, %00000000, %00000000, %01010101
-                .BYTE (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK
-                .BYTE (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK
-                .BYTE (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK
-                .BYTE (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK, (COLOR::PURPLE<<4)+COLOR::BLACK
-OBJECT_metal_gate:_CreepIMG_Header 3, 15, COLOR::BLACK
-                .BYTE %01010101, %01010101, %01010101
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %00010001, %00010001, %00010000
-                .BYTE %01010101, %01010101, %01010101
-                .BYTE (COLOR::WHITE<<4)+COLOR::BLACK, (COLOR::WHITE<<4)+COLOR::BLACK, (COLOR::WHITE<<4)+COLOR::BLACK
-                .BYTE (COLOR::WHITE<<4)+COLOR::BLACK, (COLOR::WHITE<<4)+COLOR::BLACK, (COLOR::WHITE<<4)+COLOR::BLACK
-OBJECT_diagonal_exit_path:_CreepIMG_Header 3, 15, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000001
-                .BYTE %00000000, %00000000, %00000001
-                .BYTE %00000000, %00000000, %00000101
-                .BYTE %00000000, %00000000, %00010101
-                .BYTE %00000000, %00000000, %01010101
-                .BYTE %00000000, %00000001, %01010101
-                .BYTE %00000000, %00000001, %01010101
-                .BYTE %00000000, %00000101, %01010101
-                .BYTE %00000000, %00010101, %01010101
-                .BYTE %00000000, %01010101, %01010101
-                .BYTE %00000001, %01010101, %01010101
-                .BYTE %00000001, %01010101, %01010101
-                .BYTE %00000101, %01010101, %01010101
-                .BYTE %00010101, %01010101, %01010101
-                .BYTE %01010101, %10101010, %01010101
-SPRITE_diagonal_exit_path_COLOR:.BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::LIGHT_GREY, (COLOR::DARK_GREY<<4)+COLOR::CYAN
-                .BYTE (COLOR::DARK_GREY<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::RED, (COLOR::DARK_GREY<<4)+COLOR::RED
-OBJECT_button:  _CreepIMG_Header 3, 19, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %01010101, %00000000
-                .BYTE %00000001, %01010101, %01000000
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE %00000101, %10000010, %01010000
-                .BYTE %00010101, %00010100, %01010100
-                .BYTE %00010100, %01010101, %00010100
-                .BYTE %00010100, %01010101, %00010100
-                .BYTE %00010100, %01010101, %00010100
-                .BYTE %00010100, %01010101, %00010100
-                .BYTE %00010101, %00010100, %01010100
-                .BYTE %00000101, %10000010, %01010000
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE %00000001, %01010101, %01000000
-                .BYTE %00000000, %01010101, %00000000
-OBJECT_button_COLOR:.BYTE (COLOR::DARK_GREY<<4)+COLOR::CYAN, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::GREY<<4)+COLOR::GREY
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::PURPLE, (COLOR::DARK_GREY<<4)+COLOR::WHITE
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::GREY, (COLOR::ORANGE<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLACK
-OBJECT_roommap_floor_square:_CreepIMG_Header 1, 8, COLOR::BLACK
-                .BYTE %11111111
-                .BYTE %11111111
-                .BYTE %11111111
-                .BYTE %11111111
-                .BYTE %11111111
-                .BYTE %11111111
-                .BYTE %11111111
-                .BYTE %11111111
-OBJECT_roommap_floor_square_COLOR:.BYTE (COLOR::WHITE<<4)+COLOR::WHITE
-                .BYTE (COLOR::ORANGE<<4)+COLOR::WHITE
-OBJECT_roommap_topButtomEdge:_CreepIMG_Header 1, 3, COLOR::BLACK
-                .BYTE %10101010
-                .BYTE %10101010
-                .BYTE %10101010
-OBJECT_roommap_leftEdge:_CreepIMG_Header 1, 8, COLOR::BLACK
-                .BYTE %10100000
-                .BYTE %10100000
-                .BYTE %10100000
-                .BYTE %10100000
-                .BYTE %10100000
-                .BYTE %10100000
-                .BYTE %10100000
-                .BYTE %10100000
-OBJECT_roommap_rightEdge:_CreepIMG_Header 1, 8, COLOR::BLACK
-                .BYTE %00001010
-                .BYTE %00001010
-                .BYTE %00001010
-                .BYTE %00001010
-                .BYTE %00001010
-                .BYTE %00001010
-                .BYTE %00001010
-                .BYTE %00001010
-OBJECT_roommap_door_topButtomLeft:_CreepIMG_Header 1, 3, COLOR::BLACK
-                .BYTE %01010000
-                .BYTE %01010000
-                .BYTE %01010000
-OBJECT_roommap_door_topButtomRight:_CreepIMG_Header 1, 3, COLOR::BLACK
-                .BYTE %00000101
-                .BYTE %00000101
-                .BYTE %00000101
-OBJECT_roommap_door_left:_CreepIMG_Header 1, 4, COLOR::BLACK
-                .BYTE %01010000
-                .BYTE %01010000
-                .BYTE %01010000
-                .BYTE %01010000
-OBJECT_roommap_door_right:_CreepIMG_Header 1, 4, COLOR::BLACK
-                .BYTE %00000101
-                .BYTE %00000101
-                .BYTE %00000101
-                .BYTE %00000101
-SPRITE_roommap_arrow_up:_CreepIMG_Header 2, 10, COLOR::BLACK|IMG_FLAGS::SPRITE_NO_MULTICOLOR|IMG_FLAGS::NO_PRIORITY
-                .BYTE %00001000, %00000000
-                .BYTE %00011100, %00000000
-                .BYTE %00111110, %00000000
-                .BYTE %01111111, %00000000
-                .BYTE %11111111, %10000000
-                .BYTE %00011100, %00000000
-                .BYTE %00011100, %00000000
-                .BYTE %00011100, %00000000
-                .BYTE %00011100, %00000000
-                .BYTE %00011100, %00000000
-SPRITE_roommap_arrow_right:_CreepIMG_Header 2, 9, COLOR::BLACK|IMG_FLAGS::SPRITE_NO_MULTICOLOR|IMG_FLAGS::NO_PRIORITY
-                .BYTE %00000100, %00000000
-                .BYTE %00000110, %00000000
-                .BYTE %00000111, %00000000
-                .BYTE %11111111, %10000000
-                .BYTE %11111111, %11000000
-                .BYTE %11111111, %10000000
-                .BYTE %00000111, %00000000
-                .BYTE %00000110, %00000000
-                .BYTE %00000100, %00000000
-SPRITE_roommap_arrow_down:_CreepIMG_Header 2, 10, COLOR::BLACK|IMG_FLAGS::SPRITE_NO_MULTICOLOR|IMG_FLAGS::NO_PRIORITY
-                .BYTE %00011100, %00000000
-                .BYTE %00011100, %00000000
-                .BYTE %00011100, %00000000
-                .BYTE %00011100, %00000000
-                .BYTE %00011100, %00000000
-                .BYTE %11111111, %10000000
-                .BYTE %01111111, %00000000
-                .BYTE %00111110, %00000000
-                .BYTE %00011100, %00000000
-                .BYTE %00001000, %00000000
-SPRITE_roommap_arrow_left:_CreepIMG_Header 2, 9, COLOR::BLACK|IMG_FLAGS::SPRITE_NO_MULTICOLOR|IMG_FLAGS::NO_PRIORITY
-                .BYTE %00001000, %00000000
-                .BYTE %00011000, %00000000
-                .BYTE %00111000, %00000000
-                .BYTE %01111111, %11000000
-                .BYTE %11111111, %11000000
-                .BYTE %01111111, %11000000
-                .BYTE %00111000, %00000000
-                .BYTE %00011000, %00000000
-                .BYTE %00001000, %00000000
-OBJECT_walkway_left:_CreepIMG_Header 1, 8, COLOR::BLACK
-                .BYTE %00000101
-                .BYTE %00000101
-                .BYTE %00010101
-                .BYTE %00101010
-                .BYTE %10101010
-                .BYTE %10101010
-                .BYTE %11111111
-                .BYTE %11111111
-OBJECT_walkway_left_ROOMCOLOR:.BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK
-                .BYTE COLOR::BROWN
-OBJECT_walkway_center:_CreepIMG_Header 1, 8, COLOR::BLACK
-                .BYTE %01010101
-                .BYTE %01010101
-                .BYTE %01010101
-                .BYTE %10101010
-                .BYTE %10101010
-                .BYTE %10101010
-                .BYTE %11111111
-                .BYTE %11111111
-OBJECT_walkway_center_ROOMCOLOR:.BYTE (COLOR::DARK_GREY<<4)+COLOR::BLACK
-                .BYTE COLOR::BROWN
-OBJECT_walkway_right:_CreepIMG_Header 1, 8, COLOR::BLACK
-                .BYTE %01010111
-                .BYTE %01010111
-                .BYTE %01011100
-                .BYTE %10101100
-                .BYTE %10110000
-                .BYTE %10110000
-                .BYTE %11000000
-                .BYTE %11000000
-OBJECT_walkway_right_ROOMCOLOR:.BYTE (COLOR::DARK_GREY<<4)+COLOR::YELLOW
-                .BYTE COLOR::BROWN
-SPRITE_player_run_exit_1:_CreepIMG_Header 2, 20, COLOR::YELLOW
-                .BYTE %00000000, %10000000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000000, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000101, %01001000
-                .BYTE %00100001, %01010000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %00110000
-                .BYTE %00001100, %00110000
-                .BYTE %00001100, %00100000
-                .BYTE %00001000, %00100000
-                .BYTE %00001010, %00000000
-                .BYTE %00000010, %00000000
-SPRITE_player_run_exit_2:_CreepIMG_Header 2, 17, COLOR::YELLOW
-                .BYTE %00000000, %10000000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %10100000
-                .BYTE %00000000, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00001001, %01101000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11110000
-                .BYTE %00001111, %00110000
-                .BYTE %00001000, %00110000
-                .BYTE %00001000, %00100000
-                .BYTE %00000000, %00100000
-SPRITE_player_run_exit_3:_CreepIMG_Header 2, 13, COLOR::YELLOW
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %00000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000101, %01000000
-                .BYTE %00001001, %01100000
-                .BYTE %00000001, %01000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11110000
-                .BYTE %00001011, %11000000
-                .BYTE %00001010, %00000000
-                .BYTE %00000010, %10000000
-SPRITE_player_run_exit_4:_CreepIMG_Header 2, 10, COLOR::YELLOW
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %00000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000101, %01100000
-                .BYTE %00000001, %01000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %00110000
-                .BYTE %00000011, %00110000
-                .BYTE %00000010, %00100000
-SPRITE_player_run_exit_5:_CreepIMG_Header 2, 7, COLOR::YELLOW
-                .BYTE %00000000, %10000000
-                .BYTE %00000000, %10100000
-                .BYTE %00000000, %01000000
-                .BYTE %00000001, %01010000
-                .BYTE %00000000, %11000000
-                .BYTE %00000010, %11000000
-                .BYTE %00000000, %11000000
-SPRITE_player_run_exit_6:_CreepIMG_Header 2, 4, COLOR::YELLOW
-                .BYTE %00000000, %00000000
-                .BYTE %00000001, %00000000
-                .BYTE %00000011, %00000000
-                .BYTE %00000010, %00000000
-OBJECT_sliding_pole_plain:_CreepIMG_Header 1, 8, COLOR::BLACK
-                .BYTE %00010000
-                .BYTE %00010000
-                .BYTE %00010000
-                .BYTE %00010000
-                .BYTE %00010000
-                .BYTE %00010000
-                .BYTE %00010000
-                .BYTE %00010000
-                .BYTE %00010000
-OBJECT_sliding_pole_platform_mask:_CreepIMG_Header 3, 3, COLOR::BLACK
-                .BYTE %00000101, %01000101, %01010000
-                .BYTE %00010101, %01000101, %01000000
-                .BYTE %01010101, %01000101, %00000000
-SPRITE_player_climb_pole:_CreepIMG_Header 2, 20, COLOR::YELLOW
-                .BYTE %00000010, %00000000
-                .BYTE %00000100, %01000000
-                .BYTE %00010010, %00010000
-                .BYTE %00011010, %10010000
-                .BYTE %00011010, %10010000
-                .BYTE %00011010, %10010000
-                .BYTE %00010010, %00010000
-                .BYTE %00010101, %01010000
-                .BYTE %00000101, %01000000
-                .BYTE %00000101, %01000000
-                .BYTE %00000101, %01000000
-                .BYTE %00000101, %01000000
-                .BYTE %00000101, %01000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00111100, %11110000
-                .BYTE %00110000, %00110000
-                .BYTE %00001100, %11000000
-                .BYTE %00000010, %00000000
-                .BYTE %00001000, %10000000
-OBJECT_sliding_pole_empty:_CreepIMG_Header 1, 1, COLOR::BLACK
-                .BYTE %00000000
-OBJECT_sliding_pole_onePixel_ROOMCOLOR:.BYTE (COLOR::LIGHT_GREEN<<4)+COLOR::BROWN
-                .BYTE COLOR::BROWN
-OBJECT_ladder_top:_CreepIMG_Header 1, 8, COLOR::BLACK
-                .BYTE %10000010
-                .BYTE %10000010
-                .BYTE %10000010
-                .BYTE %10101010
-                .BYTE %10000010
-                .BYTE %10000010
-                .BYTE %10000010
-                .BYTE %10101010
-                .BYTE COLOR::WHITE
-OBJECT_ladder_bottom_floor:_CreepIMG_Header 1, 6, COLOR::BLACK
-                .BYTE %10010110
-                .BYTE %10010110
-                .BYTE %10010110
-                .BYTE %10101010
-                .BYTE %10010110
-                .BYTE %10010110
-OBJECT_ladder_a_ROOMCOLOR:.BYTE COLOR::WHITE
-                .BYTE COLOR::BROWN
-OBJECT_ladder_bottom_floor_mask:_CreepIMG_Header 1, 6, COLOR::BLACK
-                .BYTE %11111111
-                .BYTE %11111111
-                .BYTE %11111111
-                .BYTE %11111111
-                .BYTE %11111111
-                .BYTE %11111111
-OBJECT_ladder_middle:_CreepIMG_Header 1, 7, COLOR::BLACK
-                .BYTE %10000010
-                .BYTE %10000010
-                .BYTE %10000010
-                .BYTE %10101010
-                .BYTE %10000010
-                .BYTE %10000010
-                .BYTE %10000010
-                .BYTE COLOR::WHITE
-OBJECT_ladder_middle_floor:_CreepIMG_Header 3, 8, COLOR::BLACK
-                .BYTE %01010101, %10010110, %01010101
-                .BYTE %01010101, %10010110, %01010101
-                .BYTE %01010101, %10010110, %01010101
-                .BYTE %10101010, %10101010, %00000000
-                .BYTE %10101000, %10000010, %00000010
-                .BYTE %10100000, %10000010, %00001010
-                .BYTE %11110000, %10000010, %00001111
-                .BYTE %11110000, %10101010, %00001111
-OBJECT_ladder_b_ROOMCOLOR:.BYTE COLOR::WHITE
-                .BYTE COLOR::WHITE
-                .BYTE COLOR::WHITE
-                .BYTE COLOR::BROWN
-                .BYTE COLOR::BROWN
-                .BYTE COLOR::BROWN
-OBJECT_ladder_middle_floor_mask:_CreepIMG_Header 3, 8, COLOR::BLACK
-                .BYTE %11111111, %11111111, %11111111
-                .BYTE %11111111, %11111111, %11111111
-                .BYTE %11111111, %11111111, %11111111
-                .BYTE %11111111, %11111111, %11111111
-                .BYTE %11111111, %11111111, %11111111
-                .BYTE %11111111, %11111111, %11111111
-                .BYTE %11111111, %11111111, %11111111
-                .BYTE %11111111, %11111111, %11111111
-SPRITE_player_climb_ladder_1:_CreepIMG_Header 2, 20, COLOR::YELLOW
-                .BYTE %00000000, %00001000
-                .BYTE %00000000, %00000100
-                .BYTE %00000010, %10000100
-                .BYTE %00001010, %10100100
-                .BYTE %00101010, %10100100
-                .BYTE %01001010, %10100000
-                .BYTE %01000010, %10000000
-                .BYTE %01000001, %01000000
-                .BYTE %00010101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00001111, %11110000
-                .BYTE %00001111, %11111100
-                .BYTE %00001100, %00001100
-                .BYTE %00001100, %00001100
-                .BYTE %00110010, %11000000
-                .BYTE %00111100, %00000000
-                .BYTE %00111010, %00000000
-                .BYTE %00000010, %00000000
-SPRITE_player_climb_ladder_2:_CreepIMG_Header 2, 20, COLOR::YELLOW
-                .BYTE %00000000, %00000000
-                .BYTE %00000000, %00000000
-                .BYTE %00000010, %10001000
-                .BYTE %00001010, %10100100
-                .BYTE %00001010, %10100100
-                .BYTE %00001010, %10100100
-                .BYTE %00100010, %10000100
-                .BYTE %00010001, %01000000
-                .BYTE %00010101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00001111, %11110000
-                .BYTE %00001111, %11110000
-                .BYTE %00110000, %00001100
-                .BYTE %00110000, %00001100
-                .BYTE %00110000, %00001100
-                .BYTE %00100000, %00001000
-                .BYTE %00001010, %10100000
-                .BYTE %00000000, %00000000
-SPRITE_player_climb_ladder_3:_CreepIMG_Header 2, 20, COLOR::YELLOW
-                .BYTE %00100000, %00000000
-                .BYTE %00010000, %00000000
-                .BYTE %00010010, %10000000
-                .BYTE %00011010, %10100000
-                .BYTE %00011010, %10101000
-                .BYTE %00001010, %10100001
-                .BYTE %00000010, %10000001
-                .BYTE %00000001, %01000001
-                .BYTE %00000101, %01010100
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00001111, %11110000
-                .BYTE %00111111, %11110000
-                .BYTE %00110000, %00110000
-                .BYTE %00110000, %00110000
-                .BYTE %00001000, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %10101100
-                .BYTE %00000000, %00001000
-SPRITE_player_climb_ladder_4:_CreepIMG_Header 2, 20, COLOR::YELLOW
-                .BYTE %00000000, %00000000
-                .BYTE %00000000, %00000000
-                .BYTE %00100010, %10000000
-                .BYTE %00011010, %10100000
-                .BYTE %00011010, %10100000
-                .BYTE %00011010, %10100000
-                .BYTE %00010010, %10001000
-                .BYTE %00000001, %01000100
-                .BYTE %00000101, %01010100
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00001111, %11110000
-                .BYTE %00001111, %11110000
-                .BYTE %00110000, %00001100
-                .BYTE %00110000, %00001100
-                .BYTE %00110000, %00001100
-                .BYTE %00100000, %00001100
-                .BYTE %00001010, %10100000
-                .BYTE %00000000, %00000000
-OBJECT_lightning_pole:_CreepIMG_Header 1, 8, COLOR::BLACK
-                .BYTE %01111101
-                .BYTE %10010110
-                .BYTE %11101011
-                .BYTE %01111101
-                .BYTE %10010110
-                .BYTE %11101011
-                .BYTE %01111101
-                .BYTE %10010110
-                .BYTE (COLOR::GREEN<<4)+COLOR::GREEN
-                .BYTE COLOR::GREEN
-OBJECT_lightning_globe:_CreepIMG_Header 3, 15, COLOR::BLACK
-                .BYTE %00000000, %01101001, %00000000
-                .BYTE %00000001, %01010101, %01000000
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE %00000111, %11010101, %01010000
-                .BYTE %00000111, %11010101, %01010000
-                .BYTE %00011111, %01010101, %01010100
-                .BYTE %00011101, %01010101, %01010100
-                .BYTE %00011101, %01010101, %01010100
-                .BYTE %00011101, %01010101, %01010100
-                .BYTE %00011101, %01010101, %01010100
-                .BYTE %00000111, %01010101, %01010000
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE %00000001, %01010101, %01000000
-                .BYTE %00000000, %01010101, %00000000
-                .BYTE (COLOR::GREY<<4)+COLOR::GREEN, (COLOR::GREY<<4)+COLOR::GREEN, (COLOR::GREY<<4)+COLOR::GREEN
-                .BYTE (COLOR::GREY<<4)+COLOR::GREEN, (COLOR::GREY<<4)+COLOR::GREEN, (COLOR::GREY<<4)+COLOR::GREEN
-                .BYTE COLOR::WHITE, COLOR::WHITE, COLOR::WHITE
-                .BYTE COLOR::WHITE, COLOR::WHITE, COLOR::WHITE
-OBJECT_lightning_colormask:_CreepIMG_Header 1, 1, COLOR::BLACK
-                .BYTE %00000000
-OBJECT_lightning_colormask_COLOR:.BYTE (COLOR::DARK_GREY<<4)+COLOR::LIGHT_GREEN
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK
-SPRITE_forcefield_anim_1:_CreepIMG_Header 1, 14, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR|IMG_FLAGS::NO_PRIORITY|IMG_FLAGS::DOUBLEHEIGHT
-                .BYTE %00000000
-                .BYTE %00000011
-                .BYTE %00001100
-                .BYTE %00110011
-                .BYTE %00001100
-                .BYTE %00110011
-                .BYTE %00001100
-                .BYTE %00110011
-                .BYTE %00001100
-                .BYTE %00110011
-                .BYTE %00001100
-                .BYTE %00110011
-                .BYTE %00001100
-                .BYTE %00110000
-OBJECT_lightning_switch:_CreepIMG_Header 3, 20, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE %00000101, %00000000, %01010000
-                .BYTE %00000101, %00000000, %01010000
-                .BYTE %00000101, %00000000, %01010000
-                .BYTE %00000101, %00000000, %01010000
-                .BYTE %00000101, %00000000, %01010000
-                .BYTE %00000101, %00000000, %01010000
-                .BYTE %00000101, %00000000, %01010000
-                .BYTE %00000101, %00000000, %01010000
-                .BYTE %00000101, %00000000, %01010000
-                .BYTE %00000101, %00000000, %01010000
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE (COLOR::YELLOW<<4)+COLOR::BLACK, (COLOR::YELLOW<<4)+COLOR::BLACK, (COLOR::YELLOW<<4)+COLOR::BLACK
-                .BYTE (COLOR::YELLOW<<4)+COLOR::BLACK, (COLOR::YELLOW<<4)+COLOR::BLACK, (COLOR::YELLOW<<4)+COLOR::BLACK
-                .BYTE (COLOR::YELLOW<<4)+COLOR::BLACK, (COLOR::YELLOW<<4)+COLOR::BLACK, (COLOR::YELLOW<<4)+COLOR::BLACK
-OBJECT_lightning_switch_on:_CreepIMG_Header 1, 5, COLOR::BLACK
-                .BYTE %00101000
-                .BYTE %00010100
-                .BYTE %00010100
-                .BYTE %01010101
-                .BYTE %01010101
-                .BYTE (COLOR::WHITE<<4)+COLOR::WHITE
-OBJECT_lightning_switch_off:_CreepIMG_Header 1, 8, COLOR::BLACK
-                .BYTE %00000000
-                .BYTE %00000000
-                .BYTE %00000000
-                .BYTE %01010101
-                .BYTE %01010101
-                .BYTE %00010100
-                .BYTE %00010100
-                .BYTE %00101000
-                .BYTE (COLOR::WHITE<<4)+COLOR::WHITE
-SPRITE_lightning_anim_1:_CreepIMG_Header 3, 15, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR|IMG_FLAGS::NO_PRIORITY|IMG_FLAGS::DOUBLEHEIGHT
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00001100, %00000000
-                .BYTE %00000100, %00000010, %00000000
-                .BYTE %00001000, %00000001, %00000000
-                .BYTE %00110000, %00000001, %00000000
-                .BYTE %00100000, %00000000, %10000000
-                .BYTE %00110000, %00000000, %10000000
-                .BYTE %01001000, %00000001, %00000000
-                .BYTE %01000100, %00000010, %00000000
-                .BYTE %00100010, %00000001, %00000000
-                .BYTE %00100001, %00000000, %10000000
-                .BYTE %00100010, %00000000, %10000000
-                .BYTE %00000010, %00000000, %10000000
-                .BYTE %00000001, %00000000, %10000000
-                .BYTE %00000000, %00000000, %00000000
-SPRITE_lightning_anim_2:_CreepIMG_Header 3, 15, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR|IMG_FLAGS::NO_PRIORITY|IMG_FLAGS::DOUBLEHEIGHT
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %01000000, %00000000
-                .BYTE %00000000, %01000000, %00100000
-                .BYTE %00000000, %01000000, %00100000
-                .BYTE %00000000, %10000111, %11000000
-                .BYTE %00000000, %10001010, %00000000
-                .BYTE %00000000, %01010010, %00000000
-                .BYTE %00000000, %00110001, %00000000
-                .BYTE %00000000, %01001000, %10000000
-                .BYTE %00000001, %10001000, %00010000
-                .BYTE %00000001, %00001000, %00010000
-                .BYTE %00000001, %00001000, %00010000
-                .BYTE %00000001, %00000000, %00100000
-                .BYTE %00000000, %10000000, %00100000
-                .BYTE %00000000, %10000000, %00010000
-SPRITE_lightning_anim_3:_CreepIMG_Header 3, 15, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR|IMG_FLAGS::NO_PRIORITY|IMG_FLAGS::DOUBLEHEIGHT
-                .BYTE %00000000, %11000000, %00000000
-                .BYTE %00000001, %00110000, %00001000
-                .BYTE %00000010, %00000000, %00000100
-                .BYTE %00000100, %00000000, %00000010
-                .BYTE %00000100, %00000000, %00000001
-                .BYTE %00000011, %10000000, %00000010
-                .BYTE %00000000, %01000000, %00000100
-                .BYTE %00000000, %00100000, %00001000
-                .BYTE %00000000, %00010000, %00001000
-                .BYTE %00000000, %00101000, %00010100
-                .BYTE %00000000, %01001000, %00010010
-                .BYTE %00000000, %01001000, %00010010
-                .BYTE %00000000, %00100000, %00000001
-                .BYTE %00000000, %00000000, %00000001
-                .BYTE %00000000, %00000000, %00000000
-SPRITE_lightning_anim_4:_CreepIMG_Header 3, 15, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR|IMG_FLAGS::NO_PRIORITY|IMG_FLAGS::DOUBLEHEIGHT
-                .BYTE %00000010, %00000000, %00000000
-                .BYTE %00000010, %00000000, %00000000
-                .BYTE %00000010, %00000000, %00000000
-                .BYTE %00000001, %01001000, %00000000
-                .BYTE %00000000, %10000100, %00000000
-                .BYTE %00000000, %00000100, %00000000
-                .BYTE %00000000, %00001000, %00000000
-                .BYTE %00000000, %00010000, %00000000
-                .BYTE %00000000, %00010000, %00000000
-                .BYTE %00000000, %00001110, %00000000
-                .BYTE %00000000, %00000001, %00000000
-                .BYTE %00000000, %00000001, %00000000
-                .BYTE %00000000, %00000001, %00000000
-                .BYTE %00000000, %00000001, %00000000
-                .BYTE %00000000, %00000000, %00000000
-SPRITE_forcefield_anim_2:_CreepIMG_Header 1, 14, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR|IMG_FLAGS::NO_PRIORITY|IMG_FLAGS::DOUBLEHEIGHT
-                .BYTE %00000000
-                .BYTE %00000010
-                .BYTE %00000101
-                .BYTE %00101010
-                .BYTE %00010101
-                .BYTE %00101010
-                .BYTE %00010101
-                .BYTE %00101010
-                .BYTE %00010101
-                .BYTE %00101010
-                .BYTE %00010101
-                .BYTE %00101010
-                .BYTE %00010000
-                .BYTE %00100000
-OBJECT_forcefield_gate_top:_CreepIMG_Header 2, 6, COLOR::BLACK
-                .BYTE %01010010, %01010000
-                .BYTE %01010010, %01010000
-                .BYTE %01011001, %01010000
-                .BYTE %00001000, %00000000
-                .BYTE %00100000, %00000000
-                .BYTE %00100000, %00000000
-                .BYTE (COLOR::RED<<4)+COLOR::YELLOW, (COLOR::RED<<4)+COLOR::YELLOW
-OBJECT_forcefield_switch:_CreepIMG_Header 3, 22, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00010100, %00000000
-                .BYTE %00000000, %01010101, %00000000
-                .BYTE %00000001, %01010101, %01000000
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE %00010101, %01010101, %01010100
-                .BYTE %01010100, %00000000, %00010101
-                .BYTE %01010100, %00000000, %00010101
-                .BYTE %01010100, %00000000, %00010101
-                .BYTE %01010100, %00000000, %00010101
-                .BYTE %01010100, %00000000, %00010101
-                .BYTE %01010100, %00000000, %00010101
-                .BYTE %01010100, %00000000, %00010101
-                .BYTE %01010100, %00000000, %00010101
-                .BYTE %01010100, %00000000, %00010101
-                .BYTE %01010100, %00000000, %00010101
-                .BYTE %00010101, %10101010, %01010100
-                .BYTE %00000101, %01010101, %01010000
-                .BYTE %00000001, %01010101, %01000000
-                .BYTE %00000000, %01010101, %00000000
-                .BYTE %00000000, %00010100, %00000000
-                .BYTE (COLOR::RED<<4)+COLOR::RED, (COLOR::RED<<4)+COLOR::RED, (COLOR::RED<<4)+COLOR::RED
-                .BYTE (COLOR::RED<<4)+COLOR::RED, (COLOR::RED<<4)+COLOR::RED, (COLOR::RED<<4)+COLOR::RED
-                .BYTE (COLOR::RED<<4)+COLOR::RED, (COLOR::RED<<4)+COLOR::RED, (COLOR::RED<<4)+COLOR::RED
-OBJECT_forcefield_progress:_CreepIMG_Header 1, 8, COLOR::BLACK
-OBJECT_forcefield_progress_IMAGE:.BYTE %10110101
-                .BYTE %10100000
-                .BYTE %10010000
-                .BYTE %10100000
-                .BYTE %10000111
-                .BYTE %10100000
-                .BYTE %10110000
-                .BYTE %10100000
-                .BYTE (COLOR::WHITE<<4)+COLOR::BLACK
-SPRITE_forcefield_anim_off:_CreepIMG_Header 1, 1, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR|IMG_FLAGS::NO_PRIORITY
-                .BYTE %00000000
-OBJECT_mummy_casket_bricks:_CreepIMG_Header 1, 7, COLOR::BLACK
-                .BYTE %01010100
-                .BYTE %01010100
-                .BYTE %01010100
-                .BYTE %00000000
-                .BYTE %01000101
-                .BYTE %01000101
-                .BYTE %01000101
-                .BYTE (COLOR::PURPLE<<4)+COLOR::BLACK
-OBJECT_mummy_casket_open:_CreepIMG_Header 3, 8, COLOR::BLACK
-                .BYTE %00000000, %00000001, %01010101
-                .BYTE %00000000, %00000101, %01010101
-                .BYTE %00000000, %00010101, %01010101
-                .BYTE %00000000, %01010101, %01010101
-                .BYTE %00000001, %01010101, %01010101
-                .BYTE %00000101, %01010101, %01010101
-                .BYTE %00010101, %01010101, %01010101
-                .BYTE %01010101, %01010101, %01010101
-                .BYTE (COLOR::RED<<4)+COLOR::BLACK, (COLOR::RED<<4)+COLOR::BLACK, (COLOR::RED<<4)+COLOR::BLACK
-OBJECT_ankh:    _CreepIMG_Header 2, 23, COLOR::BLACK
-                .BYTE %00000000, %00000000
-                .BYTE %00000000, %00000000
-                .BYTE %00000101, %00000000
-                .BYTE %00010101, %01000000
-                .BYTE %00010000, %01000000
-                .BYTE %01000000, %00010000
-                .BYTE %01000000, %00010000
-                .BYTE %01000000, %00010000
-                .BYTE %01000000, %00010000
-                .BYTE %01000000, %00010000
-                .BYTE %00010000, %01000000
-                .BYTE %00010000, %01000000
-                .BYTE %00010000, %01000000
-                .BYTE %00010000, %01000000
-                .BYTE %00000101, %00000000
-                .BYTE %00000101, %00000000
-                .BYTE %10101010, %10100000
-                .BYTE %01010101, %01010000
-                .BYTE %00000101, %00000000
-                .BYTE %00000101, %00000000
-                .BYTE %00000101, %00000000
-                .BYTE %00000101, %00000000
-                .BYTE %00000101, %00000000
-OBJECT_ankh_COLOR:.BYTE (COLOR::DARK_GREY<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BROWN
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_BLUE<<4)+COLOR::ORANGE
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::BROWN<<4)+COLOR::YELLOW
-SPRITE_mummy_slide_1:_CreepIMG_Header 1, 2, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR
-                .BYTE %00011110
-                .BYTE %00111110
-SPRITE_mummy_slide_2:_CreepIMG_Header 2, 4, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR
-                .BYTE %11110111, %11000000
-                .BYTE %11111111, %11000000
-                .BYTE %00011111, %11000000
-                .BYTE %00111111, %10000000
-SPRITE_mummy_slide_3:_CreepIMG_Header 2, 6, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR
-                .BYTE %00000001, %11111100
-                .BYTE %01100011, %11111100
-                .BYTE %11110111, %11111100
-                .BYTE %11111111, %11111100
-                .BYTE %00011111, %11111100
-                .BYTE %00111111, %10000000
-SPRITE_mummy_slide_4:_CreepIMG_Header 3, 6, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR
-                .BYTE %00000001, %11111100, %00000000
-                .BYTE %01100011, %11111111, %00000000
-                .BYTE %11110111, %11111111, %11000000
-                .BYTE %11111111, %11111111, %11000000
-                .BYTE %00011111, %11111110, %00000000
-                .BYTE %00111111, %10000000, %00000000
-SPRITE_mummy_slide_5:_CreepIMG_Header 3, 6, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR
-                .BYTE %00000001, %11111100, %00000000
-                .BYTE %01100011, %11111111, %00000000
-                .BYTE %11110111, %11111111, %11111100
-                .BYTE %11111111, %11111111, %11111100
-                .BYTE %00011111, %11111110, %00000000
-                .BYTE %00111111, %10000000, %00000000
-SPRITE_mummy_slide_6:_CreepIMG_Header 3, 6, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR
-                .BYTE %00000001, %11111100, %00000000
-                .BYTE %01100011, %11111111, %00000011
-                .BYTE %11110111, %11111111, %11111111
-                .BYTE %11111111, %11111111, %11111110
-                .BYTE %00011111, %11111110, %00000000
-                .BYTE %00111111, %10000000, %00000000
-SPRITE_mummy_left_1:_CreepIMG_Header 2, 20, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR
-                .BYTE %00000000, %00110000
-                .BYTE %00000000, %11111000
-                .BYTE %00000000, %11111000
-                .BYTE %00000000, %11111000
-                .BYTE %00000000, %11111000
-                .BYTE %00000000, %00111000
-                .BYTE %00001111, %11111000
-                .BYTE %00000000, %11111100
-                .BYTE %00001111, %11111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %01111100
-                .BYTE %00000000, %01101110
-                .BYTE %00000000, %01100110
-                .BYTE %00000000, %11000110
-                .BYTE %00000000, %11001111
-                .BYTE %00000011, %11001111
-                .BYTE %00000011, %11000000
-SPRITE_mummy_left_2:_CreepIMG_Header 2, 20, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR
-                .BYTE %00000000, %00110000
-                .BYTE %00000000, %11111000
-                .BYTE %00000000, %11111000
-                .BYTE %00000000, %11111000
-                .BYTE %00000000, %11111000
-                .BYTE %00001110, %00111000
-                .BYTE %00000001, %11111000
-                .BYTE %00000000, %00111100
-                .BYTE %00000001, %11111100
-                .BYTE %00001110, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %11111000
-                .BYTE %00000000, %11111100
-                .BYTE %00000000, %00001100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00111100
-SPRITE_mummy_left_3:_CreepIMG_Header 2, 20, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR
-                .BYTE %00000000, %00110000
-                .BYTE %00000000, %11111000
-                .BYTE %00000000, %11111000
-                .BYTE %00000000, %11111000
-                .BYTE %00000000, %11111000
-                .BYTE %00000000, %00111000
-                .BYTE %00000000, %11111000
-                .BYTE %00001111, %00111100
-                .BYTE %00001111, %11111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00111100
-                .BYTE %00000000, %00110110
-                .BYTE %00000000, %00110110
-                .BYTE %00000000, %00110011
-                .BYTE %00000000, %11110011
-                .BYTE %00000000, %11110111
-                .BYTE %00000000, %00000111
-SPRITE_mummy_right_1:_CreepIMG_Header 3, 20, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR
-                .BYTE %00000000, %00001100, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011100, %00000000
-                .BYTE %00000000, %00011111, %11110000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111111, %11110000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111110, %00000000
-                .BYTE %00000000, %01110110, %00000000
-                .BYTE %00000000, %01100110, %00000000
-                .BYTE %00000000, %01100011, %00000000
-                .BYTE %00000000, %11110011, %00000000
-                .BYTE %00000000, %11110011, %11000000
-                .BYTE %00000000, %00000011, %11000000
-SPRITE_mummy_right_2:_CreepIMG_Header 3, 20, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR
-                .BYTE %00000000, %00001100, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011100, %01110000
-                .BYTE %00000000, %00011111, %10000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111111, %10000000
-                .BYTE %00000000, %00111100, %11110000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00110000, %00000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111100, %00000000
-SPRITE_mummy_right_3:_CreepIMG_Header 3, 20, COLOR::WHITE|IMG_FLAGS::SPRITE_NO_MULTICOLOR
-                .BYTE %00000000, %00001100, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00011100, %00000000
-                .BYTE %00000000, %00011111, %00000000
-                .BYTE %00000000, %00111100, %11110000
-                .BYTE %00000000, %00111111, %11110000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %00111100, %00000000
-                .BYTE %00000000, %01101100, %00000000
-                .BYTE %00000000, %01101100, %00000000
-                .BYTE %00000000, %11001100, %00000000
-                .BYTE %00000000, %11001111, %00000000
-                .BYTE %00000000, %11101111, %00000000
-                .BYTE %00000000, %11100000, %00000000
-OBJECT_key_1:   _CreepIMG_Header 2, 21, COLOR::BLACK
-                .BYTE %00000000, %00000000
-                .BYTE %00000101, %01010000
-                .BYTE %01010101, %01010101
-                .BYTE %01010000, %00000101
-                .BYTE %01010000, %00000101
-                .BYTE %01010000, %00000101
-                .BYTE %00010101, %01010100
-                .BYTE %00000101, %01010000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000100
-                .BYTE %00000001, %01010100
-                .BYTE %00000001, %01010000
-                .BYTE %00000001, %01010000
-                .BYTE %00000001, %01010100
-                .BYTE %00000001, %01000100
-                .BYTE (COLOR::WHITE<<4)+COLOR::WHITE, (COLOR::WHITE<<4)+COLOR::WHITE
-                .BYTE (COLOR::WHITE<<4)+COLOR::WHITE, (COLOR::WHITE<<4)+COLOR::WHITE
-                .BYTE (COLOR::WHITE<<4)+COLOR::WHITE, (COLOR::WHITE<<4)+COLOR::WHITE
-OBJECT_key_2:   _CreepIMG_Header 3, 15, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00010100, %00000000, %00000000
-                .BYTE %00010100, %00000000, %00000000
-                .BYTE %00010101, %00000000, %00000000
-                .BYTE %01000001, %00000000, %00000000
-                .BYTE %01010101, %00000000, %00000000
-                .BYTE %01000001, %00000000, %00000000
-                .BYTE %01000001, %01010101, %01010101
-                .BYTE %01000001, %10010110, %01010101
-                .BYTE %01000001, %00000000, %01010100
-                .BYTE %01010101, %00000000, %01010100
-                .BYTE %01000001, %00000000, %00010000
-                .BYTE %01010101, %00000000, %00010000
-                .BYTE %00010100, %00000001, %01010101
-                .BYTE %00010100, %00000001, %01000101
-                .BYTE (COLOR::RED<<4)+COLOR::RED, (COLOR::RED<<4)+COLOR::RED, (COLOR::RED<<4)+COLOR::RED
-                .BYTE (COLOR::RED<<4)+COLOR::RED, (COLOR::RED<<4)+COLOR::RED, (COLOR::RED<<4)+COLOR::RED
-OBJECT_key_3:   _CreepIMG_Header 2, 23, COLOR::BLACK
-                .BYTE %00000000, %00000000
-                .BYTE %00000101, %01010000
-                .BYTE %00010100, %00010100
-                .BYTE %01010100, %00010101
-                .BYTE %01010101, %01010101
-                .BYTE %01010101, %01010101
-                .BYTE %01010101, %01010101
-                .BYTE %00010101, %01010100
-                .BYTE %00010101, %01010100
-                .BYTE %00000101, %01010000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01010100
-                .BYTE %00000001, %01010100
-                .BYTE %00000001, %01010100
-                .BYTE %00000001, %01010100
-                .BYTE %00000001, %01000000
-                .BYTE (COLOR::CYAN<<4)+COLOR::CYAN, (COLOR::CYAN<<4)+COLOR::CYAN
-                .BYTE (COLOR::CYAN<<4)+COLOR::CYAN, (COLOR::CYAN<<4)+COLOR::CYAN
-                .BYTE (COLOR::CYAN<<4)+COLOR::CYAN, (COLOR::CYAN<<4)+COLOR::CYAN
-OBJECT_key_4:   _CreepIMG_Header 3, 15, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %01010000
-                .BYTE %00000000, %00000001, %00000100
-                .BYTE %00000000, %00000001, %00000100
-                .BYTE %00000000, %00000001, %00000101
-                .BYTE %00000000, %00000001, %00000101
-                .BYTE %00000000, %00000001, %00000001
-                .BYTE %01010101, %01010101, %01010101
-                .BYTE %01010101, %10010110, %01010101
-                .BYTE %00010100, %00000001, %00000001
-                .BYTE %00010100, %00000001, %00000101
-                .BYTE %00010101, %00000001, %00000101
-                .BYTE %00010101, %00000001, %00000100
-                .BYTE %00010100, %00000001, %00000100
-                .BYTE %01000100, %00000000, %01010000
-                .BYTE (COLOR::PURPLE<<4)+COLOR::PURPLE, (COLOR::PURPLE<<4)+COLOR::PURPLE, (COLOR::PURPLE<<4)+COLOR::PURPLE
-                .BYTE (COLOR::PURPLE<<4)+COLOR::PURPLE, (COLOR::PURPLE<<4)+COLOR::PURPLE, (COLOR::PURPLE<<4)+COLOR::PURPLE
-OBJECT_key_5:   _CreepIMG_Header 3, 15, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %01010101, %01000000, %00000000
-                .BYTE %01010101, %01000000, %00000000
-                .BYTE %01010101, %01000000, %00000000
-                .BYTE %01010101, %01000000, %00000000
-                .BYTE %01010101, %01000000, %00000000
-                .BYTE %01010101, %01000000, %00000000
-                .BYTE %01000101, %01010101, %01010101
-                .BYTE %01000101, %10010110, %01010101
-                .BYTE %01010101, %01000000, %01010000
-                .BYTE %01010101, %01000000, %01010100
-                .BYTE %01010101, %01000000, %01010000
-                .BYTE %01010101, %01000000, %01010100
-                .BYTE %01010101, %01000000, %01010000
-                .BYTE %01010101, %01000000, %00000000
-                .BYTE (COLOR::GREEN<<4)+COLOR::GREEN, (COLOR::GREEN<<4)+COLOR::GREEN, (COLOR::GREEN<<4)+COLOR::GREEN
-                .BYTE (COLOR::GREEN<<4)+COLOR::GREEN, (COLOR::GREEN<<4)+COLOR::GREEN, (COLOR::GREEN<<4)+COLOR::GREEN
-OBJECT_key_6:   _CreepIMG_Header 2, 23, COLOR::BLACK
-                .BYTE %00000000, %00000000
-                .BYTE %00010101, %01010100
-                .BYTE %01010100, %00010101
-                .BYTE %01010100, %00010101
-                .BYTE %01010101, %01010101
-                .BYTE %01010101, %01010101
-                .BYTE %01010101, %01010101
-                .BYTE %00010101, %01010100
-                .BYTE %00010101, %01010100
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01010101
-                .BYTE %00000001, %01010101
-                .BYTE %00000001, %01010101
-                .BYTE %00000001, %01000101
-                .BYTE %00000001, %01000101
-                .BYTE %00000001, %01000000
-                .BYTE (COLOR::BLUE<<4)+COLOR::BLUE, (COLOR::BLUE<<4)+COLOR::BLUE
-                .BYTE (COLOR::BLUE<<4)+COLOR::BLUE, (COLOR::BLUE<<4)+COLOR::BLUE
-                .BYTE (COLOR::BLUE<<4)+COLOR::BLUE, (COLOR::BLUE<<4)+COLOR::BLUE
-OBJECT_key_7:   _CreepIMG_Header 3, 15, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00010101, %00000000, %00000000
-                .BYTE %01000100, %01000000, %00000000
-                .BYTE %01000100, %01000000, %00000000
-                .BYTE %01010101, %01000000, %00000000
-                .BYTE %01000100, %01000000, %00000000
-                .BYTE %01000100, %01000000, %00000000
-                .BYTE %01010101, %01010101, %01010101
-                .BYTE %01010101, %10010110, %01010101
-                .BYTE %01000100, %01000000, %00010100
-                .BYTE %01000100, %01000000, %00010100
-                .BYTE %01010101, %01000000, %00010100
-                .BYTE %01000100, %01000000, %00010000
-                .BYTE %01000100, %01000000, %00010000
-                .BYTE %00010101, %00000000, %00000000
-                .BYTE (COLOR::YELLOW<<4)+COLOR::YELLOW, (COLOR::YELLOW<<4)+COLOR::YELLOW, (COLOR::YELLOW<<4)+COLOR::YELLOW
-                .BYTE (COLOR::YELLOW<<4)+COLOR::YELLOW, (COLOR::YELLOW<<4)+COLOR::YELLOW, (COLOR::YELLOW<<4)+COLOR::YELLOW
-OBJECT_lock:    _CreepIMG_Header 3, 23, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %01010101, %01010101, %01010101
-                .BYTE %01010101, %01010101, %01010101
-                .BYTE %01010101, %01000001, %01010101
-                .BYTE %01010101, %00000000, %01010101
-                .BYTE %01010101, %00000000, %01010101
-                .BYTE %01010101, %00000000, %01010101
-                .BYTE %01010101, %01000001, %01010101
-                .BYTE %01010101, %01000001, %01010101
-                .BYTE %01010101, %01000001, %01010101
-                .BYTE %01010101, %01000001, %01010101
-                .BYTE %01010101, %01000001, %01010101
-                .BYTE %01010101, %01000001, %01010101
-                .BYTE %01010101, %01000001, %01010101
-                .BYTE %01010101, %00000000, %01010101
-                .BYTE %01010101, %00000000, %01010101
-                .BYTE %01010101, %00000000, %01010101
-                .BYTE %01010101, %00000000, %01010101
-                .BYTE %01010101, %00000000, %01010101
-                .BYTE %01010101, %00000000, %01010101
-                .BYTE %01010101, %01010101, %01010101
-                .BYTE %01010101, %10101010, %01010101
-                .BYTE %01010101, %01010101, %01010101
-OBJECT_lock_COLOR:.BYTE (COLOR::ORANGE<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::BROWN<<4)+COLOR::CYAN
-                .BYTE (COLOR::LIGHT_GREY<<4)+COLOR::LIGHT_GREY, (COLOR::LIGHT_RED<<4)+COLOR::PURPLE, (COLOR::LIGHT_GREEN<<4)+COLOR::RED
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::DARK_GREY<<4)+COLOR::ORANGE, (COLOR::DARK_GREY<<4)+COLOR::GREEN
-OBJECT_raygun_track_left:_CreepIMG_Header 1, 8, COLOR::BLACK
-                .BYTE %00111010
-                .BYTE %11111010
-                .BYTE %11111010
-                .BYTE %00111010
-                .BYTE %00111010
-                .BYTE %11111010
-                .BYTE %11111010
-                .BYTE %00111010
-                .BYTE COLOR::BLUE
-                .BYTE COLOR::WHITE
-OBJECT_raygun_track_right:_CreepIMG_Header 1, 8, COLOR::BLACK
-                .BYTE %10101100
-                .BYTE %10101111
-                .BYTE %10101111
-                .BYTE %10101100
-                .BYTE %10101100
-                .BYTE %10101111
-                .BYTE %10101111
-                .BYTE %10101100
-                .BYTE COLOR::BLUE
-                .BYTE COLOR::WHITE
-OBJECT_raygun_facing_right_1:_CreepIMG_Header 2, 11, COLOR::BLACK
-                .BYTE %00110000, %00110000
-                .BYTE %00001100, %00110000
-                .BYTE %11000000, %11001100
-                .BYTE %11100000, %11001100
-                .BYTE %00101010, %11001100
-                .BYTE %00101010, %11101010
-                .BYTE %11101010, %11001100
-                .BYTE %11101100, %11001100
-                .BYTE %00000000, %11001100
-                .BYTE %00110000, %00110000
-                .BYTE %00110000, %00110000
-                .BYTE COLOR::LIGHT_BLUE, COLOR::WHITE
-                .BYTE COLOR::LIGHT_BLUE, COLOR::WHITE
-                .BYTE COLOR::YELLOW, COLOR::LIGHT_RED
-                .BYTE COLOR::YELLOW, COLOR::LIGHT_RED
-OBJECT_raygun_facing_right_2:_CreepIMG_Header 2, 11, COLOR::BLACK
-                .BYTE %00000000, %00110000
-                .BYTE %11001100, %00110000
-                .BYTE %11001100, %11001100
-                .BYTE %00100000, %11001100
-                .BYTE %00101010, %11001100
-                .BYTE %11101010, %11101010
-                .BYTE %11101010, %11001100
-                .BYTE %00101100, %11001100
-                .BYTE %00001100, %11001100
-                .BYTE %11000000, %00110000
-                .BYTE %00110000, %00110000
-                .BYTE COLOR::LIGHT_BLUE, COLOR::WHITE
-                .BYTE COLOR::LIGHT_BLUE, COLOR::WHITE
-                .BYTE COLOR::YELLOW, COLOR::LIGHT_RED
-                .BYTE COLOR::YELLOW, COLOR::LIGHT_RED
-OBJECT_raygun_facing_right_3:_CreepIMG_Header 2, 11, COLOR::BLACK
-                .BYTE %00110000, %00110000
-                .BYTE %11000000, %00110000
-                .BYTE %00001100, %11001100
-                .BYTE %00101100, %11001100
-                .BYTE %11101010, %11001100
-                .BYTE %11101010, %11101010
-                .BYTE %00101010, %11001100
-                .BYTE %00100000, %11001100
-                .BYTE %11001100, %11001100
-                .BYTE %11001100, %00110000
-                .BYTE %00000000, %00110000
-                .BYTE COLOR::LIGHT_BLUE, COLOR::WHITE
-                .BYTE COLOR::LIGHT_BLUE, COLOR::WHITE
-                .BYTE COLOR::YELLOW, COLOR::LIGHT_RED
-                .BYTE COLOR::YELLOW, COLOR::LIGHT_RED
-OBJECT_raygun_facing_right_4:_CreepIMG_Header 2, 11, COLOR::BLACK
-                .BYTE %00110000, %00110000
-                .BYTE %00110000, %00110000
-                .BYTE %00000000, %11001100
-                .BYTE %11101100, %11001100
-                .BYTE %11101010, %11001100
-                .BYTE %00101010, %11101010
-                .BYTE %00101010, %11001100
-                .BYTE %11100000, %11001100
-                .BYTE %11000000, %11001100
-                .BYTE %00001100, %00110000
-                .BYTE %00110000, %00110000
-                .BYTE COLOR::LIGHT_BLUE, COLOR::WHITE
-                .BYTE COLOR::LIGHT_BLUE, COLOR::WHITE
-                .BYTE COLOR::YELLOW, COLOR::LIGHT_RED
-                .BYTE COLOR::YELLOW, COLOR::LIGHT_RED
-OBJECT_raygun_facing_left_1:_CreepIMG_Header 2, 11, COLOR::BLACK
-                .BYTE %00001100, %00001100
-                .BYTE %00001100, %00110000
-                .BYTE %00111111, %00000011
-                .BYTE %00111111, %00001011
-                .BYTE %00111111, %10101000
-                .BYTE %10111111, %10101000
-                .BYTE %00111111, %10101011
-                .BYTE %00111111, %00111011
-                .BYTE %00111111, %00000000
-                .BYTE %00001100, %00001100
-                .BYTE %00001100, %00001100
-                .BYTE COLOR::WHITE, COLOR::LIGHT_BLUE
-                .BYTE COLOR::WHITE, COLOR::LIGHT_BLUE
-                .BYTE COLOR::LIGHT_RED, COLOR::YELLOW
-                .BYTE COLOR::LIGHT_RED, COLOR::YELLOW
-OBJECT_raygun_facing_left_2:_CreepIMG_Header 2, 11, COLOR::BLACK
-                .BYTE %00001100, %00000000
-                .BYTE %00001100, %00110011
-                .BYTE %00111111, %00110011
-                .BYTE %00111111, %00001000
-                .BYTE %00111111, %10101000
-                .BYTE %10111111, %10101011
-                .BYTE %00111111, %10101011
-                .BYTE %00111111, %00111000
-                .BYTE %00111111, %00110000
-                .BYTE %00001100, %00000011
-                .BYTE %00001100, %00001100
-                .BYTE COLOR::WHITE, COLOR::LIGHT_BLUE
-                .BYTE COLOR::WHITE, COLOR::LIGHT_BLUE
-                .BYTE COLOR::LIGHT_RED, COLOR::YELLOW
-                .BYTE COLOR::LIGHT_RED, COLOR::YELLOW
-OBJECT_raygun_facing_left_3:_CreepIMG_Header 2, 11, COLOR::BLACK
-                .BYTE %00001100, %00001100
-                .BYTE %00001100, %00000011
-                .BYTE %00111111, %00110000
-                .BYTE %00111111, %00111000
-                .BYTE %00111111, %10101011
-                .BYTE %10111111, %10101011
-                .BYTE %00111111, %10101000
-                .BYTE %00111111, %00001000
-                .BYTE %00111111, %00110011
-                .BYTE %00001100, %00110011
-                .BYTE %00001100, %00000000
-                .BYTE COLOR::WHITE, COLOR::LIGHT_BLUE
-                .BYTE COLOR::WHITE, COLOR::LIGHT_BLUE
-                .BYTE COLOR::LIGHT_RED, COLOR::YELLOW
-                .BYTE COLOR::LIGHT_RED, COLOR::YELLOW
-OBJECT_raygun_facing_left_4:_CreepIMG_Header 2, 11, COLOR::BLACK
-                .BYTE %00001100, %00001100
-                .BYTE %00001100, %00001100
-                .BYTE %00111111, %00000000
-                .BYTE %00111111, %00111011
-                .BYTE %00111111, %10101011
-                .BYTE %10111111, %10101000
-                .BYTE %00111111, %10101000
-                .BYTE %00111111, %00001011
-                .BYTE %00111111, %00000011
-                .BYTE %00001100, %00110000
-                .BYTE %00001100, %00001100
-                .BYTE COLOR::WHITE, COLOR::LIGHT_BLUE
-                .BYTE COLOR::WHITE, COLOR::LIGHT_BLUE
-                .BYTE COLOR::LIGHT_RED, COLOR::YELLOW
-                .BYTE COLOR::LIGHT_RED, COLOR::YELLOW
-SPRITE_raygun_shot:_CreepIMG_Header 2, 1, COLOR::RED
-                .BYTE %10101010, %10101010
-OBJECT_raygun_button:_CreepIMG_Header 2, 23, COLOR::BLACK
-                .BYTE %00000000, %00000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00010101, %01010100
-                .BYTE %00010101, %01010100
-                .BYTE %00000001, %01000000
-                .BYTE %00000000, %00000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00000010, %10000000
-                .BYTE %00000000, %00000000
-                .BYTE %00000001, %01000000
-                .BYTE %00010101, %01010100
-                .BYTE %00010101, %01010100
-                .BYTE %00000101, %01010000
-                .BYTE %00000101, %01010000
-                .BYTE %00000001, %01000000
-                .BYTE %00000001, %01000000
-                .BYTE (COLOR::GREY<<4)+COLOR::BLACK, (COLOR::GREY<<4)+COLOR::BLACK
-                .BYTE (COLOR::WHITE<<4)+COLOR::WHITE, (COLOR::WHITE<<4)+COLOR::WHITE
-                .BYTE (COLOR::GREY<<4)+COLOR::BLACK, (COLOR::GREY<<4)+COLOR::BLACK
-OBJECT_raygun_button_colormask:_CreepIMG_Header 2, 1, COLOR::BLACK
-                .BYTE %00000000, %00000000
-OBJECT_raygun_button_colormask_COLOR:.BYTE (COLOR::LIGHT_BLUE<<4)+COLOR::BROWN, (COLOR::LIGHT_RED<<4)+COLOR::BLACK
-OBJECT_teleport_booth:_CreepIMG_Header 4, 32, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000, %00000000
-                .BYTE %00000011, %11111111, %11111111, %11111000
-                .BYTE %00000011, %11111111, %11111111, %11111000
-                .BYTE %00001111, %11111111, %11111111, %11100100
-                .BYTE %00001111, %11111111, %11111111, %11100100
-                .BYTE %00111111, %11111111, %11111111, %10010100
-                .BYTE %00111111, %11111111, %11111111, %10010100
-                .BYTE %11111111, %11111111, %11111110, %01010100
-                .BYTE %11111111, %11111111, %11111110, %01010100
-                .BYTE %11111111, %01010111, %11111110, %01010100
-                .BYTE %11111100, %01010101, %11111110, %01010100
-                .BYTE %11111100, %01010101, %11111110, %01010100
-                .BYTE %11110000, %01010101, %01111110, %01010100
-                .BYTE %11110000, %01010101, %01111110, %01010100
-                .BYTE %11111000, %01010101, %01111110, %01010100
-                .BYTE %11111000, %01010101, %01111110, %01010100
-                .BYTE %11111000, %01010101, %01111110, %01010100
-                .BYTE %11111000, %01010101, %01111110, %01010100
-                .BYTE %11111110, %01010101, %11111110, %01010100
-                .BYTE %11111110, %01010101, %11111110, %01010100
-                .BYTE %11111111, %11010111, %11111110, %01010100
-                .BYTE %11111111, %11111111, %11111110, %01010100
-                .BYTE %11111111, %11111111, %11111110, %01010100
-                .BYTE %11111111, %11111111, %11111110, %00000000
-                .BYTE %11111111, %11111111, %11111110, %00000000
-                .BYTE %11111111, %11111111, %11111110, %00000000
-                .BYTE %11111111, %11111111, %11111110, %00000000
-                .BYTE %11111111, %11111111, %11111110, %00000000
-                .BYTE %11111111, %11111111, %11111110, %00000000
-                .BYTE %11111111, %11111111, %11111100, %00000000
-                .BYTE %11111111, %11111111, %11111100, %00000000
-                .BYTE COLOR::LIGHT_RED, COLOR::LIGHT_RED, COLOR::LIGHT_RED, COLOR::LIGHT_RED
-                .BYTE COLOR::LIGHT_RED, COLOR::LIGHT_RED, COLOR::LIGHT_RED, COLOR::LIGHT_RED
-                .BYTE COLOR::LIGHT_RED, COLOR::LIGHT_RED, COLOR::LIGHT_RED, COLOR::LIGHT_RED
-                .BYTE COLOR::LIGHT_RED, COLOR::LIGHT_RED, COLOR::LIGHT_RED, COLOR::LIGHT_RED
-                .BYTE COLOR::LIGHT_GREY, COLOR::LIGHT_GREY, COLOR::LIGHT_GREY, COLOR::LIGHT_GREY
-                .BYTE COLOR::WHITE, COLOR::WHITE, COLOR::WHITE, COLOR::WHITE
-                .BYTE COLOR::WHITE, COLOR::WHITE, COLOR::WHITE, COLOR::WHITE
-                .BYTE COLOR::WHITE, COLOR::WHITE, COLOR::WHITE, COLOR::WHITE
-OBJECT_teleport_2:_CreepIMG_Header 1, 1, COLOR::BLACK
-                .BYTE %11111111
-                .BYTE COLOR::LIGHT_RED, COLOR::WHITE
-OBJECT_teleport_booth_colormask:_CreepIMG_Header 3, 1, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-OBJECT_teleport_booth_colormask_COLOR:.BYTE (COLOR::DARK_GREY<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLACK
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::BROWN<<4)+COLOR::BLACK, (COLOR::DARK_GREY<<4)+COLOR::BLACK
-OBJECT_teleport_destination:_CreepIMG_Header 2, 14, COLOR::BLACK
-                .BYTE %00000000, %00000000
-                .BYTE %00000000, %00000000
-                .BYTE %00000101, %01000000
-                .BYTE %00010101, %01010000
-                .BYTE %00010101, %01010000
-                .BYTE %01010101, %01010100
-                .BYTE %01010101, %01010100
-                .BYTE %01010101, %01010100
-                .BYTE %01010101, %01010100
-                .BYTE %01010101, %01010100
-                .BYTE %01010101, %01010100
-                .BYTE %00010101, %01010000
-                .BYTE %00010101, %01010000
-                .BYTE %00000101, %01000000
-OBJECT_teleport_destination_COLOR:.BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_BLUE<<4)+COLOR::YELLOW
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::ORANGE<<4)+COLOR::LIGHT_RED
-OBJECT_trapdoor_1:_CreepIMG_Header 3, 6, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00001010, %10101010, %00000000
-OBJECT_trapdoor_1_ROOMCOLOR:.BYTE (COLOR::DARK_GREY<<4)+COLOR::WHITE, (COLOR::BROWN<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLACK
-                .BYTE COLOR::BROWN, COLOR::BROWN, COLOR::BROWN
-OBJECT_trapdoor_2:_CreepIMG_Header 3, 5, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00001010, %10101010, %00000000
-OBJECT_trapdoor_2_ROOMCOLOR:.BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::ORANGE<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLACK
-                .BYTE COLOR::BROWN, COLOR::BROWN, COLOR::BROWN
-OBJECT_trapdoor_3:_CreepIMG_Header 3, 4, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000010, %10101010, %10000000
-OBJECT_trapdoor_3_ROOMCOLOR:.BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::BROWN<<4)+COLOR::BLACK
-                .BYTE COLOR::BROWN, COLOR::BROWN, COLOR::BROWN
-OBJECT_trapdoor_4:_CreepIMG_Header 3, 3, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000001, %01010101, %01000000
-OBJECT_trapdoor_4_ROOMCOLOR:.BYTE (COLOR::GREY<<4)+COLOR::GREEN, (COLOR::GREY<<4)+COLOR::RED, (COLOR::BROWN<<4)+COLOR::BLACK
-                .BYTE COLOR::BROWN, COLOR::BROWN, COLOR::BROWN
-OBJECT_trapdoor_5:_CreepIMG_Header 3, 2, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000000, %01010101, %01010000
-OBJECT_trapdoor_5_ROOMCOLOR:.BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::ORANGE<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::GREY
-                .BYTE COLOR::BROWN, COLOR::BROWN, COLOR::BROWN
-OBJECT_trapdoor_6:_CreepIMG_Header 3, 1, COLOR::BLACK
-                .BYTE %00000000, %01010101, %01010000
-OBJECT_trapdoor_6_ROOMCOLOR:.BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::GREY, (COLOR::GREY<<4)+COLOR::ORANGE
-                .BYTE COLOR::BROWN, COLOR::BROWN, COLOR::BROWN
-OBJECT_trapdoor_7:_CreepIMG_Header 1, 1, COLOR::BLACK
-                .BYTE %10101010
-                .BYTE COLOR::BLACK
-                .BYTE COLOR::BROWN
-OBJECT_trapdoor_controller:_CreepIMG_Header 1, 23, COLOR::BLACK
-                .BYTE %00000000
-                .BYTE %00010100
-                .BYTE %01010101
-                .BYTE %01010101
-                .BYTE %01010101
-                .BYTE %01010101
-                .BYTE %00010100
-                .BYTE %00000000
-                .BYTE %00010100
-                .BYTE %00010100
-                .BYTE %00010100
-                .BYTE %00010100
-                .BYTE %00010100
-                .BYTE %00010100
-                .BYTE %00010100
-                .BYTE %00010100
-                .BYTE %00000000
-                .BYTE %00010100
-                .BYTE %10101010
-                .BYTE %01010101
-                .BYTE %01010101
-                .BYTE %01010101
-                .BYTE %00010100
-OBJECT_trapdoor_controller_COLOR:.BYTE (COLOR::GREY<<4)+COLOR::BLACK
-                .BYTE (COLOR::WHITE<<4)+COLOR::BLACK
-                .BYTE (COLOR::GREY<<4)+COLOR::GREY
-OBJECT_trapdoor_mask:_CreepIMG_Header 3, 6, COLOR::BLACK
-                .BYTE %00000000, %01010101, %01010000
-                .BYTE %00000000, %01010101, %01010000
-                .BYTE %00000001, %01010101, %01000000
-                .BYTE %00000010, %10101010, %10000000
-                .BYTE %00001010, %10101010, %00000000
-                .BYTE %00001010, %10101010, %00000000
-OBJECT_door:    _CreepIMG_Header 3, 1, COLOR::BLACK
-                .BYTE %11111111, %11111111, %11111111
-OBJECT_movingsidewalk_mask:_CreepIMG_Header 8, 6, COLOR::BLACK
-                .BYTE %11111111, %11111111, %11111111, %11111111, %11111111, %11111111, %11111111, %11111111
-                .BYTE %00001111, %11111111, %11111111, %11111111, %11111111, %11111111, %11111111, %11111111
-                .BYTE %00111111, %11111111, %11111111, %11111111, %11111111, %11111111, %11111111, %11111100
-                .BYTE %00111111, %11111111, %11111111, %11111111, %11111111, %11111111, %11111111, %11111100
-                .BYTE %11111111, %11111111, %11111111, %11111111, %11111111, %11111111, %11111111, %11110000
-                .BYTE %11111111, %11111111, %11111111, %11111111, %11111111, %11111111, %11111111, %11110000
-OBJECT_movingsidewalk_anim_1:_CreepIMG_Header 8, 6, COLOR::BLACK
-                .BYTE %10101010, %10101010, %10101010, %10101010, %10101010, %10101010, %10101010, %10101010
-                .BYTE %01010001, %01000001, %01000001, %01000001, %01000001, %01000001, %01000001, %01000000
-                .BYTE %01000101, %00000101, %00000101, %00000101, %00000101, %00000101, %00000101, %00000001
-                .BYTE %10001010, %00001010, %00001010, %00001010, %00001010, %00001010, %00001010, %00000010
-                .BYTE %00101000, %00101000, %00101000, %00101000, %00101000, %00101000, %00101000, %00001010
-                .BYTE %00101000, %00101000, %00101000, %00101000, %00101000, %00101000, %00101000, %00001010
-OBJECT_MovingSidewalk_anim_1_ROOMCOLOR:.BYTE (COLOR::GREY<<4)+COLOR::BROWN, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::LIGHT_GREY, (COLOR::DARK_GREY<<4)+COLOR::WHITE, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::RED, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::ORANGE<<4)+COLOR::LIGHT_RED
-                .BYTE COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN
-OBJECT_movingsidewalk_anim_2:_CreepIMG_Header 8, 6, COLOR::BLACK
-                .BYTE %10101010, %10101010, %10101010, %10101010, %10101010, %10101010, %10101010, %10101010
-                .BYTE %01010000, %01010000, %01010000, %01010000, %01010000, %01010000, %01010000, %01010000
-                .BYTE %01000001, %01000001, %01000001, %01000001, %01000001, %01000001, %01000001, %01000001
-                .BYTE %10000010, %10000010, %10000010, %10000010, %10000010, %10000010, %10000010, %10000010
-                .BYTE %00001010, %00001010, %00001010, %00001010, %00001010, %00001010, %00001010, %00001010
-                .BYTE %00001010, %00001010, %00001010, %00001010, %00001010, %00001010, %00001010, %00001010
-OBJECT_MovingSidewalk_anim_2_ROOMCOLOR:.BYTE (COLOR::DARK_GREY<<4)+COLOR::RED, (COLOR::DARK_GREY<<4)+COLOR::BROWN, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLUE, (COLOR::DARK_GREY<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_GREY<<4)+COLOR::BLACK, (COLOR::ORANGE<<4)+COLOR::BLACK
-                .BYTE COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN
-OBJECT_movingsidewalk_anim_3:_CreepIMG_Header 8, 6, COLOR::BLACK
-                .BYTE %10101010, %10101010, %10101010, %10101010, %10101010, %10101010, %10101010, %10101010
-                .BYTE %01010000, %00010100, %00010100, %00010100, %00010100, %00010100, %00010100, %00010100
-                .BYTE %01000000, %01010000, %01010000, %01010000, %01010000, %01010000, %01010000, %01010001
-                .BYTE %10000000, %10100000, %10100000, %10100000, %10100000, %10100000, %10100000, %10100010
-                .BYTE %00000010, %10000010, %10000010, %10000010, %10000010, %10000010, %10000010, %10001010
-                .BYTE %00000010, %10000010, %10000010, %10000010, %10000010, %10000010, %10000010, %10001010
-OBJECT_MovingSidewalk_anim_3_ROOMCOLOR:.BYTE (COLOR::ORANGE<<4)+COLOR::LIGHT_GREY, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::ORANGE<<4)+COLOR::BROWN, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_GREY<<4)+COLOR::LIGHT_GREY, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_BLUE<<4)+COLOR::YELLOW
-                .BYTE COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN
-OBJECT_movingsidewalk_anim_4:_CreepIMG_Header 8, 6, COLOR::BLACK
-                .BYTE %10101010, %10101010, %10101010, %10101010, %10101010, %10101010, %10101010, %10101010
-                .BYTE %01010001, %00000101, %00000101, %00000101, %00000101, %00000101, %00000101, %00000100
-                .BYTE %01000100, %00010100, %00010100, %00010100, %00010100, %00010100, %00010100, %00010001
-                .BYTE %10001000, %00101000, %00101000, %00101000, %00101000, %00101000, %00101000, %00100010
-                .BYTE %00100000, %10100000, %10100000, %10100000, %10100000, %10100000, %10100000, %10001010
-                .BYTE %00100000, %10100000, %10100000, %10100000, %10100000, %10100000, %10100000, %10001010
-OBJECT_MovingSidewalk_anim_4_ROOMCOLOR:.BYTE (COLOR::DARK_GREY<<4)+COLOR::BLUE, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_BLUE<<4)+COLOR::BLUE, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::ORANGE<<4)+COLOR::GREY, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::DARK_GREY<<4)+COLOR::LIGHT_RED
-                .BYTE COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN, COLOR::BROWN
-OBJECT_MovingSidewalk_controller:_CreepIMG_Header 3, 8, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00000000
-                .BYTE %00000001, %00000000, %01000000
-                .BYTE %00000101, %00010100, %01010000
-                .BYTE %00010100, %01010101, %00010100
-                .BYTE %01010100, %01010101, %00010101
-                .BYTE %00010100, %01010101, %00010100
-                .BYTE %00000101, %00010100, %01010000
-                .BYTE %00000001, %00000000, %01000000
-OBJECT_MovingSidewalk_controller_COLOR:.BYTE (COLOR::GREY<<4)+COLOR::BLACK, (COLOR::WHITE<<4)+COLOR::BLACK, (COLOR::GREY<<4)+COLOR::BLACK
-OBJECT_MovingSidewalk_7:_CreepIMG_Header 1, 3, COLOR::BLACK
-                .BYTE %00000000
-                .BYTE %00000000
-                .BYTE %10101010
-                .BYTE COLOR::BLACK
-SPRITE_frankenstein_right_1:_CreepIMG_Header 2, 20, COLOR::GREY
-                .BYTE %00000001, %01010000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %11110000
-                .BYTE %00000000, %11000000
-                .BYTE %00000010, %10100000
-                .BYTE %00001010, %10001000
-                .BYTE %00100010, %10001000
-                .BYTE %00100010, %10001100
-                .BYTE %00110010, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %00100000
-                .BYTE %00001000, %00100000
-                .BYTE %00001111, %00100000
-                .BYTE %00001111, %00111100
-                .BYTE %00000000, %00111100
-SPRITE_frankenstein_right_2:_CreepIMG_Header 2, 20, COLOR::GREY
-                .BYTE %00000001, %01010000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %11110000
-                .BYTE %00000000, %11000000
-                .BYTE %00000010, %10100000
-                .BYTE %00001010, %10001000
-                .BYTE %00100010, %10001000
-                .BYTE %00100010, %10001100
-                .BYTE %00110010, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %00100000
-                .BYTE %00000010, %00100000
-                .BYTE %00000010, %10000000
-                .BYTE %00001110, %00000000
-                .BYTE %00001110, %00000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11000000
-SPRITE_frankenstein_right_3:_CreepIMG_Header 2, 20, COLOR::GREY
-                .BYTE %00000001, %01010000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %11110000
-                .BYTE %00000000, %11000000
-                .BYTE %00000010, %10100000
-                .BYTE %00001010, %10001000
-                .BYTE %00100010, %10001000
-                .BYTE %00100010, %10001100
-                .BYTE %00110010, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10100000
-                .BYTE %00000010, %00100000
-                .BYTE %00001000, %00100000
-                .BYTE %00001000, %00111100
-                .BYTE %00001000, %00111100
-                .BYTE %00001111, %00000000
-                .BYTE %00001111, %00000000
-SPRITE_frankenstein_left_1:_CreepIMG_Header 2, 20, COLOR::GREY
-                .BYTE %00000101, %01000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00000011, %00000000
-                .BYTE %00000010, %10100000
-                .BYTE %00001010, %10001000
-                .BYTE %00100010, %10001000
-                .BYTE %00100010, %10001100
-                .BYTE %00110010, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001000, %10000000
-                .BYTE %00001000, %00100000
-                .BYTE %00001000, %11110000
-                .BYTE %00111100, %11110000
-                .BYTE %00111100, %00000000
-SPRITE_frankenstein_left_2:_CreepIMG_Header 2, 20, COLOR::GREY
-                .BYTE %00000101, %01000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00000011, %00000000
-                .BYTE %00000010, %10100000
-                .BYTE %00001010, %10001000
-                .BYTE %00100010, %10001000
-                .BYTE %00100010, %10001100
-                .BYTE %00110010, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000010, %10000000
-                .BYTE %00001000, %10000000
-                .BYTE %00001000, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000000, %10110000
-                .BYTE %00000000, %10110000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11000000
-SPRITE_frankenstein_left_3:_CreepIMG_Header 2, 20, COLOR::GREY
-                .BYTE %00000101, %01000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00000011, %00000000
-                .BYTE %00000010, %10100000
-                .BYTE %00001010, %10001000
-                .BYTE %00100010, %10001000
-                .BYTE %00100010, %10001100
-                .BYTE %00110010, %10000000
-                .BYTE %00000001, %01000000
-                .BYTE %00000010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001000, %10000000
-                .BYTE %00001000, %00100000
-                .BYTE %00111100, %00100000
-                .BYTE %00111100, %00100000
-                .BYTE %00000000, %11110000
-                .BYTE %00000000, %11110000
-SPRITE_frankenstein_slide:_CreepIMG_Header 2, 20, COLOR::GREY
-                .BYTE %00000011, %00000000
-                .BYTE %00001000, %10000000
-                .BYTE %00100101, %01100000
-                .BYTE %00101111, %11100000
-                .BYTE %00101111, %11100000
-                .BYTE %00101111, %11100000
-                .BYTE %00100011, %00100000
-                .BYTE %00101010, %10100000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00001010, %10000000
-                .BYTE %00000101, %01000000
-                .BYTE %00001010, %10000000
-                .BYTE %00101000, %10100000
-                .BYTE %00100000, %00100000
-                .BYTE %00001000, %10000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001100, %11000000
-SPRITE_frankenstein_climb_ladder_1:_CreepIMG_Header 2, 20, COLOR::GREY
-                .BYTE %00000000, %00001100
-                .BYTE %00000000, %10000000
-                .BYTE %00000101, %01011000
-                .BYTE %00001111, %11111000
-                .BYTE %00111111, %10000000
-                .BYTE %10001111, %11110000
-                .BYTE %10000011, %11000000
-                .BYTE %10000010, %10000000
-                .BYTE %00101010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00000101, %01010000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %00100000
-                .BYTE %00000010, %00001000
-                .BYTE %00000010, %00111100
-                .BYTE %00000010, %00111100
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11000000
-SPRITE_frankenstein_climb_ladder_2:_CreepIMG_Header 2, 20, COLOR::GREY
-                .BYTE %00000000, %00000000
-                .BYTE %00000000, %00000000
-                .BYTE %00000101, %01011100
-                .BYTE %00001111, %11111000
-                .BYTE %00001111, %11111000
-                .BYTE %00001111, %11111000
-                .BYTE %00110011, %11001000
-                .BYTE %00100010, %10000000
-                .BYTE %00101010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00000101, %01010000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000000, %00000000
-SPRITE_frankenstein_climb_ladder_3:_CreepIMG_Header 2, 20, COLOR::GREY
-                .BYTE %00110000, %00000000
-                .BYTE %00100000, %00000000
-                .BYTE %00100101, %01010000
-                .BYTE %00101111, %11110000
-                .BYTE %00101111, %11111100
-                .BYTE %00001111, %11110010
-                .BYTE %00000011, %11000010
-                .BYTE %00000010, %10000010
-                .BYTE %00001010, %10101000
-                .BYTE %00001010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00000101, %01010000
-                .BYTE %00000010, %10000000
-                .BYTE %00001000, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00111100, %10000000
-                .BYTE %00111100, %10000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11000000
-SPRITE_frankenstein_climb_ladder_4:_CreepIMG_Header 2, 20, COLOR::GREY
-                .BYTE %00000000, %00000000
-                .BYTE %00000000, %00000000
-                .BYTE %00110101, %01010000
-                .BYTE %00101111, %11110000
-                .BYTE %00101111, %11110000
-                .BYTE %00101111, %11110000
-                .BYTE %00100011, %11001100
-                .BYTE %00000010, %10001000
-                .BYTE %00001010, %10101000
-                .BYTE %00001010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00000101, %01010000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11000000
-                .BYTE %00000000, %00000000
-SPRITE_frankenstein_sleep:_CreepIMG_Header 2, 20, COLOR::GREY
-                .BYTE %00000001, %01010000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %11110000
-                .BYTE %00000011, %11110000
-                .BYTE %00000000, %11000000
-                .BYTE %00000010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00001010, %10100000
-                .BYTE %00001010, %10110000
-                .BYTE %00001101, %01000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %10000000
-                .BYTE %00000010, %11010000
-                .BYTE %00000010, %11110000
-                .BYTE %00000011, %11000000
-                .BYTE %00000011, %11000000
-OBJECT_frankenstein_coffin_facing_right:_CreepIMG_Header 2, 32, COLOR::BLACK
-                .BYTE %00000000, %00000000
-                .BYTE %00000000, %00000000
-                .BYTE %00000011, %11111100
-                .BYTE %00000011, %11111100
-                .BYTE %00001111, %11110100
-                .BYTE %00001111, %11110100
-                .BYTE %00111111, %11010100
-                .BYTE %00111111, %11010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %01010100
-                .BYTE %10101010, %00000000
-                .BYTE %10101010, %00000000
-                .BYTE %10101010, %00000000
-                .BYTE %10101010, %00000000
-                .BYTE %10101010, %00000000
-                .BYTE %10101010, %00000000
-                .BYTE %11111111, %00000000
-                .BYTE %11111111, %00000000
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW
-                .BYTE COLOR::WHITE, COLOR::WHITE
-                .BYTE COLOR::BLACK, COLOR::BLACK
-                .BYTE COLOR::BLACK, COLOR::BLACK
-                .BYTE COLOR::BROWN, COLOR::BROWN
-OBJECT_frankenstein_coffin_facing_left:_CreepIMG_Header 2, 32, COLOR::BLACK
-                .BYTE %00000000, %00000000
-                .BYTE %00000000, %00000000
-                .BYTE %00000011, %11111100
-                .BYTE %00000011, %11111100
-                .BYTE %00001111, %11111000
-                .BYTE %00001111, %11111000
-                .BYTE %00111111, %11101000
-                .BYTE %00111111, %11101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101000
-                .BYTE %10101010, %10101100
-                .BYTE %10101010, %10101100
-                .BYTE %10101010, %10110000
-                .BYTE %10101010, %10110000
-                .BYTE %10101010, %11000000
-                .BYTE %11111111, %11000000
-                .BYTE %11111111, %00000000
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW
-                .BYTE COLOR::WHITE, COLOR::WHITE
-                .BYTE COLOR::BLACK, COLOR::BLACK
-                .BYTE COLOR::BLACK, COLOR::BLACK
-                .BYTE COLOR::BROWN, COLOR::BROWN
-OBJECT_frankenstein_coffin_mask:_CreepIMG_Header 2, 6, COLOR::BLACK
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-OBJECT_time_separators:_CreepIMG_Header 8, 7, COLOR::BLACK
-OBJECT_time_separators_IMAGE:.BYTE %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00110000, %00000000, %00000000, %00110000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00110000, %00000000, %00000000, %00110000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00110000, %00000000, %00000000, %00110000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00110000, %00000000, %00000000, %00110000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000, %00000000
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::GREEN, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::RED, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::DARK_GREY<<4)+COLOR::BLACK, (COLOR::LIGHT_RED<<4)+COLOR::BLACK
-                .BYTE COLOR::WHITE, COLOR::WHITE, COLOR::WHITE, COLOR::WHITE, COLOR::WHITE, COLOR::WHITE, COLOR::WHITE, COLOR::WHITE
-OBJECT_drawchar_mask:_CreepIMG_Header 2, 24, COLOR::BLACK
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-                .BYTE %11111111, %11111111
-OBJECT_drawchar_characterimage:_CreepIMG_Header 2, 24, COLOR::BLACK
-OBJECT_StringPrint_CharacterImage_IMAGE:.BYTE %11010010, %10100000
-                .BYTE %11101000, %11000010
-                .BYTE %10100000, %10000101
-                .BYTE %10100000, %10101010
-                .BYTE %10110111, %11010101
-                .BYTE %10000000, %11000110
-                .BYTE %10101001, %10100000
-                .BYTE %11101000, %11000110
-                .BYTE %10001100, %10100000
-                .BYTE %10000001, %10000101
-                .BYTE %10111010, %10100100
-                .BYTE %11100101, %10100000
-                .BYTE %11110101, %10100000
-                .BYTE %10100101, %11000110
-                .BYTE %10110000, %11100000
-                .BYTE %11000100, %10100101
-                .BYTE %10100000, %10101010
-                .BYTE %10100000, %10100000
-                .BYTE %10110011, %11000010
-                .BYTE %10100001, %10100000
-                .BYTE %11001001, %10110101
-                .BYTE %10100000, %11000011
-                .BYTE %10100000, %10000100
-                .BYTE %10100000, %10000101
-                .BYTE (COLOR::LIGHT_GREEN<<4)+COLOR::RED, (COLOR::DARK_GREY<<4)+COLOR::YELLOW
-                .BYTE (COLOR::ORANGE<<4)+COLOR::GREEN, (COLOR::ORANGE<<4)+COLOR::BLACK
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::BLACK, (COLOR::ORANGE<<4)+COLOR::BROWN
-OBJECT_house:   _CreepIMG_Header 5, 32, COLOR::BLACK
-                .BYTE %00000000, %00000000, %00101000, %00000000, %00000000
-                .BYTE %00000000, %00000000, %10101010, %00000000, %00000000
-                .BYTE %00000000, %00000000, %10101010, %00000000, %00000000
-                .BYTE %00000000, %00000010, %10111110, %10000000, %00000000
-                .BYTE %00000000, %00001010, %11111111, %10100000, %00000000
-                .BYTE %00000000, %00001010, %11111111, %10100000, %00000000
-                .BYTE %00000000, %00101011, %11111111, %11101000, %00000000
-                .BYTE %00000000, %10101111, %11111111, %11111010, %00000000
-                .BYTE %00000000, %10101111, %11111111, %11111010, %00000000
-                .BYTE %00000010, %10111111, %11111111, %11111110, %10000000
-                .BYTE %00001010, %11111111, %11111111, %11111111, %10100000
-                .BYTE %00001010, %11111111, %11111111, %11111111, %10100000
-                .BYTE %00101011, %11111111, %11111111, %11111111, %11101000
-                .BYTE %10101010, %10101010, %10101010, %10101010, %10101010
-                .BYTE %10101010, %10101010, %10101010, %10101010, %10101010
-                .BYTE %10101010, %10000000, %00000000, %00000010, %10101010
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE %00010101, %00000000, %00000000, %00000000, %01010100
-                .BYTE (COLOR::YELLOW<<4)+COLOR::YELLOW, (COLOR::YELLOW<<4)+COLOR::YELLOW, (COLOR::YELLOW<<4)+COLOR::YELLOW, (COLOR::YELLOW<<4)+COLOR::YELLOW, (COLOR::YELLOW<<4)+COLOR::YELLOW
-                .BYTE (COLOR::YELLOW<<4)+COLOR::YELLOW, (COLOR::YELLOW<<4)+COLOR::YELLOW, (COLOR::YELLOW<<4)+COLOR::YELLOW, (COLOR::YELLOW<<4)+COLOR::YELLOW, (COLOR::YELLOW<<4)+COLOR::YELLOW
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW
-                .BYTE (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW, (COLOR::LIGHT_RED<<4)+COLOR::YELLOW
-                .BYTE COLOR::ORANGE, COLOR::ORANGE, COLOR::ORANGE, COLOR::ORANGE, COLOR::ORANGE
-                .BYTE COLOR::ORANGE, COLOR::ORANGE, COLOR::ORANGE, COLOR::ORANGE, COLOR::ORANGE
-                .BYTE COLOR::ORANGE, COLOR::ORANGE, COLOR::ORANGE, COLOR::ORANGE, COLOR::ORANGE
-                .BYTE COLOR::ORANGE, COLOR::ORANGE, COLOR::ORANGE, COLOR::ORANGE, COLOR::ORANGE
-SPRITE_player_wave_goodbye_1:_CreepIMG_Header 2, 21, COLOR::YELLOW
-                .BYTE %00000000, %00001000
-                .BYTE %00000010, %00001000
-                .BYTE %00001010, %10000100
-                .BYTE %00001010, %10000100
-                .BYTE %00001010, %10000100
-                .BYTE %00001010, %10000100
-                .BYTE %00000010, %00000100
-                .BYTE %00000101, %01010000
-                .BYTE %00010101, %01000000
-                .BYTE %01000101, %01000000
-                .BYTE %01000101, %01000000
-                .BYTE %01000101, %01000000
-                .BYTE %00100101, %01000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00101000, %10100000
-                .BYTE %00100000, %00100000
-SPRITE_player_wave_goodbye_2:_CreepIMG_Header 2, 21, COLOR::YELLOW
-                .BYTE %00000000, %00000010
-                .BYTE %00000010, %00000010
-                .BYTE %00001010, %10000001
-                .BYTE %00001010, %10000100
-                .BYTE %00001010, %10000100
-                .BYTE %00001010, %10000100
-                .BYTE %00000010, %00000100
-                .BYTE %00000101, %01010000
-                .BYTE %00010101, %01000000
-                .BYTE %01000101, %01000000
-                .BYTE %01000101, %01000000
-                .BYTE %01000101, %01000000
-                .BYTE %00100101, %01000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00101000, %10100000
-                .BYTE %00100000, %00100000
-SPRITE_player_wave_goodbye_3:_CreepIMG_Header 2, 21, COLOR::YELLOW
-                .BYTE %00000000, %00100000
-                .BYTE %00000010, %00100000
-                .BYTE %00001010, %10010000
-                .BYTE %00001010, %10000100
-                .BYTE %00001010, %10000100
-                .BYTE %00001010, %10000100
-                .BYTE %00000010, %00000100
-                .BYTE %00000101, %01010000
-                .BYTE %00010101, %01000000
-                .BYTE %01000101, %01000000
-                .BYTE %01000101, %01000000
-                .BYTE %01000101, %01000000
-                .BYTE %00100101, %01000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001111, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00001100, %11000000
-                .BYTE %00101000, %10100000
-                .BYTE %00100000, %00100000
-
-SNDEFFECT_TABLE:.WORD SNDEFFECT_LASER_FIRED; 0
-                .WORD SNDEFFECT_TRAPDOOR_SWITCHED; 1
-                .WORD SNDEFFECT_FORCEFIELD_TIMER; 2
-                .WORD SNDEFFECT_DOOR_OPEN; 3
-                .WORD SNDEFFECT_TELEPORT; 4
-                .WORD SNDEFFECT_TELEPORT_CHANGE; 5
-                .WORD SNDEFFECT_LIGHTNING_SWITCHED; 6
-                .WORD SNDEFFECT_FRANKENSTEIN_WAKEUP; 7
-                .WORD SNDEFFECT_SPRITE_FLASH; 8
-                .WORD SNDEFFECT_MAP_CLOSE; 9
-                .WORD SNDEFFECT_MOVINGSIDEWALK_SWITCH; 10
-                .WORD SNDEFFECT_MUMMY_RELEASE; 11
-                .WORD SNDEFFECT_KEY_PICKUP; 12
+SNDEFFECT_TABLE:.addr SNDEFFECT_LASER_FIRED; 0
+                .addr SNDEFFECT_TRAPDOOR_SWITCHED; 1
+                .addr SNDEFFECT_FORCEFIELD_TIMER; 2
+                .addr SNDEFFECT_DOOR_OPEN; 3
+                .addr SNDEFFECT_TELEPORT; 4
+                .addr SNDEFFECT_TELEPORT_CHANGE; 5
+                .addr SNDEFFECT_LIGHTNING_SWITCHED; 6
+                .addr SNDEFFECT_FRANKENSTEIN_WAKEUP; 7
+                .addr SNDEFFECT_SPRITE_FLASH; 8
+                .addr SNDEFFECT_MAP_CLOSE; 9
+                .addr SNDEFFECT_MOVINGSIDEWALK_SWITCH; 10
+                .addr SNDEFFECT_MUMMY_RELEASE; 11
+                .addr SNDEFFECT_KEY_PICKUP; 12
 
 SNDEFFECT_LASER_FIRED:.BYTE SOUND_CMDS::SET_ADSR_etc
                 _SID_ADSR 0, $80, $A, $A
@@ -15472,7 +13262,7 @@ SNDEFFECT_TABLE_INIT:.addr $75FF
 
 ; =============== S U B R O U T I N E =======================================
 
-GAME_optionsMenuPrepare:
+.proc GAME_optionsMenuPrepare
                 PHA
                 TYA
                 PHA
@@ -15793,5 +13583,5 @@ TXT_GameSelection:_CreepOptionsMenu 5, 3, OPTION_ACTION::NONE
                 scrcode "LOAD GAME"
                 .BYTE $BA
                 .BYTE $FF
-
+.endproc
                 .END

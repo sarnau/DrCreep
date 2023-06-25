@@ -666,7 +666,7 @@ TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 
 .struct CreepObjectVars_MatterTransmitter
 	objectPtr      .addr
-	color          .byte ; enum C64_COLORS
+	color          .byte ; enum COLOR
 	flickerCount   .byte
 	XPos           .byte
 	YPos           .byte
@@ -679,7 +679,7 @@ TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 	id             .byte
 	doorIsOpen     .byte
 	openingCount   .byte
-	color          .byte ; enum C64_COLORS
+	color          .byte ; enum COLOR
 	field_4        .byte
 	field_5        .byte
 	field_6        .byte
@@ -1030,7 +1030,7 @@ escapeCastleOutsidePtr .addr
 .struct CreepObj_MatterTransmitter
 	XPos           .byte
 	YPos           .byte
-	Color          .byte                 ; enum C64_COLORS
+	Color          .byte                 ; enum COLOR
 	destinations   .tag CreepObj_MatterTransmitter_Destinations
 				   .tag CreepObj_MatterTransmitter_Destinations
 .endstruct
@@ -1064,7 +1064,7 @@ escapeCastleOutsidePtr .addr
 .struct CreepObj_Text
 	XPos           .byte
 	YPos           .byte
-	Color          .byte                 ; enum C64_COLORS
+	Color          .byte                 ; enum COLOR
 	Font           .byte                 ; enum TEXTFONT
 .endstruct
 .macro _CreepObj_Text xPos,yPos,color,font
@@ -1151,8 +1151,16 @@ time           .byte
 .endmacro
 
 .struct RASTER_LINE_INFO
-	color          .byte  ; enum C64_COLORS
+	color          .byte  ; enum COLOR
 	rasterLine     .byte
+.endstruct
+
+.struct SPRITE_TABLE
+	execute         .addr
+	collision       .addr
+	objectCollision .addr
+	collisionMask   .byte
+	flashes         .byte ; SPRITE_FLAGS::FLASH_ENABLED
 .endstruct
 
 ; ################################################################################
@@ -1168,15 +1176,15 @@ IRQ_VIC_MSIGX:     .res 1 ; MSBs of X coordinates
 IRQ_VIC_ME:        .res 1 ; Sprite enabled
 IRQ_VIC_VM_CB:     .res 1 ; Memory pointers
 IRQ_VIC_EC_BORDER: .res 1 ; Border color
-                   .res 1 ; uninited & unexplored
+                   .res 1 ; unused
 IRQ_VIC_CR2:       .res 1 ; Control register 2
-IRQ_VIC_SPRITE_ADR:.res 8
-                   .res 2 ; (uninited)
+IRQ_VIC_SPRITE_ADR:.res 8 ; addresses for the 8 sprites
+                   .res 2 ; unused
 .assert * = $30, error, "VIC mirror registers are not 32 bytes long"
 
 ; zero-page pointers to various data
-PP_A:			.res 2
-PP_B:			.res 2
+PP_A:			.res 2 ; generic pointer, typically used as a source
+PP_B:			.res 2 ; generic pointer, typically used as a destination
 screenDraw_BitmapLineAdr: .res 2
 _screenDraw_Current_BitmapAdr: .res 2
 screenDraw_PTR:  .res 2
