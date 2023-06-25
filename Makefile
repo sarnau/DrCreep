@@ -1,6 +1,10 @@
 .SUFFIXES:
 
+clean:
+	rm -rf "bin/"
+
 all:
+	mkdir -p "bin/"
 	/Users/sarnau/GitHub/cc65/bin/cl65  -C c64-asm.cfg creepload.s --start-addr 0xc000 -o ./bin/creepload.prg
 	/Users/sarnau/GitHub/cc65/bin/cl65  -C c64-asm.cfg object_sndEffect.s --start-addr 0x7574 -o ./bin/object_sndEffect.prg
 	/Users/sarnau/GitHub/cc65/bin/cl65  -C c64-asm.cfg object.s --start-addr 0x0800 -o ./bin/object.prg

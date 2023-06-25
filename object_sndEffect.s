@@ -17,6 +17,8 @@
 ; And because I want to move on and probably patching the sound effects is rare, I
 ; just created this table of pointers.
 
+; For now that also means: the length of the application can NOT change!
+
 ; Code entriess for the sound effects, which is an overlay
 ; SNDEFFECT_DOOR_OPEN_NOTE := $75B7
 ; SNDEFFECT_FORCEFIELD_TIMER_NOTE := $75AB

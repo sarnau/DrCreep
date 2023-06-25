@@ -12851,6 +12851,7 @@ CalcScreenDirectionAddrForSprite_Bottom_subpixel:.BYTE $A0
 selectedDoor_Count:.BYTE $A1
 
 				.include "object_images.s"
+.assert * = SNDEFFECT_TABLE, error, "SNDEFFECT_TABLE is at the wrong address"
 				.include "object_optionMenu.s"
 SNDEFFECT_TABLE_INIT:
                 .END
