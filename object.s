@@ -90,7 +90,7 @@ _ObjectImage:
 		JMP     obj_Image_Object_Setup
 
 ; ---------------------------------------------------------------------------
-SND_DisableSoundEffects:.BYTE 0  ; Always 0, maybe 1 in the tape version?
+SND_DisableSoundEffects:.BYTE 0  ; Always 0, maybe 1 during the original development only?
 
                 .BYTE $80, $40, $20, $10 ; unused
 
@@ -231,7 +231,7 @@ MAP_ROOM_STOP_DRAW:.BYTE ROOM_FLAGS::STOP_DRAW
 .endif
                 JSR     GAME_optionsMenuPrepare
 
-                LDA     SND_DisableSoundEffects ; Always 0, maybe 1 in the tape version?
+                LDA     SND_DisableSoundEffects ; Always 0, maybe 1 during the original development only?
                 CMP     #1
                 BEQ     loc_953
 
@@ -2507,7 +2507,7 @@ _obj_Ladder_Prepare_Height:.BYTE $D2
                 PHA
                 TYA
                 PHA
-                LDA     SND_DisableSoundEffects ; Always 0, maybe 1 in the tape version?
+                LDA     SND_DisableSoundEffects ; Always 0, maybe 1 during the original development only?
                 CMP     #1
                 BEQ     :+
                 LDA     VIC::CR1         ; Control register 1
@@ -3662,7 +3662,7 @@ SND_FREQ_TABLE_HIGH:.BYTE $01,$01,$01,$01,$01,$01,$01,$01; 0
                 LDA     Intro_IsInIntroFlag
                 CMP     #1                  ; No effects in the intro
                 BEQ     @return
-                LDA     SND_DisableSoundEffects ; Always 0, maybe 1 in the tape version?
+                LDA     SND_DisableSoundEffects ; Always 0, maybe 1 during the original development only?
                 CMP     #1                  ; No effects, if globally turned off
                 BEQ     @return
                 LDA     SND_PlayingSound    ; Already playing something?
