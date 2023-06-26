@@ -3,11 +3,15 @@
 .include "DrCreep.inc"
 
 ; Remove comment to just patch out the protection, but leave everything else in place.
-; This just patches 5 bytes (avoiding the 1541 read erro check, modify decrypt values)
-JUST_PATCH_PROTECTION = 1
+; This just patches 5 bytes (avoiding the 1541 read error check, modify decrypt values)
+; JUST_PATCH_PROTECTION = 1
 
 ; Remove comment to complete remove the protection, which changes the program size
-;REMOVE_PROTECTION = 1
+; REMOVE_PROTECTION = 1
+
+; In the shipping version there are some flickering dots at the
+; bottom left side of the screen. This fixes it.
+; FIX_FLICKER = 1
 
 ; set a pointer to an address
 .macro IRQ_DELAY delayValue
@@ -445,14 +449,16 @@ _DisableSpritesAndStopSound_FIRST_RUN:.BYTE 0
                 LDA     IRQ_VECTOR_RASTER_TABLE + RASTER_LINE_INFO::color,X
                 NOP
                 NOP
-                NOP                     ; should only be 3 NOPs to avoid the blinking dots
+                NOP
                 NOP
                 NOP
                 NOP
                 STA     VIC::BGCOL0     ; Background color 0
-
-; with only 3 NOPs, here clear bit 7 in VIC_CR1
-
+.ifdef FIX_FLICKER
+                LDA     VIC::CR1         ; Control register 1
+                AND     #(~VIC_CR1_FLAGS::RST8) & $FF
+                STA     VIC::CR1         ; Control register 1
+.endif
                 CPX     #0
                 BEQ     :+
                 JMP     @rasterIRQ
