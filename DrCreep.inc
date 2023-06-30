@@ -413,10 +413,10 @@ TOP_HIGHRESVIDEORAM := $E000 ; address of the 8kb highres video data
 .endenum
 
 .enum OBJ_MUMMY_STATE
-	END_OF_LIST
-	SLEEPING
-	AWAKE
-	DIEING
+	END_OF_LIST		; end of mummy list marker
+	SLEEPING		; mummy is sleeping in the tomb
+	AWAKE			; mummy is awake after triggered by the ankh
+	DIEING			; mummy dies or is already dead
 .endenum
 
 .enum IMG_FLAGS
@@ -921,44 +921,44 @@ escapeCastleOutsidePtr .addr
 ; ===========================================================================
 
 .struct CreepObj_Door
-	XPos           .byte
-	YPos           .byte
-	Flags          .byte
+	XPos           .byte	; X position of the door
+	YPos           .byte	; Y position of the door
+	Flags          .byte	; Bit 0-1: 0:N, 1:E, 0:S, 3:W, Bit 7: door is open
 	DestinationRoom .byte
 	DestinationDoor .byte
-	mapDoorXOffset .byte
-	mapDoorYOffset .byte
-	Typ            .byte
+	mapDoorXOffset .byte	; X position of the door in the room on the map
+	mapDoorYOffset .byte	; Y position of the door in the room on the map
+	Typ            .byte	; OBJ_DOOR_TYPE (0 = normal, 1 = castle exit)
 .endstruct
 
 .struct CreepObj_Walkway
-	Length         .byte
-	XPos           .byte
-	YPos           .byte
+	Length         .byte	; length in 8 pixel, 00 = end of list
+	XPos           .byte	; X position of the left starting point
+	YPos           .byte	; Y position of the left starting point
 .endstruct
 
 .struct CreepObj_SlidingPole
-	Length         .byte
-	XPos           .byte
-	YPos           .byte
+	Length         .byte	; length of the pole, 00 = end of list
+	XPos           .byte	; X position of the top starting point
+	YPos           .byte	; Y position of the top starting point
 .endstruct
 
 .struct CreepObj_Ladder
-	Length         .byte
-	XPos           .byte
-	YPos           .byte
+	Length         .byte	; length of the ladder, 00 = end of list
+	XPos           .byte	; X position of the top starting point
+	YPos           .byte	; Y position of the top starting point
 .endstruct
 
 .struct CreepObj_DoorBell
-	XPos           .byte
-	YPos           .byte
-	doorNumber     .byte
+	XPos           .byte	; X position
+	YPos           .byte	; Y position
+	doorNumber     .byte	; which door is controlled by the bell
 .endstruct
 
 .struct CreepObj_Lightning
-	Flags          .byte
-	XPos           .byte
-	YPos           .byte
+	Flags          .byte	; Bit 5:end of list, Bit 6-7: 0:off, 1:on, 2:switch down, 3:switch up
+	XPos           .byte	; X position
+	YPos           .byte	; Y position
 	Length         .byte
 	switchedIds    .byte
 				   .byte
@@ -967,44 +967,44 @@ escapeCastleOutsidePtr .addr
 .endstruct
 
 .struct CreepObj_Forcefield
-	XPos           .byte
-	YPos           .byte
-	XPosController .byte
-	YPosController .byte
+	XPosSwitch     .byte	; X position of the switch
+	YPosSwitch     .byte	; Y position of the switch
+	XPosField      .byte	; X position of the force field
+	YPosField      .byte	; Y position of the force field
 .endstruct
 
 .struct CreepObj_Mummy
-	Type           .byte
-	XPos           .byte
-	YPos           .byte
-	mummyXPos      .byte
-	mummyYPos      .byte
-	savedXPos      .byte
-	savedYPos      .byte
+	Type           .byte	; OBJ_MUMMY_STATE
+	XPosAnkh       .byte	; X position of the ankh
+	YPosAnkh       .byte	; Y position of the ankh
+	XPosTomb       .byte	; X position of the mummy tomb
+	YPosTomb	   .byte	; Y position of the mummy tomb
+	XPosMummy      .byte	; X position of the mummy during the game
+	YPosMummy      .byte	; Y position of the mummy during the game
 .endstruct
 
 .struct CreepObj_Key
-	id             .byte
-	GfxID          .byte ; Graphics for the key, 0 = key was picked up
-	XPos           .byte
-	YPos           .byte
+	id             .byte    ; 0 = end of list, 1..7 = key color (white,red,cyan,purple,green,blue,yellow)
+	GfxID          .byte    ; enum GfxID for the key, 0 = key was picked up
+	XPos           .byte	; X position of the key
+	YPos           .byte	; Y position of the key
 .endstruct
 
 .struct CreepObj_DoorLock
-	keyId          .byte
-	field_1        .byte
-	doorId         .byte
-	XPos           .byte
-	YPos           .byte
+	keyId          .byte    ; 0 = end of list, 1..7 = key color (white,red,cyan,purple,green,blue,yellow)
+	unused         .byte	; unused
+	doorId         .byte	; target door controlled by the key
+	XPos           .byte	; X position of the door lock
+	YPos           .byte	; Y position of the door lock
 .endstruct
 
 .struct CreepObj_MultiDraw
-	Repeat         .byte
-	gfxID          .byte
-	XPos           .byte
-	YPos           .byte
-	xOffset        .byte
-	yOffset        .byte
+	Repeat         .byte	; number of times the graphic should be repeated (0 = end of list)
+	gfxID          .byte	; enum GfxID
+	XPos           .byte	; X position of the graphic
+	YPos           .byte	; Y position of the graphic
+	xOffset        .byte	; X-offset for the next graphic
+	yOffset        .byte	; Y-offset for the next graphic
 .endstruct
 .macro _CreepObj_MultiDraw repeat,gfxID,xPos,yPos,xOffset,yOffset
 	.byte repeat,gfxID,xPos,yPos,xOffset,yOffset
@@ -1012,12 +1012,12 @@ escapeCastleOutsidePtr .addr
 
 .struct CreepObj_Raygun
 	Flags          .byte
-	XPos           .byte
-	YPos           .byte
-	Length         .byte
-	gunYPos        .byte
-	XPosController .byte
-	YPosController .byte
+	XPosTrack      .byte	; X position of the top of the track for the raygun
+	YPosTrack      .byte	; Y position of the top of the track for the raygun
+	Length         .byte	; length of the track for the raygun
+	YPosRaygun     .byte	; Y position of the movable raygun
+	XPosSwitch     .byte	; X position of the switch for the raygun
+	YPosSwitch     .byte	; Y position of the switch for the raygun
 .endstruct
 
 .struct CreepObj_MatterTransmitter_Destinations
@@ -1028,42 +1028,42 @@ escapeCastleOutsidePtr .addr
 .struct CreepObj_MatterTransmitter
 	XPos           .byte
 	YPos           .byte
-	Color          .byte                 ; enum COLOR
+	Color          .byte    ; enum COLOR
 	destinations   .tag CreepObj_MatterTransmitter_Destinations
 				   .tag CreepObj_MatterTransmitter_Destinations
 .endstruct
 
 .struct CreepObj_Trapdoor
 	Flags          .byte
-	XPos           .byte
-	YPos           .byte
-	XPosController .byte
-	YPosController .byte
+	XPos           .byte	; X position of the top of the trapdoor
+	YPos           .byte	; Y position of the top of the trapdoor
+	XPosSwitch     .byte	; X position of the switch for the trapdoor
+	YPosSwitch     .byte	; X position of the switch for the trapdoor
 .endstruct
 
 .struct CreepObj_MovingSidewalk
 	Flags          .byte
-	XPos           .byte
-	YPos           .byte
-	XPosController .byte
-	YPosController .byte
+	XPos           .byte	; X position of the top of the moving sidewalk
+	YPos           .byte	; Y position of the top of the moving sidewalk
+	XPosSwitch     .byte	; X position of the switch for the moving sidewalk
+	YPosSwitch     .byte	; Y position of the switch for the moving sidewalk
 .endstruct
 
 .struct CreepObj_Frankenstein
 	Flags          .byte
-	XPos           .byte
-	YPos           .byte
-	frankensteinXPos .byte
-	frankensteinYPos .byte
-	frankensteinGfxID .byte               ; enum GfxID
-	frankensteinDirection .byte           ; enum JOYSTICK_DIRECTION
+	XPosCoffin     .byte	; X position of the top of the coffin
+	YPosCoffin     .byte	; Y position of the top of the coffin
+	XPosFrankestein .byte	; X position of frankenstein during the game
+	YPosFrankestein .byte	; Y position of frankenstein during the game
+	gfxIDFrankenstein .byte ; enum GfxID
+	dirFrankenstein .byte   ; enum JOYSTICK_DIRECTION
 .endstruct
 
 .struct CreepObj_Text
-	XPos           .byte
-	YPos           .byte
-	Color          .byte                 ; enum COLOR
-	Font           .byte                 ; enum TEXTFONT
+	XPos           .byte	; X position of the top of the text
+	YPos           .byte	; Y position of the top of the text
+	Color          .byte    ; enum COLOR
+	Font           .byte    ; enum TEXTFONT
 .endstruct
 .macro _CreepObj_Text xPos,yPos,color,font
 	.byte xPos,yPos,color,font

@@ -6686,10 +6686,10 @@ obj_Forcefield_Execute_return:
                 JSR     Sprite_Create
                 LDA     #SPRITE_TYPE::FORCEFIELD
                 STA     mSprites + CreepSprite::spriteType,X
-                LDY     #CreepObj_Forcefield::XPosController
+                LDY     #CreepObj_Forcefield::XPosField
                 LDA     (object_Ptr),Y
                 STA     mSprites + CreepSprite::XPos,X
-                LDY     #CreepObj_Forcefield::YPosController
+                LDY     #CreepObj_Forcefield::YPosField
                 LDA     (object_Ptr),Y
                 CLC
                 ADC     #2
@@ -6793,12 +6793,12 @@ loc_3828:
                 LDA     #1
                 STA     mSprites + CreepSprite::data + CreepSprite_Mummy::flag,X ; Additional sprite depended data
                 CLC
-                LDY     #CreepObj_Mummy::mummyXPos
+                LDY     #CreepObj_Mummy::XPosTomb
                 LDA     (mVObjectPtr),Y
                 ADC     #4
                 STA     mSprites + CreepSprite::XPos,X
                 CLC
-                LDY     #CreepObj_Mummy::mummyYPos
+                LDY     #CreepObj_Mummy::YPosTomb
                 LDA     (mVObjectPtr),Y
                 ADC     #7
                 STA     mSprites + CreepSprite::YPos,X
@@ -6880,10 +6880,10 @@ loc_38B5:
                 STA     mSprites + CreepSprite::gfxID,X
 
 loc_38BA:
-                LDY     #CreepObj_Mummy::savedXPos
+                LDY     #CreepObj_Mummy::XPosMummy
                 LDA     mSprites + CreepSprite::XPos,X
                 STA     (mVObjectPtr),Y
-                LDY     #CreepObj_Mummy::savedYPos
+                LDY     #CreepObj_Mummy::YPosMummy
                 LDA     mSprites + CreepSprite::YPos,X
                 STA     (mVObjectPtr),Y
 
@@ -7038,13 +7038,13 @@ loc_3967:
                 STA     mSprites + CreepSprite::data + CreepSprite_Mummy::slideOutAnimationIndex,X ; Additional sprite depended data
                 LDA     #4
                 STA     mSprites + CreepSprite::anim_phases,X ; Number of phases for the animation
-                LDY     #CreepObj_Mummy::mummyXPos
+                LDY     #CreepObj_Mummy::XPosTomb
                 CLC
                 LDA     (mVObjectPtr),Y
                 ADC     #13
                 STA     mSprites + CreepSprite::XPos,X
                 CLC
-                LDY     #CreepObj_Mummy::mummyYPos
+                LDY     #CreepObj_Mummy::YPosTomb
                 LDA     (mVObjectPtr),Y
                 ADC     #8
                 STA     mSprites + CreepSprite::YPos,X
@@ -7054,10 +7054,10 @@ loc_3967:
 loc_39D0:
                 LDA     #1
                 STA     mSprites + CreepSprite::data + CreepSprite_Mummy::flag,X ; Additional sprite depended data
-                LDY     #CreepObj_Mummy::savedXPos
+                LDY     #CreepObj_Mummy::XPosMummy
                 LDA     (mVObjectPtr),Y
                 STA     mSprites + CreepSprite::XPos,X
-                LDY     #CreepObj_Mummy::savedYPos
+                LDY     #CreepObj_Mummy::YPosMummy
                 LDA     (mVObjectPtr),Y
                 STA     mSprites + CreepSprite::YPos,X
                 LDA     #2
@@ -7587,16 +7587,16 @@ _obj_Frankenstein_Sprite_Execute_updateSprite:
 
 obj_Frankenstein_Sprite_Execute_noMovement:
                 LDA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::direction,X ; Additional sprite depended data
-                LDY     #CreepObj_Frankenstein::frankensteinDirection
+                LDY     #CreepObj_Frankenstein::dirFrankenstein
                 STA     (mVObjectPtr),Y
                 LDA     mSprites + CreepSprite::XPos,X
-                LDY     #CreepObj_Frankenstein::frankensteinXPos
+                LDY     #CreepObj_Frankenstein::XPosFrankestein
                 STA     (mVObjectPtr),Y
                 LDA     mSprites + CreepSprite::YPos,X
-                LDY     #CreepObj_Frankenstein::frankensteinYPos
+                LDY     #CreepObj_Frankenstein::YPosFrankestein
                 STA     (mVObjectPtr),Y
                 LDA     mSprites + CreepSprite::gfxID,X
-                LDY     #CreepObj_Frankenstein::frankensteinGfxID
+                LDY     #CreepObj_Frankenstein::gfxIDFrankenstein
                 STA     (mVObjectPtr),Y
 
 _obj_Frankenstein_Sprite_Execute_return:
@@ -7772,10 +7772,10 @@ _obj_Frankenstein_Sprite_Execute_return:
                 STA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::flags,X ; Additional sprite depended data
                 BIT     FRANKENSTEIN_AWAKE
                 BNE     loc_3EC8
-                LDY     #CreepObj_Frankenstein::XPos
+                LDY     #CreepObj_Frankenstein::XPosCoffin
                 LDA     (object_Ptr),Y
                 STA     mSprites + CreepSprite::XPos,X
-                LDY     #CreepObj_Frankenstein::YPos
+                LDY     #CreepObj_Frankenstein::YPosCoffin
                 LDA     (object_Ptr),Y
                 CLC
                 ADC     #7
@@ -7786,16 +7786,16 @@ _obj_Frankenstein_Sprite_Execute_return:
 ; ---------------------------------------------------------------------------
 
 loc_3EC8:
-                LDY     #CreepObj_Frankenstein::frankensteinXPos
+                LDY     #CreepObj_Frankenstein::XPosFrankestein
                 LDA     (object_Ptr),Y
                 STA     mSprites + CreepSprite::XPos,X
-                LDY     #CreepObj_Frankenstein::frankensteinYPos
+                LDY     #CreepObj_Frankenstein::YPosFrankestein
                 LDA     (object_Ptr),Y
                 STA     mSprites + CreepSprite::YPos,X
-                LDY     #CreepObj_Frankenstein::frankensteinGfxID
+                LDY     #CreepObj_Frankenstein::gfxIDFrankenstein
                 LDA     (object_Ptr),Y
                 STA     mSprites + CreepSprite::gfxID,X
-                LDY     #CreepObj_Frankenstein::frankensteinDirection
+                LDY     #CreepObj_Frankenstein::dirFrankenstein
                 LDA     (object_Ptr),Y
                 STA     mSprites + CreepSprite::data + CreepSprite_Frankenstein::direction,X ; Additional sprite depended data
 
@@ -9030,7 +9030,7 @@ obj_Forcefield_Timer_InFront_return:
                 STA     obj_Forcefield_Prepare_ForcefieldCount
 
 obj_Forcefield_Prepare_loop:
-                LDY     #CreepObj_Forcefield::XPos
+                LDY     #CreepObj_Forcefield::XPosSwitch
                 LDA     (object_Ptr),Y
                 BNE     loc_46C7
                 INC     object_Ptr
@@ -9046,10 +9046,10 @@ loc_46C7:
                 LDA     #OBJECT_TYPE::FORCEFIELD_BUTTON
                 STA     mObjects + CreepObject::objectType,X
 
-                LDY     #CreepObj_Forcefield::XPos
+                LDY     #CreepObj_Forcefield::XPosSwitch
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_Forcefield::YPos
+                LDY     #CreepObj_Forcefield::YPosSwitch
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Top
                 LDA     #GfxID::forcefield_switch
@@ -9084,10 +9084,10 @@ loc_4705:
                 STA     _obj_Forcefield_isActiveFlag,Y
                 JSR     obj_Forcefield_Create_Sprite
 
-                LDY     #CreepObj_Forcefield::XPosController
+                LDY     #CreepObj_Forcefield::XPosField
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_Forcefield::YPosController
+                LDY     #CreepObj_Forcefield::YPosField
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Top
                 LDA     #GfxID::forcefield_gate_top
@@ -9204,16 +9204,16 @@ _obj_Ankh_ObjectCollision_awakeMummy:
                 LDY     #CreepObj_Mummy::Type
                 STA     (mVObjectPtr),Y
                 CLC
-                LDY     #CreepObj_Mummy::mummyXPos
+                LDY     #CreepObj_Mummy::XPosTomb
                 LDA     (mVObjectPtr),Y
                 ADC     #4
-                LDY     #CreepObj_Mummy::savedXPos
+                LDY     #CreepObj_Mummy::XPosMummy
                 STA     (mVObjectPtr),Y
                 CLC
-                LDY     #CreepObj_Mummy::mummyYPos
+                LDY     #CreepObj_Mummy::YPosTomb
                 LDA     (mVObjectPtr),Y
                 ADC     #7
-                LDY     #CreepObj_Mummy::savedYPos
+                LDY     #CreepObj_Mummy::YPosMummy
                 STA     (mVObjectPtr),Y
                 LDY     _obj_Ankh_ObjectCollision_saveY
                 LDA     mObjects + CreepObject::flags,Y
@@ -9224,12 +9224,12 @@ _obj_Ankh_ObjectCollision_awakeMummy:
                 LDA     #(COLOR::BLUE<<4)+COLOR::BLUE
                 STA     mObjectsVars + CreepObjectVars_Ankh::ankh_color,Y
 
-                LDY     #CreepObj_Mummy::mummyXPos
+                LDY     #CreepObj_Mummy::XPosTomb
                 LDA     (mVObjectPtr),Y
                 CLC
                 ADC     #4
                 STA     DRAW_Image_Mask_Left
-                LDY     #CreepObj_Mummy::mummyYPos
+                LDY     #CreepObj_Mummy::YPosTomb
                 LDA     (mVObjectPtr),Y
                 CLC
                 ADC     #8
@@ -9310,10 +9310,10 @@ loc_4897:       JSR     Object_Create   ; Create an object, return the offset in
 
                 LDA     #OBJECT_TYPE::ANKH
                 STA     mObjects + CreepObject::objectType,X
-                LDY     #CreepObj_Mummy::XPos
+                LDY     #CreepObj_Mummy::XPosAnkh
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_Mummy::YPos
+                LDY     #CreepObj_Mummy::YPosAnkh
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Top
                 LDA     #GfxID::ankh
@@ -9331,7 +9331,7 @@ loc_48BF:       STA     OBJECT_ankh_COLOR,Y
                 LDA     #3
                 STA     _obj_Mummy_Prepare_VCount
 
-                LDY     #CreepObj_Mummy::mummyYPos
+                LDY     #CreepObj_Mummy::YPosTomb
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Top
                 LDA     #SCREEN_DRAW_MODE::Foreground
@@ -9341,7 +9341,7 @@ loc_48BF:       STA     OBJECT_ankh_COLOR,Y
 
 loc_48DE:       LDA     #5
                 STA     _obj_Mummy_Prepare_WCount
-                LDY     #CreepObj_Mummy::mummyXPos
+                LDY     #CreepObj_Mummy::XPosTomb
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Left
 
@@ -9365,12 +9365,12 @@ loc_48EA:       JSR     DRAW_Image
                 CMP     #OBJ_MUMMY_STATE::SLEEPING
                 BEQ     loc_496E
 
-                LDY     #CreepObj_Mummy::mummyXPos
+                LDY     #CreepObj_Mummy::XPosTomb
                 LDA     (object_Ptr),Y
                 CLC
                 ADC     #4
                 STA     DRAW_Image_Mask_Left
-                LDY     #CreepObj_Mummy::mummyYPos
+                LDY     #CreepObj_Mummy::YPosTomb
                 LDA     (object_Ptr),Y
                 CLC
                 ADC     #8
@@ -9784,14 +9784,14 @@ obj_RayGun_Execute_movement:
                 BIT     RAYGUN_MOVE_UP  ; Move the Raygun up
                 BEQ     obj_RayGun_Execute_notMoveUp
 
-                LDY     #CreepObj_Raygun::gunYPos
+                LDY     #CreepObj_Raygun::YPosRaygun
                 LDA     (mVObjectPtr),Y
-                LDY     #CreepObj_Raygun::YPos
+                LDY     #CreepObj_Raygun::YPosTrack
                 CMP     (mVObjectPtr),Y
                 BEQ     obj_RayGun_Execute_noMovement
                 SEC
                 SBC     #1
-                LDY     #CreepObj_Raygun::gunYPos
+                LDY     #CreepObj_Raygun::YPosRaygun
                 STA     (mVObjectPtr),Y
                 LDA     #(COLOR::GREEN<<4)+COLOR::GREY
                 JSR     obj_RayGun_Control_Update_Color
@@ -9809,12 +9809,12 @@ obj_RayGun_Execute_noMovement:
 ; ---------------------------------------------------------------------------
 
 obj_RayGun_Execute_moveDown:
-                LDY     #CreepObj_Raygun::gunYPos
+                LDY     #CreepObj_Raygun::YPosRaygun
                 LDA     (mVObjectPtr),Y
                 CMP     mObjectsVars + CreepObjectVars_RayGun::YPos,X
                 BCS     obj_RayGun_Execute_noMovement
                 CLC
-                ADC     #CreepObj_Raygun::XPos
+                ADC     #CreepObj_Raygun::XPosTrack
                 STA     (mVObjectPtr),Y
                 LDA     #(COLOR::GREY<<4)+COLOR::RED
                 JSR     obj_RayGun_Control_Update_Color
@@ -9822,7 +9822,7 @@ obj_RayGun_Execute_moveDown:
 _obj_RayGun_Object_Execute_disabled:
                 LDA     mObjects + CreepObject::XPos,X
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_Raygun::gunYPos
+                LDY     #CreepObj_Raygun::YPosRaygun
                 LDA     (mVObjectPtr),Y
                 STA     DRAW_Image_Foreground_Top
 
@@ -9836,7 +9836,7 @@ _obj_RayGun_Object_Execute_disabled:
 
 loc_4C0F:       LDA     #0              ; Facing right Tracking Animation
 loc_4C11:       STA     obj_RayGun_FacingDir
-                LDY     #CreepObj_Raygun::gunYPos
+                LDY     #CreepObj_Raygun::YPosRaygun
                 LDA     (mVObjectPtr),Y
                 AND     #%11
                 ORA     obj_RayGun_FacingDir
@@ -9909,10 +9909,10 @@ loc_4C7E:
                 AND     (object_Ptr),Y
                 STA     (object_Ptr),Y
 
-                LDY     #CreepObj_Raygun::XPos
+                LDY     #CreepObj_Raygun::XPosTrack
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_Raygun::YPos
+                LDY     #CreepObj_Raygun::YPosTrack
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Top
                 LDA     #SCREEN_DRAW_MODE::Foreground
@@ -9951,7 +9951,7 @@ loc_4CB4:
 loc_4CCB:
                 LDY     #CreepObj_Raygun::Flags
                 LDA     (object_Ptr),Y
-                BIT     RAYGUN_TRACK_ONLY ; Only generate the Raygun track, but not the actual Raygun
+                BIT     RAYGUN_SWITCH_ONLY ; Only generate the Raygun switch, but not the track
                 BNE     loc_4D1A
 
                 JSR     Object_Create   ; Create an object, return the offset in X. C = 1, if error
@@ -9967,7 +9967,7 @@ loc_4CCB:
                 ASL     A
                 ASL     A
                 ASL     A
-                LDY     #CreepObj_Raygun::YPos
+                LDY     #CreepObj_Raygun::YPosTrack
                 CLC
                 ADC     (object_Ptr),Y
                 SEC
@@ -9979,7 +9979,7 @@ loc_4CCB:
                 BIT     RAYGUN_FACING_LEFT ; Raygun is facing left (vs right)
                 BNE     loc_4D10
                 CLC
-                LDY     #CreepObj_Raygun::XPos
+                LDY     #CreepObj_Raygun::XPosTrack
                 LDA     (object_Ptr),Y
                 ADC     #4
                 JMP     loc_4D17
@@ -9987,7 +9987,7 @@ loc_4CCB:
 
 loc_4D10:
                 SEC
-                LDY     #CreepObj_Raygun::XPos
+                LDY     #CreepObj_Raygun::XPosTrack
                 LDA     (object_Ptr),Y
                 SBC     #8
 
@@ -9998,10 +9998,10 @@ loc_4D1A:
                 JSR     Object_Create   ; Create an object, return the offset in X. C = 1, if error
                 LDA     #OBJECT_TYPE::RAYGUN_CONTROLLER
                 STA     mObjects + CreepObject::objectType,X
-                LDY     #CreepObj_Raygun::XPosController
+                LDY     #CreepObj_Raygun::XPosSwitch
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_Raygun::YPosController
+                LDY     #CreepObj_Raygun::YPosSwitch
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Top
                 LDA     #GfxID::raygun_button
@@ -10042,7 +10042,7 @@ _obj_RayGun_Execute_Player:.BYTE $C2
 RAYGUN_END_MARKER:.BYTE $80
 RAYGUN_SHOT_ACTIVE:.BYTE $40            ; The Raygun can only fire one shot at the time
 RAYGUN_PLAYER_CONTROLLING:.BYTE $20     ; A player is in active control of the Raygun
-RAYGUN_TRACK_ONLY:.BYTE $10             ; Only generate the Raygun track, but not the actual Raygun
+RAYGUN_SWITCH_ONLY:.BYTE $10            ; Only generate the Raygun switch, but not the actual Raygun track
 RAYGUN_FIRED_BY_PLAYER:.BYTE 8          ; The shot was fired by the player
 RAYGUN_MOVE_UP: .BYTE 4                 ; Move the Raygun up
 RAYGUN_MOVE_DOWN:.BYTE 2                ; Move the Raygun down
@@ -10131,10 +10131,10 @@ obj_RayGun_Control_InFront_return:
                 STA     OBJECT_raygun_button_colormask_COLOR
                 STA     OBJECT_raygun_button_colormask_COLOR+1
 
-                LDY     #CreepObj_Raygun::XPosController
+                LDY     #CreepObj_Raygun::XPosSwitch
                 LDA     (mVObjectPtr),Y
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_Raygun::YPosController
+                LDY     #CreepObj_Raygun::YPosSwitch
                 LDA     (mVObjectPtr),Y
                 STA     DRAW_Image_Foreground_Top
                 LDA     #SCREEN_DRAW_MODE::Foreground
@@ -10746,10 +10746,10 @@ loc_522E:
                 JSR     Object_Create   ; Create an object, return the offset in X. C = 1, if error
                 LDA     #OBJECT_TYPE::TRAPDOOR_SWITCH
                 STA     mObjects + CreepObject::objectType,X
-                LDY     #CreepObj_Trapdoor::XPosController
+                LDY     #CreepObj_Trapdoor::XPosSwitch
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_Trapdoor::YPosController
+                LDY     #CreepObj_Trapdoor::YPosSwitch
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Top
                 LDA     #GfxID::trapdoor_controller
@@ -10913,10 +10913,10 @@ _obj_TrapDoor_Switch_Check_doorOpen:
                 STA     (ScreenDirectionAddr),Y
 
 _obj_TrapDoor_Switch_Check_continue:
-                LDY     #CreepObj_Trapdoor::XPosController
+                LDY     #CreepObj_Trapdoor::XPosSwitch
                 LDA     (mVObjectPtr),Y
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_Trapdoor::YPosController
+                LDY     #CreepObj_Trapdoor::YPosSwitch
                 LDA     (mVObjectPtr),Y
                 STA     DRAW_Image_Foreground_Top
                 LDA     #GfxID::trapdoor_controller
@@ -11015,10 +11015,10 @@ loc_53EC:
                 STA     SNDEFFECT_MOVINGSIDEWALK_SWITCH_NOTE
 
 loc_53FB:
-                LDY     #CreepObj_MovingSidewalk::XPosController
+                LDY     #CreepObj_MovingSidewalk::XPosSwitch
                 LDA     (mVObjectPtr),Y
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_MovingSidewalk::YPosController
+                LDY     #CreepObj_MovingSidewalk::YPosSwitch
                 LDA     (mVObjectPtr),Y
                 STA     DRAW_Image_Foreground_Top
                 LDA     #GfxID::movingsidewalk_controller
@@ -11234,10 +11234,10 @@ loc_5527:
                 STA     mObjects + CreepObject::objectType,X
                 LDA     _obj_MovingSidewalk_setup_movingsidewalk_id
                 STA     mObjectsVars + CreepObjectVars_MovingSidewalk_Button::id,X
-                LDY     #CreepObj_MovingSidewalk::XPosController
+                LDY     #CreepObj_MovingSidewalk::XPosSwitch
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_MovingSidewalk::YPosController
+                LDY     #CreepObj_MovingSidewalk::YPosSwitch
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Top
                 LDA     #GfxID::movingsidewalk_controller
@@ -11273,12 +11273,12 @@ loc_55CB:
 loc_55D5:
                 JSR     DRAW_Image
 
-                LDY     #CreepObj_MovingSidewalk::XPosController
+                LDY     #CreepObj_MovingSidewalk::XPosSwitch
                 LDA     (object_Ptr),Y
                 CLC
                 ADC     #4
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_MovingSidewalk::YPosController
+                LDY     #CreepObj_MovingSidewalk::YPosSwitch
                 LDA     (object_Ptr),Y
                 CLC
                 ADC     #8
@@ -11391,11 +11391,11 @@ loc_5671:
 ; ---------------------------------------------------------------------------
 
 loc_5674:
-                LDY     #CreepObj_Frankenstein::XPos
+                LDY     #CreepObj_Frankenstein::XPosCoffin
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Mask_Left
                 CLC
-                LDY     #CreepObj_Frankenstein::YPos
+                LDY     #CreepObj_Frankenstein::YPosCoffin
                 LDA     (object_Ptr),Y
                 ADC     #24
                 STA     DRAW_Image_Mask_Top
@@ -11452,10 +11452,10 @@ loc_56C9:
                 JSR     Object_Create   ; Create an object, return the offset in X. C = 1, if error
                 LDA     #OBJECT_TYPE::FRANKENSTEIN
                 STA     mObjects + CreepObject::objectType,X
-                LDY     #CreepObj_Frankenstein::XPos
+                LDY     #CreepObj_Frankenstein::XPosCoffin
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Left
-                LDY     #CreepObj_Frankenstein::YPos
+                LDY     #CreepObj_Frankenstein::YPosCoffin
                 LDA     (object_Ptr),Y
                 STA     DRAW_Image_Foreground_Top
                 LDY     #CreepObj_Frankenstein::Flags
